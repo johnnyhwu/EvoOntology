@@ -1,0 +1,690 @@
+{
+ "task_id": "task_a1d4c5ce4abd",
+ "question": "北部客戶 2025 年 11 月的淨營收是多少？",
+ "ontology_version": "ontology_v0",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "北部客戶",
+     "淨營收"
+    ],
+    "context": "北部客戶 2025 年 11 月的淨營收是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "北部客戶",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact alias match: term '客戶地區'",
+      "term": {
+       "id": "term_region",
+       "type": "dimension",
+       "name": "客戶地區",
+       "aliases": [
+        "region",
+        "region_code",
+        "地區",
+        "北部",
+        "中部",
+        "南部",
+        "日本",
+        "新加坡",
+        "TW-N",
+        "TW-C",
+        "TW-S",
+        "JP",
+        "SG",
+        "北部客戶",
+        "日本客戶"
+       ],
+       "definition": "客戶所在地區代碼：TW-N 北部、TW-C 中部、TW-S 南部、JP 日本、SG 新加坡。",
+       "scope": "依客戶歸屬的地區分析",
+       "evidence_refs": [
+        "ev_dim_region_tier"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_region",
+        "term_id": "term_region",
+        "table": "customers",
+        "column": "region_code",
+        "semantic_filter": "",
+        "aggregation_semantics": "依下單客戶的地區歸類訂單",
+        "grain": "每位客戶一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_customer_region",
+        "relation_type": "association",
+        "source": "term_customer",
+        "target": "term_region",
+        "connection_condition": "客戶資料表中的地區代碼欄位記錄客戶地區。",
+        "evidence_refs": [
+         "ev_dim_region_tier"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_dim_region_tier",
+        "source": "shop_v2",
+        "query": "SELECT c.region_code, c.tier, COUNT(*) valid_orders FROM orders o JOIN customers c ON c.customer_id=o.customer_id WHERE o.status IN (1,2,3) AND strftime('%Y',datetime(o.order_ts,'+8 hours'))='2025' GROUP BY 1,2 ORDER BY 3 DESC",
+        "result": "{\"columns\": [\"region_code\", \"tier\", \"valid_orders\"], \"rows\": [[\"TW-N\", \"B\", 12994], [\"TW-C\", \"B\", 9322], [\"TW-S\", \"B\", 6366], [\"TW-N\", \"S\", 3698], [\"JP\", \"B\", 3422], [\"TW-S\", \"S\", 2336], [\"TW-C\", \"S\", 2154], [\"TW-N\", \"G\", 2131], [\"SG\", \"B\", 1568], [\"TW-C\", \"G\", 1155], [\"JP\", \"S\", 869], [\"TW-S\", \"G\", 623], [\"SG\", \"S\", 437], [\"JP\", \"G\", 416], [\"SG\", \"G\", 208]]} | 解讀: customers 與 orders 無孤兒；region_code 與 tier 為客戶當前屬性（無歷史版本），日本客戶 = region_code 'JP'。",
+        "validation_method": "客戶維度串接有效訂單並檢查代碼值",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "淨營收",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '淨營收'",
+      "term": {
+       "id": "term_net_revenue",
+       "type": "metric",
+       "name": "淨營收",
+       "aliases": [
+        "net revenue",
+        "淨收入",
+        "營收",
+        "net sales",
+        "淨銷售額"
+       ],
+       "definition": "期間內有效訂單的商品金額總和，扣除這些訂單對應的退款金額；期間依訂單成立時間（台北時間）歸屬，退款歸屬原訂單。",
+       "scope": "依訂單成立時間歸屬期間的營收分析",
+       "evidence_refs": [
+        "ev_doc_net_revenue",
+        "ev_refund_attribution_gap",
+        "ev_refund_only_valid_orders",
+        "ev_price_unit_cents"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_net_revenue",
+        "term_id": "term_net_revenue",
+        "table": "order_items",
+        "column": "unit_price_cents",
+        "semantic_filter": "僅計入有效訂單；期間依訂單成立時間（台北時間）",
+        "aggregation_semantics": "有效訂單商品金額總和（TWD）減去這些訂單對應的退款金額；退款歸屬原訂單而非退款發生期間",
+        "grain": "期間彙總（訂單成立時間歸屬）",
+        "evidence_refs": []
+       },
+       {
+        "id": "map_net_revenue_refund",
+        "term_id": "term_net_revenue",
+        "table": "refunds",
+        "column": "refund_amount_twd",
+        "semantic_filter": "退款依其所屬原訂單的成立時間歸屬期間",
+        "aggregation_semantics": "作為淨營收的扣減項，單位 TWD",
+        "grain": "每筆明細退款一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_net_revenue_from_item_amount",
+        "relation_type": "derivation",
+        "source": "term_item_amount",
+        "target": "term_net_revenue",
+        "connection_condition": "淨營收由有效訂單的商品金額總和扣除對應退款金額而得。",
+        "evidence_refs": [
+         "ev_doc_net_revenue",
+         "ev_price_unit_cents"
+        ]
+       },
+       {
+        "id": "rel_net_revenue_from_refund",
+        "relation_type": "derivation",
+        "source": "term_refund_amount",
+        "target": "term_net_revenue",
+        "connection_condition": "屬於有效訂單的退款金額作為淨營收的扣減項，退款回扣其原訂單。",
+        "evidence_refs": [
+         "ev_doc_net_revenue",
+         "ev_refund_attribution_gap",
+         "ev_refund_only_valid_orders"
+        ]
+       },
+       {
+        "id": "rel_region_ranking_from_net_revenue",
+        "relation_type": "derivation",
+        "source": "term_net_revenue",
+        "target": "term_region_ranking",
+        "connection_condition": "地區淨營收為依客戶地區彙整的淨營收。",
+        "evidence_refs": [
+         "ev_dim_region_tier",
+         "ev_doc_net_revenue"
+        ]
+       },
+       {
+        "id": "rel_net_revenue_refund_report",
+        "relation_type": "association",
+        "source": "term_net_revenue",
+        "target": "term_refund_amount",
+        "connection_condition": "",
+        "evidence_refs": [
+         "ev_refund_attribution_gap",
+         "ev_doc_net_revenue"
+        ]
+       }
+      ],
+      "constraints": [
+       {
+        "id": "con_net_revenue_definition",
+        "severity": "block",
+        "description": "淨營收為期間內有效訂單的商品金額總和，扣除這些訂單對應的退款金額。期間依訂單成立時間（台北時間）歸屬，退款扣回其所屬原訂單，不看退款發生在哪個月。所有退款都屬於已送達的有效訂單，扣退款時不需額外排除非有效訂單。商品類別條件需經由明細連到商品。",
+        "evidence_refs": [
+         "ev_doc_net_revenue",
+         "ev_refund_attribution_gap",
+         "ev_refund_only_valid_orders",
+         "ev_price_unit_cents"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_doc_net_revenue",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "退款扣回它所屬的原訂單，不看退款發生在哪個月。 | 解讀: 淨營收與退款報表歸屬規則不同，兩者是不同指標，需分開建模。",
+        "validation_method": "文件原文引用；以 ev_refund_attribution_gap 量化兩種歸屬的差異",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_refund_attribution_gap",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) n, SUM(CASE WHEN strftime('%Y-%m',datetime(o.order_ts,'+8 hours'))<>strftime('%Y-%m',datetime(r.refund_ts,'+8 hours')) THEN 1 ELSE 0 END) cross_month, SUM(CASE WHEN strftime('%Y',datetime(o.order_ts,'+8 hours'))<>strftime('%Y',datetime(r.refund_ts,'+8 hours')) THEN 1 ELSE 0 END) cross_year FROM refunds r JOIN orders o ON o.order_id=r.order_id",
+        "result": "{\"columns\": [\"n\", \"cross_month\", \"cross_year\"], \"rows\": [[4039, 2072, 197]]} | 解讀: 文件的雙重歸屬規則在資料中確有實質影響；另外有 178 筆退款（金額 834879 TWD）發生在 2026 年，依退款時間不屬於 2025 年。",
+        "validation_method": "比較退款時間與訂單時間（均換算 UTC+8）的月份與年份",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_refund_only_valid_orders",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(*) n, SUM(r.refund_amount_twd) amt FROM refunds r JOIN orders o ON o.order_id=r.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"n\", \"amt\"], \"rows\": [[3, 4039, 18071770]]} | 解讀: 4039 筆退款全部對應 status=3 的有效訂單。",
+        "validation_method": "退款依原訂單狀態分組",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_price_unit_cents",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) n, SUM(CASE WHEN oi.unit_price_cents = p.list_price_twd*100 THEN 1 ELSE 0 END) at_list_x100, SUM(CASE WHEN oi.unit_price_cents = p.list_price_twd THEN 1 ELSE 0 END) at_list_x1, MAX(oi.unit_price_cents) max_cents, MAX(p.list_price_twd) max_list FROM order_items oi JOIN products p ON p.product_id=oi.product_id",
+        "result": "{\"columns\": [\"n\", \"at_list_x100\", \"at_list_x1\", \"max_cents\", \"max_list\"], \"rows\": [[104966, 62574, 0, 1490000, 14900]]} | 解讀: 62574/104966 列恰等於標價×100，沒有任何列等於標價×1，其餘為折扣價。欄位名稱 cents 屬實，淨營收需 quantity*unit_price_cents/100 後才與 TWD 欄位（退款、實收）相加減。",
+        "validation_method": "換算單位對比目錄標價；列出未折扣列比例",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_dim_region_tier",
+        "source": "shop_v2",
+        "query": "SELECT c.region_code, c.tier, COUNT(*) valid_orders FROM orders o JOIN customers c ON c.customer_id=o.customer_id WHERE o.status IN (1,2,3) AND strftime('%Y',datetime(o.order_ts,'+8 hours'))='2025' GROUP BY 1,2 ORDER BY 3 DESC",
+        "result": "{\"columns\": [\"region_code\", \"tier\", \"valid_orders\"], \"rows\": [[\"TW-N\", \"B\", 12994], [\"TW-C\", \"B\", 9322], [\"TW-S\", \"B\", 6366], [\"TW-N\", \"S\", 3698], [\"JP\", \"B\", 3422], [\"TW-S\", \"S\", 2336], [\"TW-C\", \"S\", 2154], [\"TW-N\", \"G\", 2131], [\"SG\", \"B\", 1568], [\"TW-C\", \"G\", 1155], [\"JP\", \"S\", 869], [\"TW-S\", \"G\", 623], [\"SG\", \"S\", 437], [\"JP\", \"G\", 416], [\"SG\", \"G\", 208]]} | 解讀: customers 與 orders 無孤兒；region_code 與 tier 為客戶當前屬性（無歷史版本），日本客戶 = region_code 'JP'。",
+        "validation_method": "客戶維度串接有效訂單並檢查代碼值",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "ontology_v0",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  },
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "有效訂單",
+     "退款金額"
+    ],
+    "context": "北部客戶 2025 年 11 月的淨營收是多少？需確認有效訂單定義（orders.status）、退款歸屬原訂單的規則，以及 unit_price_cents 的單位換算。"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "有效訂單",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '有效訂單'",
+      "term": {
+       "id": "term_valid_order",
+       "type": "concept",
+       "name": "有效訂單",
+       "aliases": [
+        "valid order",
+        "有效訂單數",
+        "訂單張數",
+        "訂單數",
+        "valid orders",
+        "orders.status",
+        "狀態1/2/3"
+       ],
+       "definition": "訂單狀態為已付款、已出貨、已送達的訂單；待付款與已取消不算有效訂單。",
+       "scope": "所有營收、客單價、訂單張數、回購與通路占比類分析",
+       "evidence_refs": [
+        "ev_status_codes",
+        "ev_doc_valid_order",
+        "ev_status_payment_consistency"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_valid_order_status",
+        "term_id": "term_valid_order",
+        "table": "orders",
+        "column": "status",
+        "semantic_filter": "狀態碼為 1（已付款）、2（已出貨）、3（已送達）",
+        "aggregation_semantics": "以不重複訂單編號計張數",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_order_valid",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_valid_order",
+        "connection_condition": "有效訂單是訂單狀態為已付款、已出貨、已送達的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_doc_valid_order"
+        ]
+       },
+       {
+        "id": "rel_aov_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_avg_order_value",
+        "connection_condition": "客單價的分母為期間內有效訂單張數。",
+        "evidence_refs": [
+         "ev_multi_item_orders",
+         "ev_status_codes"
+        ]
+       },
+       {
+        "id": "rel_repeat_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_repeat_customer",
+        "connection_condition": "每位客戶在同一年度的有效訂單張數達兩張以上，即為回購客戶。",
+        "evidence_refs": [
+         "ev_doc_repeat_customer",
+         "ev_repeat_customers"
+        ]
+       },
+       {
+        "id": "rel_channel_share_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_channel_share",
+        "connection_condition": "通路占比的分子與分母皆為同一期間的有效訂單張數。",
+        "evidence_refs": [
+         "ev_channel_values",
+         "ev_status_codes"
+        ]
+       }
+      ],
+      "constraints": [
+       {
+        "id": "con_valid_order_definition",
+        "severity": "block",
+        "description": "有效訂單指訂單狀態碼為 1（已付款）、2（已出貨）、3（已送達）的訂單。狀態 0（待付款）與 9（已取消）不是有效訂單。資料中待付款與已取消訂單沒有任何付款成功紀錄，與此定義互相佐證。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_doc_valid_order",
+         "ev_status_payment_consistency"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_valid_order",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "待付款與已取消的訂單不算有效訂單。 | 解讀: 有效訂單 = 狀態 1/2/3。",
+        "validation_method": "文件原文引用；搭配 ev_status_payment_consistency 驗證",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_payment_consistency",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(DISTINCT o.order_id) orders, COUNT(DISTINCT CASE WHEN p.payment_status='ok' THEN o.order_id END) paid_ok FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"orders\", \"paid_ok\"], \"rows\": [[0, 3003, 0], [1, 3549, 3549], [2, 4870, 4870], [3, 39574, 39574], [9, 9004, 0]]} | 解讀: 狀態 1/2/3 的訂單全數有付款成功；0 與 9 為 0，與有效訂單定義互相佐證。",
+        "validation_method": "訂單狀態與付款成功狀態對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_multi_item_orders",
+        "source": "shop_v2",
+        "query": "SELECT items_per_order, COUNT(*) orders FROM (SELECT order_id, COUNT(*) items_per_order FROM order_items GROUP BY order_id) GROUP BY items_per_order ORDER BY items_per_order",
+        "result": "{\"columns\": [\"items_per_order\", \"orders\"], \"rows\": [[1, 29911], [2, 18155], [3, 8991], [4, 2943]]} | 解讀: 多明細訂單佔相當比例，join order_items 後直接 COUNT(*) 會高估訂單數；所有訂單都至少有一筆明細（無孤兒訂單）。",
+        "validation_method": "每張訂單的明細數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_repeat_customer",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "某一年度內有效訂單達 2 張（含）以上的客戶。 | 解讀: 定義可用 orders 依 customer_id 分組實作。",
+        "validation_method": "文件原文引用；以資料計算客戶層級分布佐證可實作",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_repeat_customers",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) customers_valid, SUM(CASE WHEN c>=2 THEN 1 ELSE 0 END) repeat_customers FROM (SELECT customer_id, COUNT(*) c FROM orders WHERE status IN (1,2,3) AND strftime('%Y', datetime(order_ts,'+8 hours'))='2025' GROUP BY customer_id)",
+        "result": "{\"columns\": [\"customers_valid\", \"repeat_customers\"], \"rows\": [[4526, 3990]]} | 解讀: 回購比例極高；回購客戶是客戶層級指標，不能用訂單張數替代。",
+        "validation_method": "客戶層級有效訂單數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_channel_values",
+        "source": "shop_v2",
+        "query": "SELECT channel, COUNT(*) valid_orders, ROUND(100.0*COUNT(*)/SUM(COUNT(*)) OVER (),2) pct FROM orders WHERE status IN (1,2,3) AND strftime('%Y',datetime(order_ts,'+8 hours'))='2025' GROUP BY channel ORDER BY 2 DESC",
+        "result": "{\"columns\": [\"channel\", \"valid_orders\", \"pct\"], \"rows\": [[\"web\", 23899, 50.1], [\"app\", 16679, 34.97], [\"store\", 7121, 14.93]]} | 解讀: 通路代碼與文件一致；占比分母需先限定為台北時間 2025 的有效訂單。",
+        "validation_method": "distinct 值與占比計算",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "退款金額",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '退款金額'",
+      "term": {
+       "id": "term_refund_amount",
+       "type": "metric",
+       "name": "退款金額",
+       "aliases": [
+        "refund amount",
+        "退款總額",
+        "退款",
+        "refund_amount_twd",
+        "退款金額總計"
+       ],
+       "definition": "退款紀錄的金額總和（TWD）；退款報表依退款發生時間（台北時間）歸屬期間，與淨營收依原訂單歸屬不同。",
+       "scope": "退款報表",
+       "evidence_refs": [
+        "ev_refund_item_level",
+        "ev_refund_attribution_gap",
+        "ev_refund_by_year"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_refund_amount",
+        "term_id": "term_refund_amount",
+        "table": "refunds",
+        "column": "refund_amount_twd",
+        "semantic_filter": "退款報表依退款發生時間（台北時間）歸屬期間",
+        "aggregation_semantics": "退款金額總和，單位 TWD",
+        "grain": "每筆明細退款一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_net_revenue_from_refund",
+        "relation_type": "derivation",
+        "source": "term_refund_amount",
+        "target": "term_net_revenue",
+        "connection_condition": "屬於有效訂單的退款金額作為淨營收的扣減項，退款回扣其原訂單。",
+        "evidence_refs": [
+         "ev_doc_net_revenue",
+         "ev_refund_attribution_gap",
+         "ev_refund_only_valid_orders"
+        ]
+       },
+       {
+        "id": "rel_net_revenue_refund_report",
+        "relation_type": "association",
+        "source": "term_net_revenue",
+        "target": "term_refund_amount",
+        "connection_condition": "",
+        "evidence_refs": [
+         "ev_refund_attribution_gap",
+         "ev_doc_net_revenue"
+        ]
+       }
+      ],
+      "constraints": [
+       {
+        "id": "con_refund_report_attribution",
+        "severity": "block",
+        "description": "退款報表的期間依退款發生時間（台北時間）歸屬，與淨營收依原訂單成立時間歸屬不同。退款發生月份與原訂單月份經常不同（含跨年），兩個指標不可混用。",
+        "evidence_refs": [
+         "ev_refund_attribution_gap",
+         "ev_refund_by_year",
+         "ev_refund_item_level"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_refund_item_level",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) n, SUM(CASE WHEN r.order_id=oi.order_id THEN 1 ELSE 0 END) order_consistent, SUM(CASE WHEN r.refund_amount_twd > oi.quantity*oi.unit_price_cents/100.0 THEN 1 ELSE 0 END) over_refund, SUM(CASE WHEN r.refund_amount_twd = oi.quantity*oi.unit_price_cents/100.0 THEN 1 ELSE 0 END) full_refund, SUM(r.refund_amount_twd) refund_twd FROM refunds r JOIN order_items oi ON oi.item_id=r.item_id",
+        "result": "{\"columns\": [\"n\", \"order_consistent\", \"over_refund\", \"full_refund\", \"refund_twd\"], \"rows\": [[4039, 4039, 0, 2798, 18071770]]} | 解讀: 退款可準確回扣到原訂單與商品類別；退款金額單位為 TWD（與明細金額除以 100 同尺度，無超額退款）。",
+        "validation_method": "退款對明細金額對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_refund_attribution_gap",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) n, SUM(CASE WHEN strftime('%Y-%m',datetime(o.order_ts,'+8 hours'))<>strftime('%Y-%m',datetime(r.refund_ts,'+8 hours')) THEN 1 ELSE 0 END) cross_month, SUM(CASE WHEN strftime('%Y',datetime(o.order_ts,'+8 hours'))<>strftime('%Y',datetime(r.refund_ts,'+8 hours')) THEN 1 ELSE 0 END) cross_year FROM refunds r JOIN orders o ON o.order_id=r.order_id",
+        "result": "{\"columns\": [\"n\", \"cross_month\", \"cross_year\"], \"rows\": [[4039, 2072, 197]]} | 解讀: 文件的雙重歸屬規則在資料中確有實質影響；另外有 178 筆退款（金額 834879 TWD）發生在 2026 年，依退款時間不屬於 2025 年。",
+        "validation_method": "比較退款時間與訂單時間（均換算 UTC+8）的月份與年份",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_refund_by_year",
+        "source": "shop_v2",
+        "query": "SELECT strftime('%Y', datetime(refund_ts,'+8 hours')) y, COUNT(*) n, SUM(refund_amount_twd) amt FROM refunds GROUP BY 1",
+        "result": "{\"columns\": [\"y\", \"n\", \"amt\"], \"rows\": [[\"2025\", 3861, 17236891], [\"2026\", 178, 834879]]} | 解讀: 『歷史上』的退款包含 2026 年的退款，跨年統計需明確是否包含。",
+        "validation_method": "退款依 UTC+8 年度分組",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_net_revenue",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "退款扣回它所屬的原訂單，不看退款發生在哪個月。 | 解讀: 淨營收與退款報表歸屬規則不同，兩者是不同指標，需分開建模。",
+        "validation_method": "文件原文引用；以 ev_refund_attribution_gap 量化兩種歸屬的差異",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_refund_only_valid_orders",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(*) n, SUM(r.refund_amount_twd) amt FROM refunds r JOIN orders o ON o.order_id=r.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"n\", \"amt\"], \"rows\": [[3, 4039, 18071770]]} | 解讀: 4039 筆退款全部對應 status=3 的有效訂單。",
+        "validation_method": "退款依原訂單狀態分組",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "ontology_v0",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT oi.unit_price_cents, p.list_price_twd, oi.quantity FROM order_items oi JOIN products p ON p.product_id = oi.product_id LIMIT 10",
+     "SELECT status, COUNT(*) AS n FROM orders GROUP BY status ORDER BY status"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT oi.unit_price_cents, p.list_price_twd, oi.quantity FROM order_items oi JOIN products p ON p.product_id = oi.product_id LIMIT 10",
+     "columns": [
+      "unit_price_cents",
+      "list_price_twd",
+      "quantity"
+     ],
+     "rows": [
+      [
+       531000,
+       5900,
+       1
+      ],
+      [
+       190000,
+       1900,
+       1
+      ],
+      [
+       150000,
+       1500,
+       1
+      ],
+      [
+       1190000,
+       11900,
+       2
+      ],
+      [
+       59500,
+       700,
+       1
+      ],
+      [
+       351000,
+       3900,
+       1
+      ],
+      [
+       400000,
+       4000,
+       1
+      ],
+      [
+       459000,
+       5400,
+       2
+      ],
+      [
+       1040000,
+       10400,
+       1
+      ],
+      [
+       230000,
+       2300,
+       2
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT status, COUNT(*) AS n FROM orders GROUP BY status ORDER BY status",
+     "columns": [
+      "status",
+      "n"
+     ],
+     "rows": [
+      [
+       0,
+       3003
+      ],
+      [
+       1,
+       3549
+      ],
+      [
+       2,
+       4870
+      ],
+      [
+       3,
+       39574
+      ],
+      [
+       9,
+       9004
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT oi.unit_price_cents, p.list_price_twd, oi.quantity FROM order_items oi JOIN products p ON p.product_id = oi.product_id LIMIT 10', 'columns': ['unit_price_cents', 'list_price_twd', 'quantity'], 'rows': [[531000, 5900, 1], [190000, 1900, 1], [150000, 1500, 1], [1190000, 11900, 2], [59500, 700, 1], [351000, 3900, 1], [400000, 4000, 1], [459000, 5400, 2], [1040000, 10400, 1], [230000, 2300, 2]], 'truncated': False}, {'query': 'SELECT status, COUNT(*) AS n FROM orders GROUP BY status ORDER BY status', 'columns': ['status', 'n'], 'rows': [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "WITH o AS (SELECT o.order_id FROM orders o JOIN customers c ON c.customer_id = o.customer_id WHERE c.region_code = 'TW-N' AND o.status IN (1,2,3) AND strftime('%Y-%m', datetime(o.order_ts, '+8 hours')) = '2025-11') SELECT (SELECT SUM(oi.quantity * oi.unit_price_cents) / 100.0 FROM order_items oi WHERE oi.order_id IN (SELECT order_id FROM o)) AS gross_qty_twd, (SELECT SUM(oi.unit_price_cents) / 100.0 FROM order_items oi WHERE oi.order_id IN (SELECT order_id FROM o)) AS gross_noqty_twd, (SELECT SUM(r.refund_amount_twd) FROM refunds r WHERE r.order_id IN (SELECT order_id FROM o)) AS refunds_twd, (SELECT COUNT(*) FROM o) AS valid_orders"
+   },
+   "result": {
+    "columns": [
+     "gross_qty_twd",
+     "gross_noqty_twd",
+     "refunds_twd",
+     "valid_orders"
+    ],
+    "rows": [
+     [
+      14041575.0,
+      10208770.0,
+      618462,
+      1525
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['gross_qty_twd', 'gross_noqty_twd', 'refunds_twd', 'valid_orders'], 'rows': [[14041575.0, 10208770.0, 618462, 1525]], 'truncated': False}"
+  }
+ ],
+ "final_answer": {
+  "answer": "13423113",
+  "basis": "北部客戶定義為 customers.region_code='TW-N'，有效訂單為 orders.status IN (1,2,3)，期間以台北時間（+8 小時）的訂單成立時間歸屬。商品金額為 quantity×unit_price_cents÷100（TWD），退款依原訂單歸屬並從中扣除：14,041,575 − 618,462 = 13,423,113 元。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S29",
+ "arm": "ontology",
+ "steps": 6,
+ "ended_by": "final"
+}

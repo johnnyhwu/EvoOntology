@@ -1,0 +1,147 @@
+{
+ "problem_map": {
+  "problem_map": [
+   {
+    "id": "P1",
+    "category": "coverage_gap",
+    "symptom": "「取消率」在語意層完全沒有定義。agent 自行猜測分母，其中三題連答案都沒交出（status=failed、final=None），S17 的分母與業務定義不一致。",
+    "affected_tasks": [
+     "S04",
+     "S05",
+     "S17",
+     "S19"
+    ],
+    "evidence": "probe resolve('取消率') → unresolved。S04、S05、S19 的軌跡都是多輪 browse/resolve 加多次 SQL 之後沒有最終答案，S19 還去檢查付款失敗與出貨紀錄來推測 status=0 的語意。S17 的分母用全部訂單（含待付款 status=0），得 15.41%，並承認有 16.21% 的替代算法。業務文件定義取消率 = 已取消 ÷（有效訂單 + 已取消），待付款不納入分母。我用 SQL 確認 2025Q1 各通路都有大量待付款訂單（例如 web 384 筆），分母選擇會明顯改變結果。",
+    "causal_hypothesis": "語意層沒有「取消率」這個 metric 物件，也沒有相應的 constraint。現有的 con_cancelled_order_period 只講已取消訂單的期間歸屬，沒有比率與分母。agent 因此在分母上發散，有的猜錯，有的放棄。",
+    "uncertainty": "S04、S05、S19 失敗的直接原因（逾時、步數用盡或未收斂）無法從壓縮軌跡確認。「官網通路」「門市通路」未命中別名是否加重了失敗，也還不確定。"
+   },
+   {
+    "id": "P2",
+    "category": "coverage_gap",
+    "symptom": "「準時送達率」沒有定義，agent 答「無法計算」。業務文件其實有明確規則：配送天數 ≤ 3 天視為準時，分母是已送達的出貨。",
+    "affected_tasks": [
+     "S02",
+     "S03",
+     "S14"
+    ],
+    "evidence": "probe resolve('準時送達率') → unresolved，多次 browse('準時') 回傳 0 筆。三題最終答案都是「無法計算」，理由是缺少承諾送達日。我用 SQL 驗證 shipments 有 shipped_ts 和 delivered_ts，可以套用文件的 3 天規則（全期間 39574 筆已送達，3 天內 22733 筆），資料足以計算。",
+    "causal_hypothesis": "語意層沒有準時送達的 term、constraint 和 mapping，agent 又沒有可以對照的業務文件，只能從欄位名稱推論，誤判為資料缺口。這是知識沒有被編碼進語意層。",
+    "uncertainty": "「3 天以內」是否含邊界、是否要依訂單成立時間（台北時間）歸屬期間，只有文件說明，語意層沒有佐證。"
+   },
+   {
+    "id": "P3",
+    "category": "coverage_gap",
+    "symptom": "shipments 表與承運商完全不在語意層。「配送天數」與承運商名稱（順豐、黑貓宅急便、新竹物流、中華郵政）全部 unresolved，agent 各自推斷口徑。",
+    "affected_tasks": [
+     "S02",
+     "S03",
+     "S06",
+     "S07",
+     "S08",
+     "S14"
+    ],
+    "evidence": "probe resolve('配送天數') 和 resolve('新竹物流') 都回 unresolved。語意層 33 個 mapping 沒有任何一個指向 shipments。S06、S07、S08 都以 shipped_ts 的年份或季度篩選期間，但業務文件規定配送天數的期間依「訂單成立時間」歸屬。S02、S03 的「carrier 代碼 hct／post 疑似對應」也是 agent 自己推的，語意層沒有確認。",
+    "causal_hypothesis": "語意層缺少 shipments 實體、carrier 代碼對照、配送天數 metric 和期間歸屬規則，所以口徑全靠 agent 臨場決定，並且和業務文件不一致。",
+    "uncertainty": "以 shipped_ts 與以 order_ts（台北時間）歸屬期間的差異大小，我還沒有量化。S06、S07、S08 的答案是否因此偏差，也還不確定。"
+   },
+   {
+    "id": "P4",
+    "category": "structural_constraint",
+    "symptom": "時區規則（order_ts 為 UTC，期間須以 UTC+8 劃分）沒有被穩定地帶給 agent。多題直接用 UTC 的 order_ts 切月、季、年。",
+    "affected_tasks": [
+     "S10",
+     "S11",
+     "S15",
+     "S18",
+     "S21",
+     "S24",
+     "S27"
+    ],
+    "evidence": "這些題的 SQL 都直接用 order_ts >= '2025-xx-01'、LIKE '2025-04%' 或 date(order_ts)，沒有 +8 小時。S20 對照組有查到時區規則，+8 後得 3936，UTC 得 3942。我的 SQL 顯示 2025 年後的有效訂單 47701 筆中有 481 筆（約 1%）換算後月份會改變。這些題 resolve 只命中 con_valid_order_definition，沒有命中 con_tz_order_time。工具層設定 trigger_keyword_constraints=false、fuzzy_fallback=false、pinned_constraint_ids=[]，時區 block 約束只在 agent 剛好 browse 到時才可見。",
+    "causal_hypothesis": "約束是否被帶出完全取決於 mention 是否精確命中 term。語意層雖有 block 級時區規則，但 resolve 不依 trigger keyword 附帶它，也沒有常駐的 pinned 約束。因此「2025 年 11 月」這類時間詞沒有觸發任何時區提醒。",
+    "uncertainty": "各題實際數字偏差程度未逐題量化。如果某月邊界訂單恰好抵銷，答案可能仍相同。pinned 全域約束或 keyword 觸發是否為對的修法，需要實驗確認。"
+   },
+   {
+    "id": "P5",
+    "category": "tool_limitation",
+    "symptom": "語意層其實有對應的別名或規則，但 resolve 對自然說法沒命中，結果 unresolved。",
+    "affected_tasks": [
+     "S04",
+     "S05",
+     "S10",
+     "S27",
+     "S12",
+     "S25",
+     "S15",
+     "S21",
+     "S22"
+    ],
+    "evidence": "「官網通路」「門市通路」「官網下單」「網站通路」都 unresolved，雖然 term_channel 有別名「官網」「門市」。「南部客戶」unresolved，但 term_region 有別名「南部」。S12 要改用「客戶地區」才命中。「成立日期」「訂單日期」「成立」unresolved，而 term_order_time 的別名是「訂單成立時間」「下單時間」。fuzzy_fallback=false，所以只有精確別名才匹配。",
+    "causal_hypothesis": "resolve 只做精確別名匹配，且關閉了模糊回退。複合詞（通路名 + 「通路」、「南部客戶」）或同義說法不在別名表中，就檢索不到。",
+    "uncertainty": "是補別名、開 fuzzy_fallback，還是兩者都做，需要比較。未命中時 agent 多半能靠 SQL 資料自行對上代碼（channel='web' 等），所以這一項對答案的實際影響可能有限。"
+   },
+   {
+    "id": "P6",
+    "category": "coverage_gap",
+    "symptom": "「新註冊客戶」「註冊日期」、優惠碼（WELCOME10、SUMMER15）與「待出貨訂單」都沒有 term。agent 靠資料自行對應，口徑缺乏可追溯的語意層依據。",
+    "affected_tasks": [
+     "S09",
+     "S13",
+     "S23",
+     "S11",
+     "S18",
+     "S24",
+     "S16"
+    ],
+    "evidence": "新註冊客戶、註冊日期、優惠碼、welcome10、summer15、待出貨訂單全部 unresolved。語意層雖有 con_price_already_discounted 把優惠碼列為觸發詞，但它沒有 coupon_code 的 mapping。S09、S13、S23 用 signup_date 直接篩選，結果與文件一致（signup_date 已是台北日期，不需換算），但這個「不需換算」的重要規則沒有存在語意層。S16 把待出貨對應到 status=1，與文件一致，但來源是推測。",
+    "causal_hypothesis": "語意層缺少 customers.signup_date、orders.coupon_code 的 term 與 mapping，以及「signup_date 免時區換算」「待出貨 = 已付款未出貨」的規則。目前答對靠運氣或資料觀察，若遇到類似題目會有誤用 UTC 換算的風險。",
+    "uncertainty": "這些題目目前看起來答對了，風險屬於潛在而非已發生。coupon_code 在 2024-12 就已有資料，是否要加期間規則，我還沒有證據。"
+   },
+   {
+    "id": "P7",
+    "category": "potential_gap",
+    "symptom": "多項規則在語意層中出現在 block 級約束，但 resolve 回傳的 rule 欄位只對少數 term 附帶單一規則，agent 通常只拿到 con_valid_order_definition，而取不到相關的時區、金額單位、訂單張數單位等配套規則。",
+    "affected_tasks": [
+     "S10",
+     "S11",
+     "S18",
+     "S24",
+     "S27",
+     "S15"
+    ],
+    "evidence": "上述題目的 resolve 輸出只顯示「有效訂單→resolved 規則=con_valid_order_definition」，沒有 con_order_count_unit 或 con_tz_order_time。S20、S21 這類題目能不能得到正確時區，取決於 agent 是否額外 browse 到相關規則。",
+    "causal_hypothesis": "一個 mention 只回傳一條規則，沒有依「問題的指標型別與期間」組合相關規則。這與 P4 是同一族問題，但這裡的重點是多規則組合的呈現方式，而不是約束的觸發。",
+    "uncertainty": "沒有直接測試過 resolve 回傳多條規則的行為，這點還是推測。金額單位題（S01、S12、S26、S28）目前看來都算對，可能是因為 mention 剛好觸發了單位規則。"
+   }
+  ],
+  "summary": "28 題中有 3 題沒有交出答案（S04、S05、S19，都是取消率），另有 3 題因為「準時送達率」沒有定義而回答「無法計算」，儘管業務文件有明確的 3 天規則。語意層完全沒有涵蓋 shipments／承運商／配送天數、取消率、新註冊客戶、優惠碼這些指標與實體，agent 只能靠資料自行推測，並且口徑不一致，例如 S17 的取消率分母和配送天數以出貨時間歸屬期間。最容易造成靜默錯誤的是時區：至少 7 題直接用 UTC 的 order_ts 切期間，而 block 級的時區約束沒有被 resolve 帶出，因為 trigger_keyword_constraints 和 fuzzy_fallback 都關閉，也沒有 pinned 約束。另有一批別名未命中的問題（官網通路、南部客戶、成立日期），影響較小，因為 agent 能靠資料補救。已知不確定處：失敗題的直接原因、時區偏差的逐題大小，以及各種修法的效果，都還需要在後續步驟驗證。"
+ },
+ "probe_calls": [
+  {
+   "tool": "probe_semantics",
+   "arguments": {
+    "tool": "resolve",
+    "mentions": [
+     "取消率",
+     "準時送達率",
+     "配送天數",
+     "新竹物流",
+     "待出貨訂單"
+    ],
+    "context": "取消率、準時送達、配送天數、承運商與待出貨定義"
+   }
+  },
+  {
+   "tool": "sql_query",
+   "arguments": {
+    "queries": [
+     "SELECT carrier, COUNT(*) n, SUM(delivered_ts IS NULL) null_delivered FROM shipments GROUP BY carrier",
+     "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+     "SELECT COUNT(*) total, SUM(julianday(delivered_ts)-julianday(shipped_ts) <= 3) ontime, SUM(delivered_ts IS NOT NULL) delivered FROM shipments",
+     "SELECT o.channel, COUNT(*) n, SUM(o.status=9) cancelled, SUM(o.status IN (1,2,3)) valid, SUM(o.status=0) pending FROM orders o WHERE datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-04-01' GROUP BY o.channel",
+     "SELECT COUNT(*) n, SUM(strftime('%Y-%m', order_ts) <> strftime('%Y-%m', datetime(order_ts,'+8 hours'))) shifted FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-01-01'"
+    ]
+   }
+  }
+ ]
+}

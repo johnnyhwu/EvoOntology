@@ -1,0 +1,324 @@
+{
+ "task_id": "task_27f72f2837e2",
+ "question": "新加坡 2025 年新註冊客戶數？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "新註冊客戶",
+     "新加坡",
+     "註冊日期"
+    ],
+    "context": "新加坡 2025 年新註冊客戶數？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "新註冊客戶",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '新註冊客戶'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "新加坡",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact alias match: term '客戶地區'",
+      "term": {
+       "id": "term_region",
+       "type": "dimension",
+       "name": "客戶地區",
+       "aliases": [
+        "region",
+        "region_code",
+        "地區",
+        "北部",
+        "中部",
+        "南部",
+        "日本",
+        "新加坡",
+        "TW-N",
+        "TW-C",
+        "TW-S",
+        "JP",
+        "SG",
+        "北部客戶",
+        "日本客戶"
+       ],
+       "definition": "客戶所在地區代碼：TW-N 北部、TW-C 中部、TW-S 南部、JP 日本、SG 新加坡。",
+       "scope": "依客戶歸屬的地區分析",
+       "evidence_refs": [
+        "ev_dim_region_tier"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_region",
+        "term_id": "term_region",
+        "table": "customers",
+        "column": "region_code",
+        "semantic_filter": "",
+        "aggregation_semantics": "依下單客戶的地區歸類訂單",
+        "grain": "每位客戶一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_customer_region",
+        "relation_type": "association",
+        "source": "term_customer",
+        "target": "term_region",
+        "connection_condition": "客戶資料表中的地區代碼欄位記錄客戶地區。",
+        "evidence_refs": [
+         "ev_dim_region_tier"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_dim_region_tier",
+        "source": "shop_v2",
+        "query": "SELECT c.region_code, c.tier, COUNT(*) valid_orders FROM orders o JOIN customers c ON c.customer_id=o.customer_id WHERE o.status IN (1,2,3) AND strftime('%Y',datetime(o.order_ts,'+8 hours'))='2025' GROUP BY 1,2 ORDER BY 3 DESC",
+        "result": "{\"columns\": [\"region_code\", \"tier\", \"valid_orders\"], \"rows\": [[\"TW-N\", \"B\", 12994], [\"TW-C\", \"B\", 9322], [\"TW-S\", \"B\", 6366], [\"TW-N\", \"S\", 3698], [\"JP\", \"B\", 3422], [\"TW-S\", \"S\", 2336], [\"TW-C\", \"S\", 2154], [\"TW-N\", \"G\", 2131], [\"SG\", \"B\", 1568], [\"TW-C\", \"G\", 1155], [\"JP\", \"S\", 869], [\"TW-S\", \"G\", 623], [\"SG\", \"S\", 437], [\"JP\", \"G\", 416], [\"SG\", \"G\", 208]]} | 解讀: customers 與 orders 無孤兒；region_code 與 tier 為客戶當前屬性（無歷史版本），日本客戶 = region_code 'JP'。",
+        "validation_method": "客戶維度串接有效訂單並檢查代碼值",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "註冊日期",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '註冊日期'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 3,
+    "processed_count": 3,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_region_codes",
+      "target": "map_region",
+      "severity": "block",
+      "description": "customers.region_code 代碼意義：TW-N 北部、TW-C 中部、TW-S 南部、JP 日本、SG 新加坡。地區屬於客戶，訂單須經客戶編號連到客戶才能依地區歸類。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT signup_date, region_code FROM customers WHERE region_code='SG' LIMIT 10",
+     "SELECT MIN(signup_date), MAX(signup_date), COUNT(*), COUNT(signup_date), MIN(LENGTH(signup_date)), MAX(LENGTH(signup_date)) FROM customers WHERE region_code='SG'",
+     "SELECT substr(signup_date,1,4) y, COUNT(*) FROM customers WHERE region_code='SG' GROUP BY 1 ORDER BY 1",
+     "SELECT DISTINCT region_code FROM customers"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT signup_date, region_code FROM customers WHERE region_code='SG' LIMIT 10",
+     "columns": [
+      "signup_date",
+      "region_code"
+     ],
+     "rows": [
+      [
+       "2023-08-03",
+       "SG"
+      ],
+      [
+       "2025-11-15",
+       "SG"
+      ],
+      [
+       "2023-03-02",
+       "SG"
+      ],
+      [
+       "2024-02-17",
+       "SG"
+      ],
+      [
+       "2025-03-29",
+       "SG"
+      ],
+      [
+       "2025-08-30",
+       "SG"
+      ],
+      [
+       "2025-09-13",
+       "SG"
+      ],
+      [
+       "2025-10-17",
+       "SG"
+      ],
+      [
+       "2023-09-25",
+       "SG"
+      ],
+      [
+       "2025-11-20",
+       "SG"
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT MIN(signup_date), MAX(signup_date), COUNT(*), COUNT(signup_date), MIN(LENGTH(signup_date)), MAX(LENGTH(signup_date)) FROM customers WHERE region_code='SG'",
+     "columns": [
+      "MIN(signup_date)",
+      "MAX(signup_date)",
+      "COUNT(*)",
+      "COUNT(signup_date)",
+      "MIN(LENGTH(signup_date))",
+      "MAX(LENGTH(signup_date))"
+     ],
+     "rows": [
+      [
+       "2023-01-03",
+       "2025-12-20",
+       238,
+       238,
+       10,
+       10
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT substr(signup_date,1,4) y, COUNT(*) FROM customers WHERE region_code='SG' GROUP BY 1 ORDER BY 1",
+     "columns": [
+      "y",
+      "COUNT(*)"
+     ],
+     "rows": [
+      [
+       "2023",
+       87
+      ],
+      [
+       "2024",
+       74
+      ],
+      [
+       "2025",
+       77
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT DISTINCT region_code FROM customers",
+     "columns": [
+      "region_code"
+     ],
+     "rows": [
+      [
+       "JP"
+      ],
+      [
+       "TW-S"
+      ],
+      [
+       "TW-N"
+      ],
+      [
+       "TW-C"
+      ],
+      [
+       "SG"
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT signup_date, region_code FROM customers WHERE region_code='SG' LIMIT 10\", 'columns': ['signup_date', 'region_code'], 'rows': [['2023-08-03', 'SG'], ['2025-11-15', 'SG'], ['2023-03-02', 'SG'], ['2024-02-17', 'SG'], ['2025-03-29', 'SG'], ['2025-08-30', 'SG'], ['2025-09-13', 'SG'], ['2025-10-17', 'SG'], ['2023-09-25', 'SG'], ['2025-11-20', 'SG']], 'truncated': False}, {'query': \"SELECT MIN(signup_date), MAX(signup_date), COUNT(*), COUNT(signup_date), MIN(LENGTH(signup_date)), MAX(LENGTH(signup_date)) FROM customers WHERE region_code='SG'\", 'columns': ['MIN(signup_date)', 'MAX(signup_date)', 'COUNT(*)', 'COUNT(signup_date)', 'MIN(LENGTH(signup_date))', 'MAX(LENGTH(signup_date))'], 'rows': [['2023-01-03', '2025-12-20', 238, 238, 10, 10]], 'truncated': False}, {'query': \"SELECT substr(signup_date,1,4) y, COUNT(*) FROM customers WHERE region_code='SG' GROUP BY 1 ORDER BY 1\", 'columns': ['y', 'COUNT(*)'], 'rows': [['2023', 87], ['2024', 74], ['2025', 77]], 'truncated': False}, {'query': 'SELECT DISTINCT region_code FROM customers', 'columns': ['region_code'], 'rows': [['JP'], ['TW-S'], ['TW-N'], ['TW-C'], ['SG']], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT COUNT(*), COUNT(DISTINCT customer_id), COUNT(DISTINCT email) FROM customers WHERE region_code='SG' AND signup_date >= '2025-01-01' AND signup_date < '2026-01-01'",
+     "SELECT COUNT(*) FROM customers WHERE region_code='SG' AND signup_date BETWEEN '2025-01-01' AND '2025-12-31'"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT COUNT(*), COUNT(DISTINCT customer_id), COUNT(DISTINCT email) FROM customers WHERE region_code='SG' AND signup_date >= '2025-01-01' AND signup_date < '2026-01-01'",
+     "columns": [
+      "COUNT(*)",
+      "COUNT(DISTINCT customer_id)",
+      "COUNT(DISTINCT email)"
+     ],
+     "rows": [
+      [
+       77,
+       77,
+       77
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT COUNT(*) FROM customers WHERE region_code='SG' AND signup_date BETWEEN '2025-01-01' AND '2025-12-31'",
+     "columns": [
+      "COUNT(*)"
+     ],
+     "rows": [
+      [
+       77
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT COUNT(*), COUNT(DISTINCT customer_id), COUNT(DISTINCT email) FROM customers WHERE region_code='SG' AND signup_date >= '2025-01-01' AND signup_date < '2026-01-01'\", 'columns': ['COUNT(*)', 'COUNT(DISTINCT customer_id)', 'COUNT(DISTINCT email)'], 'rows': [[77, 77, 77]], 'truncated': False}, {'query': \"SELECT COUNT(*) FROM customers WHERE region_code='SG' AND signup_date BETWEEN '2025-01-01' AND '2025-12-31'\", 'columns': ['COUNT(*)'], 'rows': [[77]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "77",
+  "basis": "新註冊客戶以 customers.signup_date 落在 2025-01-01 至 2025-12-31 計算，地區為 customers.region_code='SG'（新加坡）。signup_date 為不含時間的日期字串，不適用 orders.order_ts 的 UTC 換算；共 77 位客戶，customer_id 與 email 均無重複。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "T13",
+ "arm": "ontology",
+ "steps": 5,
+ "ended_by": "final"
+}

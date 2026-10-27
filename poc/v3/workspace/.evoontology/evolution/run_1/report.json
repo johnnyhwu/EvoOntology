@@ -1,0 +1,56 @@
+{
+ "run": {
+  "schema_version": 1,
+  "run_id": "run_1",
+  "status": "incomplete",
+  "parent_version": "ontology_v0",
+  "adapter": "evopipe-sqlite-v1",
+  "acceptance": {
+   "protocol": "llm_judge",
+   "rule": "E_c == 0 and W_c > W_p (EvaluationGate.decide_judge)",
+   "confirmation": "a second independent repetition must also accept",
+   "regression_policy": "critical error, or Parent wins > 1/3 as often as Candidate",
+   "judge_role": "judge",
+   "validation_reserve_size": 12,
+   "pool_size": 28
+  },
+  "budget": {
+   "max_rounds": 2
+  },
+  "min_rejects_before_incomplete": 2,
+  "round": 2,
+  "current_hypothesis": "con_tz_order_time（UTC+8 期間劃分，block 級）已存在，但 Tool Layer 的 trigger_keyword_constraints=false 且沒有 pin 任何約束，加上該約束的 trigger_keywords 沒有涵蓋「11月」「第二季」「Q1」「上半年」等常見的期間說法，所以涉及月、季、年的問題拿不到時區提醒，agent 直接以 UTC 的 order_ts 切期間，邊界月份的精確計數與金額因此靜默出錯。若假說成立，啟用關鍵字觸發、補齊期間詞並 pin 該約束後，resolve／manifest 對月、季、年問題會帶出 con_tz_order_time，agent 會改用台北時間切期間，期間邊界類題目的結果隨之修正。若約束已被帶出但 agent 仍用 UTC 切期間，或修正後邊界月份的數字沒有改變，則假說被推翻。",
+  "current_candidate": "v0-c2",
+  "accepted_version": "",
+  "end_reason": "budget_exhausted",
+  "created_at": "2026-10-27T00:32:37.038697+00:00",
+  "updated_at": "2026-10-27T00:53:55.895450+00:00"
+ },
+ "rounds": [
+  {
+   "round": 2,
+   "candidate": "v0-c2",
+   "dimension": "content+tool",
+   "hypothesis": "con_tz_order_time（UTC+8 期間劃分，block 級）已存在，但 Tool Layer 的 trigger_keyword_constraints=false 且沒有 pin 任何約束，加上該約束的 trigger_keywords 沒有涵蓋「11月」「第二季」「Q1」「上半年」等常見的期間說法，所以涉及月、季、年的問題拿不到時區提醒，agent 直接以 UTC 的 order_ts 切期間，邊界月份的精確計數與金額因此靜默出錯。若假說成立，啟用關鍵字觸發、補齊期間詞並 pin 該約束後，resolve／manifest 對月、季、年問題會帶出 con_tz_order_time，agent 會改用台北時間切期間，期間邊界類題目的結果隨之修正。若約束已被帶出但 agent 仍用 UTC 切期間，或修正後邊界月份的數字沒有改變，則假說被推翻。",
+   "touched": [
+    "tool_config:resolve.trigger_keyword_constraints",
+    "tool_config:manifest.pinned_constraint_ids",
+    "con_tz_order_time"
+   ],
+   "pooled": {
+    "accept": true,
+    "candidate_wins": 11,
+    "parent_wins": 5,
+    "ties": 8,
+    "candidate_critical_errors": 0,
+    "protocol": "llm_judge"
+   },
+   "decision": "reject"
+  }
+ ],
+ "frozen": {
+  "batch": 40,
+  "pool": 28,
+  "reserve": 12
+ }
+}

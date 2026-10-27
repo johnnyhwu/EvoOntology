@@ -1,0 +1,957 @@
+{
+ "gate": [
+  {
+   "round": 1,
+   "candidate": "v0-c1",
+   "reps": [
+    {
+     "rep": 1,
+     "judge": {
+      "accept": true,
+      "candidate_wins": 5,
+      "parent_wins": 1,
+      "ties": 6,
+      "candidate_critical_errors": 0,
+      "protocol": "llm_judge"
+     },
+     "parent_correct": 8,
+     "cand_correct": 10,
+     "rows": [
+      {
+       "q": "S29",
+       "family": "net_revenue",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S30",
+       "family": "aov",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S31",
+       "family": "ontime",
+       "parent_ok": false,
+       "cand_ok": true,
+       "gt_winner": "candidate",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S32",
+       "family": "new_customers",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S33",
+       "family": "valid_orders",
+       "parent_ok": false,
+       "cand_ok": false,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S34",
+       "family": "coupon",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": true,
+       "both_correct": true
+      },
+      {
+       "q": "S35",
+       "family": "cancel_rate",
+       "parent_ok": false,
+       "cand_ok": true,
+       "gt_winner": "candidate",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S36",
+       "family": "valid_orders",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": true,
+       "both_correct": true
+      },
+      {
+       "q": "S37",
+       "family": "ship_days",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S38",
+       "family": "valid_orders",
+       "parent_ok": false,
+       "cand_ok": false,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S39",
+       "family": "refund",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S40",
+       "family": "collected",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": true
+      }
+     ]
+    },
+    {
+     "rep": 2,
+     "judge": {
+      "accept": false,
+      "candidate_wins": 2,
+      "parent_wins": 4,
+      "ties": 6,
+      "candidate_critical_errors": 0,
+      "protocol": "llm_judge"
+     },
+     "parent_correct": 8,
+     "cand_correct": 10,
+     "rows": [
+      {
+       "q": "S29",
+       "family": "net_revenue",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S30",
+       "family": "aov",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S31",
+       "family": "ontime",
+       "parent_ok": false,
+       "cand_ok": true,
+       "gt_winner": "candidate",
+       "judge": "tie",
+       "parse_failed": true,
+       "both_correct": false
+      },
+      {
+       "q": "S32",
+       "family": "new_customers",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S33",
+       "family": "valid_orders",
+       "parent_ok": false,
+       "cand_ok": false,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S34",
+       "family": "coupon",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S35",
+       "family": "cancel_rate",
+       "parent_ok": false,
+       "cand_ok": true,
+       "gt_winner": "candidate",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S36",
+       "family": "valid_orders",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S37",
+       "family": "ship_days",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S38",
+       "family": "valid_orders",
+       "parent_ok": false,
+       "cand_ok": false,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S39",
+       "family": "refund",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": true,
+       "both_correct": true
+      },
+      {
+       "q": "S40",
+       "family": "collected",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "round": 2,
+   "candidate": "v0-c2",
+   "reps": [
+    {
+     "rep": 1,
+     "judge": {
+      "accept": true,
+      "candidate_wins": 4,
+      "parent_wins": 1,
+      "ties": 7,
+      "candidate_critical_errors": 0,
+      "protocol": "llm_judge"
+     },
+     "parent_correct": 8,
+     "cand_correct": 10,
+     "rows": [
+      {
+       "q": "S29",
+       "family": "net_revenue",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S30",
+       "family": "aov",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S31",
+       "family": "ontime",
+       "parent_ok": false,
+       "cand_ok": false,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S32",
+       "family": "new_customers",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S33",
+       "family": "valid_orders",
+       "parent_ok": false,
+       "cand_ok": true,
+       "gt_winner": "candidate",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S34",
+       "family": "coupon",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S35",
+       "family": "cancel_rate",
+       "parent_ok": false,
+       "cand_ok": false,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S36",
+       "family": "valid_orders",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": true,
+       "both_correct": true
+      },
+      {
+       "q": "S37",
+       "family": "ship_days",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S38",
+       "family": "valid_orders",
+       "parent_ok": false,
+       "cand_ok": true,
+       "gt_winner": "candidate",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S39",
+       "family": "refund",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S40",
+       "family": "collected",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": true,
+       "both_correct": true
+      }
+     ]
+    },
+    {
+     "rep": 2,
+     "judge": {
+      "accept": true,
+      "candidate_wins": 7,
+      "parent_wins": 4,
+      "ties": 1,
+      "candidate_critical_errors": 0,
+      "protocol": "llm_judge"
+     },
+     "parent_correct": 8,
+     "cand_correct": 10,
+     "rows": [
+      {
+       "q": "S29",
+       "family": "net_revenue",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S30",
+       "family": "aov",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S31",
+       "family": "ontime",
+       "parent_ok": false,
+       "cand_ok": false,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S32",
+       "family": "new_customers",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S33",
+       "family": "valid_orders",
+       "parent_ok": false,
+       "cand_ok": true,
+       "gt_winner": "candidate",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S34",
+       "family": "coupon",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S35",
+       "family": "cancel_rate",
+       "parent_ok": false,
+       "cand_ok": false,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S36",
+       "family": "valid_orders",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S37",
+       "family": "ship_days",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S38",
+       "family": "valid_orders",
+       "parent_ok": false,
+       "cand_ok": true,
+       "gt_winner": "candidate",
+       "judge": "candidate",
+       "parse_failed": false,
+       "both_correct": false
+      },
+      {
+       "q": "S39",
+       "family": "refund",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "tie",
+       "parse_failed": false,
+       "both_correct": true
+      },
+      {
+       "q": "S40",
+       "family": "collected",
+       "parent_ok": true,
+       "cand_ok": true,
+       "gt_winner": "tie",
+       "judge": "parent",
+       "parse_failed": false,
+       "both_correct": true
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "judge_vs_gt": {
+  "candidate|candidate": 7,
+  "candidate|tie": 1,
+  "tie|candidate": 11,
+  "tie|parent": 10,
+  "tie|tie": 19
+ },
+ "decisions": [
+  {
+   "round": 1,
+   "candidate": "v0-c1",
+   "official(frozen policy: bare rule + both reps + regression veto)": "reject",
+   "bare repo rule on rep1 only": "accept",
+   "bare repo rule on both reps pooled": "accept",
+   "bare rule, every rep must accept": "reject",
+   "regression veto would fire": true,
+   "ground-truth gate (decide_gt) per rep": [
+    "accept",
+    "accept"
+   ]
+  },
+  {
+   "round": 2,
+   "candidate": "v0-c2",
+   "official(frozen policy: bare rule + both reps + regression veto)": "reject",
+   "bare repo rule on rep1 only": "accept",
+   "bare repo rule on both reps pooled": "accept",
+   "bare rule, every rep must accept": "accept",
+   "regression veto would fire": true,
+   "ground-truth gate (decide_gt) per rep": [
+    "accept",
+    "accept"
+   ]
+  }
+ ],
+ "mechanism": [
+  {
+   "round": 1,
+   "dir": "mechanism_attempt2",
+   "tasks": 6,
+   "activated_substring_rule": 6,
+   "activated_whole_id_rule": 6,
+   "gt_candidate_correct": 5,
+   "gt_parent_correct_same_tasks": 2,
+   "questions": [
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07"
+   ]
+  },
+  {
+   "round": 2,
+   "dir": "mechanism_attempt1",
+   "tasks": 6,
+   "activated_substring_rule": 6,
+   "activated_whole_id_rule": 6,
+   "gt_candidate_correct": 2,
+   "gt_parent_correct_same_tasks": 2,
+   "questions": [
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07"
+   ]
+  }
+ ],
+ "test": {
+  "ontology_ontology_v0": {
+   "correct": 8,
+   "n": 16,
+   "wrong": [
+    "T01",
+    "T02",
+    "T03",
+    "T07",
+    "T08",
+    "T10",
+    "T11",
+    "T14"
+   ],
+   "by_kind": {
+    "seen_reworded": [
+     1,
+     4
+    ],
+    "combo": [
+     2,
+     2
+    ],
+    "unseen": [
+     5,
+     10
+    ]
+   },
+   "by_family": {
+    "valid_orders": [
+     1,
+     4
+    ],
+    "net_revenue": [
+     1,
+     1
+    ],
+    "aov": [
+     1,
+     1
+    ],
+    "cancel_rate": [
+     0,
+     2
+    ],
+    "ship_days": [
+     1,
+     1
+    ],
+    "ontime": [
+     0,
+     2
+    ],
+    "new_customers": [
+     2,
+     2
+    ],
+    "coupon": [
+     1,
+     2
+    ],
+    "pending_ship": [
+     1,
+     1
+    ]
+   }
+  },
+  "ontology_v0-c1": {
+   "correct": 13,
+   "n": 16,
+   "wrong": [
+    "T01",
+    "T02",
+    "T14"
+   ],
+   "by_kind": {
+    "seen_reworded": [
+     2,
+     4
+    ],
+    "combo": [
+     2,
+     2
+    ],
+    "unseen": [
+     9,
+     10
+    ]
+   },
+   "by_family": {
+    "valid_orders": [
+     2,
+     4
+    ],
+    "net_revenue": [
+     1,
+     1
+    ],
+    "aov": [
+     1,
+     1
+    ],
+    "cancel_rate": [
+     2,
+     2
+    ],
+    "ship_days": [
+     1,
+     1
+    ],
+    "ontime": [
+     2,
+     2
+    ],
+    "new_customers": [
+     2,
+     2
+    ],
+    "coupon": [
+     1,
+     2
+    ],
+    "pending_ship": [
+     1,
+     1
+    ]
+   }
+  },
+  "ontology_v0-c2": {
+   "correct": 12,
+   "n": 16,
+   "wrong": [
+    "T07",
+    "T08",
+    "T10",
+    "T11"
+   ],
+   "by_kind": {
+    "seen_reworded": [
+     4,
+     4
+    ],
+    "combo": [
+     2,
+     2
+    ],
+    "unseen": [
+     6,
+     10
+    ]
+   },
+   "by_family": {
+    "valid_orders": [
+     4,
+     4
+    ],
+    "net_revenue": [
+     1,
+     1
+    ],
+    "aov": [
+     1,
+     1
+    ],
+    "cancel_rate": [
+     0,
+     2
+    ],
+    "ship_days": [
+     1,
+     1
+    ],
+    "ontime": [
+     0,
+     2
+    ],
+    "new_customers": [
+     2,
+     2
+    ],
+    "coupon": [
+     2,
+     2
+    ],
+    "pending_ship": [
+     1,
+     1
+    ]
+   }
+  }
+ },
+ "cost": [
+  {
+   "stage": "audit.test",
+   "model": "claude-sonnet-5-5",
+   "calls": 278,
+   "in": 1467757,
+   "out": 59012,
+   "usd": 4.6033
+  },
+  {
+   "stage": "build.design_a",
+   "model": "claude-sonnet-5-5",
+   "calls": 3,
+   "in": 53545,
+   "out": 23848,
+   "usd": 0.3815
+  },
+  {
+   "stage": "build.design_b",
+   "model": "claude-sonnet-5-5",
+   "calls": 3,
+   "in": 77807,
+   "out": 44232,
+   "usd": 0.6717
+  },
+  {
+   "stage": "build.explore",
+   "model": "claude-sonnet-5-5",
+   "calls": 18,
+   "in": 216671,
+   "out": 28801,
+   "usd": 0.9839
+  },
+  {
+   "stage": "evolve.attribute",
+   "model": "claude-sonnet-5-5",
+   "calls": 5,
+   "in": 90265,
+   "out": 5273,
+   "usd": 0.3729
+  },
+  {
+   "stage": "evolve.diagnose",
+   "model": "claude-sonnet-5-5",
+   "calls": 3,
+   "in": 106517,
+   "out": 5889,
+   "usd": 0.4622
+  },
+  {
+   "stage": "evolve.gate.candidate",
+   "model": "claude-haiku-5-5",
+   "calls": 233,
+   "in": 1100901,
+   "out": 118746,
+   "usd": 0.2036
+  },
+  {
+   "stage": "evolve.gate.parent",
+   "model": "claude-haiku-5-5",
+   "calls": 263,
+   "in": 1272337,
+   "out": 127089,
+   "usd": 0.2355
+  },
+  {
+   "stage": "evolve.judge",
+   "model": "claude-opus-5-5",
+   "calls": 46,
+   "in": 122825,
+   "out": 12217,
+   "usd": 1.2266
+  },
+  {
+   "stage": "evolve.judge",
+   "model": "claude-sonnet-5-5",
+   "calls": 2,
+   "in": 4329,
+   "out": 231,
+   "usd": 0.0196
+  },
+  {
+   "stage": "evolve.patch",
+   "model": "claude-sonnet-5-5",
+   "calls": 3,
+   "in": 41181,
+   "out": 13584,
+   "usd": 0.2805
+  },
+  {
+   "stage": "evolve.replay",
+   "model": "claude-haiku-5-5",
+   "calls": 73,
+   "in": 338859,
+   "out": 36209,
+   "usd": 0.0672
+  },
+  {
+   "stage": "posthoc.rejudge",
+   "model": "claude-sonnet-5-5",
+   "calls": 6,
+   "in": 12881,
+   "out": 701,
+   "usd": 0.0585
+  },
+  {
+   "stage": "smoke.evolve.judge",
+   "model": "claude-opus-5-5",
+   "calls": 1,
+   "in": 1606,
+   "out": 442,
+   "usd": 0.0217
+  },
+  {
+   "stage": "smoke.evolve.judge",
+   "model": "claude-sonnet-5-5",
+   "calls": 1,
+   "in": 1610,
+   "out": 419,
+   "usd": 0.0106
+  },
+  {
+   "stage": "smoke.use",
+   "model": "claude-haiku-5-5",
+   "calls": 5,
+   "in": 22929,
+   "out": 3846,
+   "usd": 0.0053
+  },
+  {
+   "stage": "use",
+   "model": "claude-haiku-5-5",
+   "calls": 240,
+   "in": 1183131,
+   "out": 117122,
+   "usd": 0.2281
+  }
+ ],
+ "cost_total": 9.8329
+}

@@ -1,0 +1,178 @@
+{
+  "task_id": "task_926ee0d9fa62",
+  "question": "順豐在 2025 年上半年的平均配送天數是多少？",
+  "ontology_version": "ontology_v0",
+  "split": "production",
+  "semantic_calls": [
+    {
+      "tool": "resolve_semantics",
+      "input": {
+        "mentions": [
+          "順豐",
+          "配送天數",
+          "平均配送天數"
+        ],
+        "context": "順豐在 2025 年上半年的平均配送天數是多少？"
+      },
+      "result": {
+        "status": "ok",
+        "results": [
+          {
+            "query": "順豐",
+            "query_type": "mention",
+            "status": "unresolved",
+            "match_rationale": "No active term matching '順豐'. Inspect the data directly.",
+            "candidates": [],
+            "coverage_status": "unavailable"
+          },
+          {
+            "query": "配送天數",
+            "query_type": "mention",
+            "status": "unresolved",
+            "match_rationale": "No active term matching '配送天數'. Inspect the data directly.",
+            "candidates": [],
+            "coverage_status": "unavailable"
+          },
+          {
+            "query": "平均配送天數",
+            "query_type": "mention",
+            "status": "unresolved",
+            "match_rationale": "No active term matching '平均配送天數'. Inspect the data directly.",
+            "candidates": [],
+            "coverage_status": "unavailable"
+          }
+        ],
+        "requested_count": 3,
+        "processed_count": 3,
+        "skipped": [],
+        "version": "ontology_v0",
+        "note": "Use these mappings only for the current analysis need."
+      }
+    }
+  ],
+  "native_tool_calls": [
+    {
+      "tool": "get_schema",
+      "input": {},
+      "result": {
+        "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+      },
+      "result_truncated": false,
+      "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+    },
+    {
+      "tool": "sql_query",
+      "input": {
+        "query": "SELECT carrier, COUNT(*) AS n, MIN(shipped_ts) AS min_shipped, MAX(shipped_ts) AS max_shipped, MIN(delivered_ts) AS min_delivered, MAX(delivered_ts) AS max_delivered, SUM(CASE WHEN delivered_ts IS NULL THEN 1 ELSE 0 END) AS null_delivered FROM shipments GROUP BY carrier ORDER BY n DESC"
+      },
+      "result": {
+        "columns": [
+          "carrier",
+          "n",
+          "min_shipped",
+          "max_shipped",
+          "min_delivered",
+          "max_delivered",
+          "null_delivered"
+        ],
+        "rows": [
+          [
+            "blackcat",
+            19911,
+            "2024-12-31 05:07:42",
+            "2026-01-04 15:04:46",
+            "2025-01-01 06:58:33",
+            "2026-01-08 09:31:43",
+            2134
+          ],
+          [
+            "hct",
+            11092,
+            "2024-12-31 10:14:46",
+            "2026-01-04 17:53:02",
+            "2025-01-02 09:14:46",
+            "2026-01-08 23:29:30",
+            1233
+          ],
+          [
+            "sf",
+            6806,
+            "2024-12-31 08:50:28",
+            "2026-01-04 09:29:21",
+            "2025-01-01 14:17:31",
+            "2026-01-06 18:52:48",
+            735
+          ],
+          [
+            "post",
+            6635,
+            "2024-12-31 04:11:32",
+            "2026-01-04 00:08:37",
+            "2025-01-02 08:04:45",
+            "2026-01-10 06:08:37",
+            768
+          ]
+        ],
+        "truncated": false
+      },
+      "result_truncated": false,
+      "result_summary": "{'columns': ['carrier', 'n', 'min_shipped', 'max_shipped', 'min_delivered', 'max_delivered', 'null_delivered'], 'rows': [['blackcat', 19911, '2024-12-31 05:07:42', '2026-01-04 15:04:46', '2025-01-01 06:58:33', '2026-01-08 09:31:43', 2134], ['hct', 11092, '2024-12-31 10:14:46', '2026-01-04 17:53:02', '2025-01-02 09:14:46', '2026-01-08 23:29:30', 1233], ['sf', 6806, '2024-12-31 08:50:28', '2026-01-04 09:29:21', '2025-01-01 14:17:31', '2026-01-06 18:52:48', 735], ['post', 6635, '2024-12-31 04:11:32', '2026-01-04 00:08:37', '2025-01-02 08:04:45', '2026-01-10 06:08:37', 768]], 'truncated': False}"
+    },
+    {
+      "tool": "sql_query",
+      "input": {
+        "queries": [
+          "SELECT COUNT(*) AS n_total, SUM(CASE WHEN delivered_ts IS NULL THEN 1 ELSE 0 END) AS n_null_delivered, SUM(CASE WHEN delivered_ts < shipped_ts THEN 1 ELSE 0 END) AS n_negative, ROUND(AVG(julianday(delivered_ts) - julianday(shipped_ts)), 2) AS avg_days FROM shipments WHERE carrier = 'sf' AND shipped_ts >= '2025-01-01' AND shipped_ts < '2025-07-01'",
+          "SELECT ROUND(AVG(d), 2) AS avg_days_valid, COUNT(*) AS n_valid FROM (SELECT julianday(delivered_ts) - julianday(shipped_ts) AS d FROM shipments WHERE carrier = 'sf' AND shipped_ts >= '2025-01-01' AND shipped_ts < '2025-07-01' AND delivered_ts IS NOT NULL AND delivered_ts >= shipped_ts)"
+        ]
+      },
+      "result": [
+        {
+          "query": "SELECT COUNT(*) AS n_total, SUM(CASE WHEN delivered_ts IS NULL THEN 1 ELSE 0 END) AS n_null_delivered, SUM(CASE WHEN delivered_ts < shipped_ts THEN 1 ELSE 0 END) AS n_negative, ROUND(AVG(julianday(delivered_ts) - julianday(shipped_ts)), 2) AS avg_days FROM shipments WHERE carrier = 'sf' AND shipped_ts >= '2025-01-01' AND shipped_ts < '2025-07-01'",
+          "columns": [
+            "n_total",
+            "n_null_delivered",
+            "n_negative",
+            "avg_days"
+          ],
+          "rows": [
+            [
+              3315,
+              356,
+              0,
+              1.97
+            ]
+          ],
+          "truncated": false
+        },
+        {
+          "query": "SELECT ROUND(AVG(d), 2) AS avg_days_valid, COUNT(*) AS n_valid FROM (SELECT julianday(delivered_ts) - julianday(shipped_ts) AS d FROM shipments WHERE carrier = 'sf' AND shipped_ts >= '2025-01-01' AND shipped_ts < '2025-07-01' AND delivered_ts IS NOT NULL AND delivered_ts >= shipped_ts)",
+          "columns": [
+            "avg_days_valid",
+            "n_valid"
+          ],
+          "rows": [
+            [
+              1.97,
+              2959
+            ]
+          ],
+          "truncated": false
+        }
+      ],
+      "result_truncated": false,
+      "result_summary": "[{'query': \"SELECT COUNT(*) AS n_total, SUM(CASE WHEN delivered_ts IS NULL THEN 1 ELSE 0 END) AS n_null_delivered, SUM(CASE WHEN delivered_ts < shipped_ts THEN 1 ELSE 0 END) AS n_negative, ROUND(AVG(julianday(delivered_ts) - julianday(shipped_ts)), 2) AS avg_days FROM shipments WHERE carrier = 'sf' AND shipped_ts >= '2025-01-01' AND shipped_ts < '2025-07-01'\", 'columns': ['n_total', 'n_null_delivered', 'n_negative', 'avg_days'], 'rows': [[3315, 356, 0, 1.97]], 'truncated': False}, {'query': \"SELECT ROUND(AVG(d), 2) AS avg_days_valid, COUNT(*) AS n_valid FROM (SELECT julianday(delivered_ts) - julianday(shipped_ts) AS d FROM shipments WHERE carrier = 'sf' AND shipped_ts >= '2025-01-01' AND shipped_ts < '2025-07-01' AND delivered_ts IS NOT NULL AND delivered_ts >= shipped_ts)\", 'columns': ['avg_days_valid', 'n_valid'], 'rows': [[1.97, 2959]], 'truncated': False}]"
+    }
+  ],
+  "final_answer": {
+    "answer": "1.97",
+    "basis": "順豐以 shipments.carrier = 'sf' 對應。樣本為 shipped_ts 在 2025-01-01 至 2025-06-30 的出貨紀錄（共 3315 筆），排除 delivered_ts 為空的 356 筆與負值紀錄（0 筆），以 delivered_ts 減 shipped_ts 的天數平均，有效筆數 2959，結果 1.97 天。"
+  },
+  "task_status": "completed",
+  "errors": [],
+  "question_id": "S06",
+  "arm": "ontology",
+  "steps": 5,
+  "ended_by": "final",
+  "recorded_at": "2026-10-27T01:15:00+00:00"
+}

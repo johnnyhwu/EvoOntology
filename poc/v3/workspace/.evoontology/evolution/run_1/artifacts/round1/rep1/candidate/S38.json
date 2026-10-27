@@ -1,0 +1,509 @@
+{
+ "task_id": "task_eb217c1e21cf",
+ "question": "2025 年 1 月份的有效訂單總數為多少？",
+ "ontology_version": "v0-c1",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "有效訂單",
+     "訂單",
+     "訂單日期"
+    ],
+    "context": "2025 年 1 月份的有效訂單總數為多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "有效訂單",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '有效訂單'",
+      "term": {
+       "id": "term_valid_order",
+       "type": "concept",
+       "name": "有效訂單",
+       "aliases": [
+        "valid order",
+        "有效訂單數",
+        "訂單張數",
+        "訂單數",
+        "valid orders",
+        "orders.status",
+        "狀態1/2/3"
+       ],
+       "definition": "訂單狀態為已付款、已出貨、已送達的訂單；待付款與已取消不算有效訂單。",
+       "scope": "所有營收、客單價、訂單張數、回購與通路占比類分析",
+       "evidence_refs": [
+        "ev_status_codes",
+        "ev_doc_valid_order",
+        "ev_status_payment_consistency"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_valid_order_status",
+        "term_id": "term_valid_order",
+        "table": "orders",
+        "column": "status",
+        "semantic_filter": "狀態碼為 1（已付款）、2（已出貨）、3（已送達）",
+        "aggregation_semantics": "以不重複訂單編號計張數",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_order_valid",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_valid_order",
+        "connection_condition": "有效訂單是訂單狀態為已付款、已出貨、已送達的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_doc_valid_order"
+        ]
+       },
+       {
+        "id": "rel_aov_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_avg_order_value",
+        "connection_condition": "客單價的分母為期間內有效訂單張數。",
+        "evidence_refs": [
+         "ev_multi_item_orders",
+         "ev_status_codes"
+        ]
+       },
+       {
+        "id": "rel_repeat_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_repeat_customer",
+        "connection_condition": "每位客戶在同一年度的有效訂單張數達兩張以上，即為回購客戶。",
+        "evidence_refs": [
+         "ev_doc_repeat_customer",
+         "ev_repeat_customers"
+        ]
+       },
+       {
+        "id": "rel_channel_share_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_channel_share",
+        "connection_condition": "通路占比的分子與分母皆為同一期間的有效訂單張數。",
+        "evidence_refs": [
+         "ev_channel_values",
+         "ev_status_codes"
+        ]
+       },
+       {
+        "id": "rel_cancellation_rate_from_orders",
+        "relation_type": "derivation",
+        "source": "term_cancellation_rate",
+        "target": "term_valid_order",
+        "connection_condition": "",
+        "evidence_refs": [
+         "ev_doc_cancel_rate"
+        ]
+       }
+      ],
+      "constraints": [
+       {
+        "id": "con_valid_order_definition",
+        "severity": "block",
+        "description": "有效訂單指訂單狀態碼為 1（已付款）、2（已出貨）、3（已送達）的訂單。狀態 0（待付款）與 9（已取消）不是有效訂單。資料中待付款與已取消訂單沒有任何付款成功紀錄，與此定義互相佐證。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_doc_valid_order",
+         "ev_status_payment_consistency"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_valid_order",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "待付款與已取消的訂單不算有效訂單。 | 解讀: 有效訂單 = 狀態 1/2/3。",
+        "validation_method": "文件原文引用；搭配 ev_status_payment_consistency 驗證",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_payment_consistency",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(DISTINCT o.order_id) orders, COUNT(DISTINCT CASE WHEN p.payment_status='ok' THEN o.order_id END) paid_ok FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"orders\", \"paid_ok\"], \"rows\": [[0, 3003, 0], [1, 3549, 3549], [2, 4870, 4870], [3, 39574, 39574], [9, 9004, 0]]} | 解讀: 狀態 1/2/3 的訂單全數有付款成功；0 與 9 為 0，與有效訂單定義互相佐證。",
+        "validation_method": "訂單狀態與付款成功狀態對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_multi_item_orders",
+        "source": "shop_v2",
+        "query": "SELECT items_per_order, COUNT(*) orders FROM (SELECT order_id, COUNT(*) items_per_order FROM order_items GROUP BY order_id) GROUP BY items_per_order ORDER BY items_per_order",
+        "result": "{\"columns\": [\"items_per_order\", \"orders\"], \"rows\": [[1, 29911], [2, 18155], [3, 8991], [4, 2943]]} | 解讀: 多明細訂單佔相當比例，join order_items 後直接 COUNT(*) 會高估訂單數；所有訂單都至少有一筆明細（無孤兒訂單）。",
+        "validation_method": "每張訂單的明細數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_repeat_customer",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "某一年度內有效訂單達 2 張（含）以上的客戶。 | 解讀: 定義可用 orders 依 customer_id 分組實作。",
+        "validation_method": "文件原文引用；以資料計算客戶層級分布佐證可實作",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_repeat_customers",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) customers_valid, SUM(CASE WHEN c>=2 THEN 1 ELSE 0 END) repeat_customers FROM (SELECT customer_id, COUNT(*) c FROM orders WHERE status IN (1,2,3) AND strftime('%Y', datetime(order_ts,'+8 hours'))='2025' GROUP BY customer_id)",
+        "result": "{\"columns\": [\"customers_valid\", \"repeat_customers\"], \"rows\": [[4526, 3990]]} | 解讀: 回購比例極高；回購客戶是客戶層級指標，不能用訂單張數替代。",
+        "validation_method": "客戶層級有效訂單數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_channel_values",
+        "source": "shop_v2",
+        "query": "SELECT channel, COUNT(*) valid_orders, ROUND(100.0*COUNT(*)/SUM(COUNT(*)) OVER (),2) pct FROM orders WHERE status IN (1,2,3) AND strftime('%Y',datetime(order_ts,'+8 hours'))='2025' GROUP BY channel ORDER BY 2 DESC",
+        "result": "{\"columns\": [\"channel\", \"valid_orders\", \"pct\"], \"rows\": [[\"web\", 23899, 50.1], [\"app\", 16679, 34.97], [\"store\", 7121, 14.93]]} | 解讀: 通路代碼與文件一致；占比分母需先限定為台北時間 2025 的有效訂單。",
+        "validation_method": "distinct 值與占比計算",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_cancel_rate",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "期間內（依訂單成立時間）已取消訂單 ÷（有效訂單 + 已取消訂單）。待付款訂單不納入分母。 | 解讀: 文件明確定義取消率的分子、分母與期間歸屬，待付款不入分母。",
+        "validation_method": "document_quote",
+        "timestamp": "2026-10-27T00:35:38Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "訂單",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '訂單'",
+      "term": {
+       "id": "term_order",
+       "type": "entity",
+       "name": "訂單",
+       "aliases": [
+        "order",
+        "orders",
+        "order_id",
+        "訂單編號",
+        "張數"
+       ],
+       "definition": "一張客戶下的訂單，含成立時間、狀態、通路與優惠碼；與訂單明細為一對多。",
+       "scope": "訂單層級分析",
+       "evidence_refs": [
+        "ev_multi_item_orders",
+        "ev_status_codes"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_order_id",
+        "term_id": "term_order",
+        "table": "orders",
+        "column": "order_id",
+        "semantic_filter": "",
+        "aggregation_semantics": "不重複訂單計數；訂單與明細一對多，不可以明細列數代替訂單張數",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_order_valid",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_valid_order",
+        "connection_condition": "有效訂單是訂單狀態為已付款、已出貨、已送達的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_doc_valid_order"
+        ]
+       },
+       {
+        "id": "rel_order_pending",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_pending_order",
+        "connection_condition": "待付款訂單是訂單狀態為待付款的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_status_payment_consistency"
+        ]
+       },
+       {
+        "id": "rel_order_cancelled",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_cancelled_order",
+        "connection_condition": "已取消訂單是訂單狀態為已取消的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_status_payment_consistency"
+        ]
+       },
+       {
+        "id": "rel_order_items",
+        "relation_type": "composition",
+        "source": "term_order",
+        "target": "term_order_item",
+        "connection_condition": "訂單明細透過訂單編號隸屬於訂單；一張訂單含一到四筆明細。",
+        "evidence_refs": [
+         "ev_multi_item_orders"
+        ]
+       },
+       {
+        "id": "rel_order_payment",
+        "relation_type": "association",
+        "source": "term_order",
+        "target": "term_payment",
+        "connection_condition": "付款紀錄以訂單編號對應到訂單；一張訂單可有多筆付款嘗試。",
+        "evidence_refs": [
+         "ev_payment_single_ok",
+         "ev_failed_payment_orders"
+        ]
+       },
+       {
+        "id": "rel_customer_order",
+        "relation_type": "association",
+        "source": "term_customer",
+        "target": "term_order",
+        "connection_condition": "訂單以客戶編號對應到客戶。",
+        "evidence_refs": [
+         "ev_dim_region_tier"
+        ]
+       },
+       {
+        "id": "rel_order_channel",
+        "relation_type": "association",
+        "source": "term_order",
+        "target": "term_channel",
+        "connection_condition": "訂單資料表中的通路欄位記錄下單通路。",
+        "evidence_refs": [
+         "ev_channel_values"
+        ]
+       },
+       {
+        "id": "rel_shipment_to_order",
+        "relation_type": "association",
+        "source": "term_shipment",
+        "target": "term_order",
+        "connection_condition": "shipments.order_id = orders.order_id",
+        "evidence_refs": [
+         "ev_doc_delivery_days"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_multi_item_orders",
+        "source": "shop_v2",
+        "query": "SELECT items_per_order, COUNT(*) orders FROM (SELECT order_id, COUNT(*) items_per_order FROM order_items GROUP BY order_id) GROUP BY items_per_order ORDER BY items_per_order",
+        "result": "{\"columns\": [\"items_per_order\", \"orders\"], \"rows\": [[1, 29911], [2, 18155], [3, 8991], [4, 2943]]} | 解讀: 多明細訂單佔相當比例，join order_items 後直接 COUNT(*) 會高估訂單數；所有訂單都至少有一筆明細（無孤兒訂單）。",
+        "validation_method": "每張訂單的明細數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_valid_order",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "待付款與已取消的訂單不算有效訂單。 | 解讀: 有效訂單 = 狀態 1/2/3。",
+        "validation_method": "文件原文引用；搭配 ev_status_payment_consistency 驗證",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_payment_consistency",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(DISTINCT o.order_id) orders, COUNT(DISTINCT CASE WHEN p.payment_status='ok' THEN o.order_id END) paid_ok FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"orders\", \"paid_ok\"], \"rows\": [[0, 3003, 0], [1, 3549, 3549], [2, 4870, 4870], [3, 39574, 39574], [9, 9004, 0]]} | 解讀: 狀態 1/2/3 的訂單全數有付款成功；0 與 9 為 0，與有效訂單定義互相佐證。",
+        "validation_method": "訂單狀態與付款成功狀態對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_payment_single_ok",
+        "source": "shop_v2",
+        "query": "SELECT payment_status, COUNT(*) n, COUNT(DISTINCT order_id) distinct_orders, SUM(amount_twd) amt FROM payments GROUP BY payment_status",
+        "result": "{\"columns\": [\"payment_status\", \"n\", \"distinct_orders\", \"amt\"], \"rows\": [[\"failed\", 13326, 11824, 125980715], [\"ok\", 47993, 47993, 447706825]]} | 解讀: ok 為 47993 列對應 47993 張訂單（無重複付款）；failed 13326 列僅涵蓋 11824 張訂單，部分訂單有多次失敗。若不過濾 ok 會高估實收金額。",
+        "validation_method": "依付款狀態比較列數與 distinct 訂單數",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_failed_payment_orders",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(*) failed_rows, COUNT(DISTINCT p.order_id) failed_orders FROM payments p JOIN orders o ON o.order_id=p.order_id WHERE p.payment_status='failed' GROUP BY o.status ORDER BY o.status",
+        "result": "{\"columns\": [\"status\", \"failed_rows\", \"failed_orders\"], \"rows\": [[0, 1486, 1486], [1, 534, 437], [2, 731, 580], [3, 6078, 4824], [9, 4497, 4497]]} | 解讀: 失敗紀錄會出現在待付款、已取消，也可能出現在後來付款成功的訂單，必須用 payment_status='ok' 而非存在性判斷。",
+        "validation_method": "失敗付款依訂單狀態分組",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_dim_region_tier",
+        "source": "shop_v2",
+        "query": "SELECT c.region_code, c.tier, COUNT(*) valid_orders FROM orders o JOIN customers c ON c.customer_id=o.customer_id WHERE o.status IN (1,2,3) AND strftime('%Y',datetime(o.order_ts,'+8 hours'))='2025' GROUP BY 1,2 ORDER BY 3 DESC",
+        "result": "{\"columns\": [\"region_code\", \"tier\", \"valid_orders\"], \"rows\": [[\"TW-N\", \"B\", 12994], [\"TW-C\", \"B\", 9322], [\"TW-S\", \"B\", 6366], [\"TW-N\", \"S\", 3698], [\"JP\", \"B\", 3422], [\"TW-S\", \"S\", 2336], [\"TW-C\", \"S\", 2154], [\"TW-N\", \"G\", 2131], [\"SG\", \"B\", 1568], [\"TW-C\", \"G\", 1155], [\"JP\", \"S\", 869], [\"TW-S\", \"G\", 623], [\"SG\", \"S\", 437], [\"JP\", \"G\", 416], [\"SG\", \"G\", 208]]} | 解讀: customers 與 orders 無孤兒；region_code 與 tier 為客戶當前屬性（無歷史版本），日本客戶 = region_code 'JP'。",
+        "validation_method": "客戶維度串接有效訂單並檢查代碼值",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_channel_values",
+        "source": "shop_v2",
+        "query": "SELECT channel, COUNT(*) valid_orders, ROUND(100.0*COUNT(*)/SUM(COUNT(*)) OVER (),2) pct FROM orders WHERE status IN (1,2,3) AND strftime('%Y',datetime(order_ts,'+8 hours'))='2025' GROUP BY channel ORDER BY 2 DESC",
+        "result": "{\"columns\": [\"channel\", \"valid_orders\", \"pct\"], \"rows\": [[\"web\", 23899, 50.1], [\"app\", 16679, 34.97], [\"store\", 7121, 14.93]]} | 解讀: 通路代碼與文件一致；占比分母需先限定為台北時間 2025 的有效訂單。",
+        "validation_method": "distinct 值與占比計算",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_delivery_days",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "送達時間 − 出貨時間，以天計，可含小數。只計算已送達的出貨紀錄。期間依訂單成立時間歸屬。 | 解讀: 文件明確定義配送天數的計算方式、適用範圍與期間歸屬。",
+        "validation_method": "document_quote",
+        "timestamp": "2026-10-27T00:35:38Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "訂單日期",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '訂單日期'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 3,
+    "processed_count": 3,
+    "skipped": [],
+    "version": "v0-c1",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT order_ts, status FROM orders ORDER BY order_ts LIMIT 5",
+     "SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_01 FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-01-01' AND order_ts < '2025-02-01'"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT order_ts, status FROM orders ORDER BY order_ts LIMIT 5",
+     "columns": [
+      "order_ts",
+      "status"
+     ],
+     "rows": [
+      [
+       "2024-12-30 00:03:20",
+       3
+      ],
+      [
+       "2024-12-30 00:13:54",
+       3
+      ],
+      [
+       "2024-12-30 00:17:31",
+       3
+      ],
+      [
+       "2024-12-30 00:25:59",
+       3
+      ],
+      [
+       "2024-12-30 00:28:46",
+       3
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_01 FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-01-01' AND order_ts < '2025-02-01'",
+     "columns": [
+      "valid_orders_2025_01"
+     ],
+     "rows": [
+      [
+       4089
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT order_ts, status FROM orders ORDER BY order_ts LIMIT 5', 'columns': ['order_ts', 'status'], 'rows': [['2024-12-30 00:03:20', 3], ['2024-12-30 00:13:54', 3], ['2024-12-30 00:17:31', 3], ['2024-12-30 00:25:59', 3], ['2024-12-30 00:28:46', 3]], 'truncated': False}, {'query': \"SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_01 FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-01-01' AND order_ts < '2025-02-01'\", 'columns': ['valid_orders_2025_01'], 'rows': [[4089]], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT COUNT(*) AS total_rows, SUM(CASE WHEN order_ts GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:[0-9][0-9]:[0-9][0-9]' THEN 1 ELSE 0 END) AS std_format_rows, MIN(order_ts) AS min_ts, MAX(order_ts) AS max_ts FROM orders"
+   },
+   "result": {
+    "columns": [
+     "total_rows",
+     "std_format_rows",
+     "min_ts",
+     "max_ts"
+    ],
+    "rows": [
+     [
+      60000,
+      60000,
+      "2024-12-30 00:03:20",
+      "2025-12-31 23:53:02"
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['total_rows', 'std_format_rows', 'min_ts', 'max_ts'], 'rows': [[60000, 60000, '2024-12-30 00:03:20', '2025-12-31 23:53:02']], 'truncated': False}"
+  }
+ ],
+ "final_answer": {
+  "answer": "4089",
+  "basis": "依語意層定義，有效訂單為 orders.status 為 1（已付款）、2（已出貨）、3（已送達）的訂單，待付款（0）與已取消（9）排除。以 order_ts 介於 2025-01-01 至 2025-01-31 23:59:59 篩選（order_ts 全部為 YYYY-MM-DD HH:MM:SS 格式），並以 COUNT(DISTINCT order_id) 計張數，結果為 4089。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S38",
+ "arm": "ontology",
+ "steps": 5,
+ "ended_by": "final"
+}

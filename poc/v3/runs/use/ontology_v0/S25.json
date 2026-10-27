@@ -1,0 +1,186 @@
+{
+ "task_id": "task_974d28eecdb5",
+ "question": "2025 年南部客戶的回購客戶有幾位？",
+ "ontology_version": "ontology_v0",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "南部客戶",
+     "回購客戶"
+    ],
+    "context": "2025 年南部客戶的回購客戶有幾位？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "南部客戶",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '南部客戶'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "回購客戶",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '回購客戶'",
+      "term": {
+       "id": "term_repeat_customer",
+       "type": "metric",
+       "name": "回購客戶",
+       "aliases": [
+        "repeat customer",
+        "回購",
+        "回頭客",
+        "repeat buyers",
+        "回購客戶數",
+        "回購率"
+       ],
+       "definition": "某一年度（台北時間）內有效訂單達 2 張（含）以上的客戶；客戶層級指標。",
+       "scope": "年度客戶層級分析",
+       "evidence_refs": [
+        "ev_doc_repeat_customer",
+        "ev_repeat_customers"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_repeat_customer",
+        "term_id": "term_repeat_customer",
+        "table": "orders",
+        "column": "customer_id",
+        "semantic_filter": "僅計有效訂單；年度依台北時間訂單成立時間",
+        "aggregation_semantics": "依客戶計算年度有效訂單張數，張數達 2 張以上者計為回購客戶，以不重複客戶計數",
+        "grain": "每位客戶每年度",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_repeat_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_repeat_customer",
+        "connection_condition": "每位客戶在同一年度的有效訂單張數達兩張以上，即為回購客戶。",
+        "evidence_refs": [
+         "ev_doc_repeat_customer",
+         "ev_repeat_customers"
+        ]
+       }
+      ],
+      "constraints": [
+       {
+        "id": "con_repeat_customer_definition",
+        "severity": "block",
+        "description": "回購客戶指某一年度（台北時間）內有效訂單達 2 張（含）以上的客戶，是客戶層級指標，以不重複客戶計數，不能用訂單張數代替。回購客戶占比的分母為該年度有下過有效訂單的客戶。依地區篩選時，地區取自客戶資料。",
+        "evidence_refs": [
+         "ev_doc_repeat_customer",
+         "ev_repeat_customers",
+         "ev_dim_region_tier"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_doc_repeat_customer",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "某一年度內有效訂單達 2 張（含）以上的客戶。 | 解讀: 定義可用 orders 依 customer_id 分組實作。",
+        "validation_method": "文件原文引用；以資料計算客戶層級分布佐證可實作",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_repeat_customers",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) customers_valid, SUM(CASE WHEN c>=2 THEN 1 ELSE 0 END) repeat_customers FROM (SELECT customer_id, COUNT(*) c FROM orders WHERE status IN (1,2,3) AND strftime('%Y', datetime(order_ts,'+8 hours'))='2025' GROUP BY customer_id)",
+        "result": "{\"columns\": [\"customers_valid\", \"repeat_customers\"], \"rows\": [[4526, 3990]]} | 解讀: 回購比例極高；回購客戶是客戶層級指標，不能用訂單張數替代。",
+        "validation_method": "客戶層級有效訂單數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_dim_region_tier",
+        "source": "shop_v2",
+        "query": "SELECT c.region_code, c.tier, COUNT(*) valid_orders FROM orders o JOIN customers c ON c.customer_id=o.customer_id WHERE o.status IN (1,2,3) AND strftime('%Y',datetime(o.order_ts,'+8 hours'))='2025' GROUP BY 1,2 ORDER BY 3 DESC",
+        "result": "{\"columns\": [\"region_code\", \"tier\", \"valid_orders\"], \"rows\": [[\"TW-N\", \"B\", 12994], [\"TW-C\", \"B\", 9322], [\"TW-S\", \"B\", 6366], [\"TW-N\", \"S\", 3698], [\"JP\", \"B\", 3422], [\"TW-S\", \"S\", 2336], [\"TW-C\", \"S\", 2154], [\"TW-N\", \"G\", 2131], [\"SG\", \"B\", 1568], [\"TW-C\", \"G\", 1155], [\"JP\", \"S\", 869], [\"TW-S\", \"G\", 623], [\"SG\", \"S\", 437], [\"JP\", \"G\", 416], [\"SG\", \"G\", 208]]} | 解讀: customers 與 orders 無孤兒；region_code 與 tier 為客戶當前屬性（無歷史版本），日本客戶 = region_code 'JP'。",
+        "validation_method": "客戶維度串接有效訂單並檢查代碼值",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "ontology_v0",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT DISTINCT region_code FROM customers ORDER BY region_code",
+     "SELECT COUNT(*) AS repeat_customers_south FROM (SELECT o.customer_id, COUNT(*) AS c FROM orders o JOIN customers cu ON cu.customer_id = o.customer_id WHERE cu.region_code = 'TW-S' AND o.status IN (1,2,3) AND strftime('%Y', datetime(o.order_ts,'+8 hours')) = '2025' GROUP BY o.customer_id HAVING COUNT(*) >= 2)"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT DISTINCT region_code FROM customers ORDER BY region_code",
+     "columns": [
+      "region_code"
+     ],
+     "rows": [
+      [
+       "JP"
+      ],
+      [
+       "SG"
+      ],
+      [
+       "TW-C"
+      ],
+      [
+       "TW-N"
+      ],
+      [
+       "TW-S"
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT COUNT(*) AS repeat_customers_south FROM (SELECT o.customer_id, COUNT(*) AS c FROM orders o JOIN customers cu ON cu.customer_id = o.customer_id WHERE cu.region_code = 'TW-S' AND o.status IN (1,2,3) AND strftime('%Y', datetime(o.order_ts,'+8 hours')) = '2025' GROUP BY o.customer_id HAVING COUNT(*) >= 2)",
+     "columns": [
+      "repeat_customers_south"
+     ],
+     "rows": [
+      [
+       777
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT DISTINCT region_code FROM customers ORDER BY region_code', 'columns': ['region_code'], 'rows': [['JP'], ['SG'], ['TW-C'], ['TW-N'], ['TW-S']], 'truncated': False}, {'query': \"SELECT COUNT(*) AS repeat_customers_south FROM (SELECT o.customer_id, COUNT(*) AS c FROM orders o JOIN customers cu ON cu.customer_id = o.customer_id WHERE cu.region_code = 'TW-S' AND o.status IN (1,2,3) AND strftime('%Y', datetime(o.order_ts,'+8 hours')) = '2025' GROUP BY o.customer_id HAVING COUNT(*) >= 2)\", 'columns': ['repeat_customers_south'], 'rows': [[777]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "777",
+  "basis": "依語意層定義，回購客戶為某年度（台北時間）有效訂單達 2 張以上的不重複客戶，地區取自 customers.region_code，南部為 'TW-S'。以 status IN (1,2,3)、2025 年台北時間篩選 orders，JOIN customers 後依 customer_id 計算訂單張數並計數張數 ≥ 2 的客戶，結果為 777 位。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S25",
+ "arm": "ontology",
+ "steps": 3,
+ "ended_by": "final"
+}

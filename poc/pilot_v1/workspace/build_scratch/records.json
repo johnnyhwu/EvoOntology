@@ -1,0 +1,1606 @@
+{
+ "version": "ontology_v0",
+ "records": {
+  "terms": [
+   {
+    "id": "term_customer",
+    "name": "Customer",
+    "type": "entity",
+    "definition": "A registered buyer of Lumo Outdoors; one row per customer in customers.",
+    "scope": "All order, tier and region analysis",
+    "aliases": [
+     "客戶",
+     "會員",
+     "顧客"
+    ],
+    "evidence": [
+     "ev_fk_integrity",
+     "ev_customer_snapshot"
+    ]
+   },
+   {
+    "id": "term_order",
+    "name": "Order",
+    "type": "entity",
+    "definition": "A purchase transaction placed by a customer; one row per order in orders, with one or more order items.",
+    "scope": "All order counting; includes pending and cancelled orders",
+    "aliases": [
+     "訂單"
+    ],
+    "evidence": [
+     "ev_status_enum",
+     "ev_payment_grain"
+    ]
+   },
+   {
+    "id": "term_valid_order",
+    "name": "Valid Order",
+    "type": "concept",
+    "definition": "An order whose status is paid, shipped or delivered (status 1, 2, 3). Pending-payment (0) and cancelled (9) orders are not valid orders.",
+    "scope": "Basis for order counts, revenue, average order value, repeat customers and channel share",
+    "aliases": [
+     "有效訂單",
+     "effective order"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_valid_order_payment",
+     "ev_status_enum"
+    ]
+   },
+   {
+    "id": "term_order_status",
+    "name": "Order Status",
+    "type": "dimension",
+    "definition": "Lifecycle state of an order, stored as integer code (0 pending payment, 1 paid, 2 shipped, 3 delivered, 9 cancelled).",
+    "scope": "orders.status",
+    "aliases": [
+     "訂單狀態"
+    ],
+    "evidence": [
+     "ev_status_enum"
+    ]
+   },
+   {
+    "id": "term_order_time",
+    "name": "Order Time",
+    "type": "dimension",
+    "definition": "Time an order was placed; stored in UTC and reported in Taipei time (UTC+8) for day, month, quarter and year.",
+    "scope": "Period attribution of orders, order counts, revenue and average order value",
+    "aliases": [
+     "訂單成立時間",
+     "下單時間",
+     "order date"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_timezone_impact"
+    ]
+   },
+   {
+    "id": "term_sales_channel",
+    "name": "Sales Channel",
+    "type": "dimension",
+    "definition": "Channel through which an order was placed: web (官網), app (行動 App) or store (實體門市).",
+    "scope": "orders.channel",
+    "aliases": [
+     "下單管道",
+     "通路",
+     "channel"
+    ],
+    "evidence": [
+     "ev_channel_enum"
+    ]
+   },
+   {
+    "id": "term_app_channel",
+    "name": "Mobile App Channel",
+    "type": "category",
+    "definition": "Orders placed through the mobile app (channel value app).",
+    "scope": "Channel-share analysis",
+    "aliases": [
+     "行動 App",
+     "App 下單"
+    ],
+    "evidence": [
+     "ev_channel_enum"
+    ]
+   },
+   {
+    "id": "term_customer_tier",
+    "name": "Customer Tier",
+    "type": "dimension",
+    "definition": "Membership level of a customer: B (一般會員), S (銀級會員), G (黃金會員); current value per customer.",
+    "scope": "customers.tier",
+    "aliases": [
+     "會員等級",
+     "membership tier"
+    ],
+    "evidence": [
+     "ev_tier_enum",
+     "ev_customer_snapshot"
+    ]
+   },
+   {
+    "id": "term_gold_tier",
+    "name": "Gold Member",
+    "type": "category",
+    "definition": "Customers whose tier is G (黃金會員).",
+    "scope": "Tier-based segment analysis",
+    "aliases": [
+     "黃金會員",
+     "gold tier"
+    ],
+    "evidence": [
+     "ev_tier_enum"
+    ]
+   },
+   {
+    "id": "term_customer_region",
+    "name": "Customer Region",
+    "type": "dimension",
+    "definition": "Region or country code of a customer: TW-N 北部, TW-C 中部, TW-S 南部, JP 日本, SG 新加坡; current value per customer.",
+    "scope": "customers.region_code",
+    "aliases": [
+     "地區",
+     "客戶區域",
+     "region"
+    ],
+    "evidence": [
+     "ev_region_enum",
+     "ev_customer_snapshot"
+    ]
+   },
+   {
+    "id": "term_north_region",
+    "name": "Northern Taiwan Region",
+    "type": "category",
+    "definition": "Customers whose region_code is TW-N (北部).",
+    "scope": "Regional segment analysis",
+    "aliases": [
+     "北部",
+     "北部客戶"
+    ],
+    "evidence": [
+     "ev_region_enum"
+    ]
+   },
+   {
+    "id": "term_product",
+    "name": "Product",
+    "type": "entity",
+    "definition": "A sellable item in the catalog; one row per product in products.",
+    "scope": "Product-level sales and category analysis",
+    "aliases": [
+     "商品",
+     "產品"
+    ],
+    "evidence": [
+     "ev_product_enum",
+     "ev_fk_integrity"
+    ]
+   },
+   {
+    "id": "term_active_product",
+    "name": "Active (On-sale) Product",
+    "type": "category",
+    "definition": "Products currently on sale (is_active = 1); is_active = 0 means delisted. A current-state flag, not time-versioned.",
+    "scope": "Questions about products currently on sale",
+    "aliases": [
+     "在售商品",
+     "目前仍在售",
+     "上架中"
+    ],
+    "evidence": [
+     "ev_product_enum"
+    ]
+   },
+   {
+    "id": "term_product_category",
+    "name": "Product Category",
+    "type": "dimension",
+    "definition": "Merchandise category of a product: backpack 登山背包, tent 帳篷, shoes 登山鞋, apparel 機能服飾, accessory 配件.",
+    "scope": "products.category",
+    "aliases": [
+     "商品類別",
+     "品類",
+     "category"
+    ],
+    "evidence": [
+     "ev_product_enum",
+     "ev_refund_category_path"
+    ]
+   },
+   {
+    "id": "term_order_item",
+    "name": "Order Item",
+    "type": "entity",
+    "definition": "A product line within an order (quantity at a transaction unit price); one row per order_items record.",
+    "scope": "Item-level amounts and quantities",
+    "aliases": [
+     "訂單明細",
+     "order line"
+    ],
+    "evidence": [
+     "ev_payment_grain",
+     "ev_fk_integrity"
+    ]
+   },
+   {
+    "id": "term_payment",
+    "name": "Payment Record",
+    "type": "entity",
+    "definition": "An attempt to pay an order; one row per payments record. An order can have several records (failed attempts plus at most one successful).",
+    "scope": "Payment-method and received-money analysis",
+    "aliases": [
+     "付款紀錄"
+    ],
+    "evidence": [
+     "ev_payment_grain",
+     "ev_valid_order_payment"
+    ]
+   },
+   {
+    "id": "term_payment_method",
+    "name": "Payment Method",
+    "type": "dimension",
+    "definition": "How a payment was made: credit_card 信用卡, line_pay LINE Pay, atm ATM 轉帳, cod 貨到付款.",
+    "scope": "payments.method",
+    "aliases": [
+     "付款方式"
+    ],
+    "evidence": [
+     "ev_payment_enum"
+    ]
+   },
+   {
+    "id": "term_refund",
+    "name": "Refund",
+    "type": "entity",
+    "definition": "A refund granted against one item of an order; one row per refunds record, referencing the item and its order.",
+    "scope": "Refund analysis",
+    "aliases": [
+     "退款",
+     "退貨退款"
+    ],
+    "evidence": [
+     "ev_refund_link"
+    ]
+   },
+   {
+    "id": "term_refund_time",
+    "name": "Refund Time",
+    "type": "dimension",
+    "definition": "Time a refund occurred; stored in UTC and reported in Taipei time (UTC+8).",
+    "scope": "Period attribution of the refund report",
+    "aliases": [
+     "退款發生時間"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_timezone_impact"
+    ]
+   },
+   {
+    "id": "term_item_amount",
+    "name": "Item Amount",
+    "type": "metric",
+    "definition": "Merchandise value of an order item: quantity times the transaction unit price (actual price paid, discount already included, not the catalog list price), expressed in TWD.",
+    "scope": "Basis of revenue and average order value",
+    "aliases": [
+     "商品金額"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_amount_unit"
+    ]
+   },
+   {
+    "id": "term_order_attributed_refund",
+    "name": "Refund Amount Attributed to Original Order",
+    "type": "metric",
+    "definition": "Refund amount deducted from the original order's revenue, assigned to the period of the order's creation time regardless of when the refund occurred.",
+    "scope": "Used only inside net revenue",
+    "aliases": [
+     "訂單歸屬退款"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_refund_attribution"
+    ]
+   },
+   {
+    "id": "term_net_revenue",
+    "name": "Net Revenue",
+    "type": "metric",
+    "definition": "Sum of item amounts of valid orders in the period (by order time) minus refund amounts of those orders.",
+    "scope": "Revenue reporting by period, tier, region, channel",
+    "aliases": [
+     "淨營收",
+     "net sales"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_refund_attribution",
+     "ev_amount_unit"
+    ]
+   },
+   {
+    "id": "term_avg_order_value",
+    "name": "Average Order Value",
+    "type": "metric",
+    "definition": "Sum of item amounts of valid orders in the period (refunds not deducted) divided by the number of valid orders in the period.",
+    "scope": "Period-based order value reporting",
+    "aliases": [
+     "客單價",
+     "AOV"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_amount_unit"
+    ]
+   },
+   {
+    "id": "term_repeat_customer",
+    "name": "Repeat Customer",
+    "type": "concept",
+    "definition": "A customer with at least 2 valid orders within one (Taipei) calendar year.",
+    "scope": "Customer retention counting per year",
+    "aliases": [
+     "回購客戶",
+     "repeat buyer"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_repeat_dist"
+    ]
+   },
+   {
+    "id": "term_app_order_share",
+    "name": "App Order Share",
+    "type": "metric",
+    "definition": "Share of valid orders in a period that were placed through the mobile app, as a percentage of valid order count.",
+    "scope": "Channel mix reporting",
+    "aliases": [
+     "App 下單占比"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_channel_enum"
+    ]
+   },
+   {
+    "id": "term_received_amount",
+    "name": "Received Amount",
+    "type": "metric",
+    "definition": "Total amount of successful payment records (payment_status ok); failed attempts are excluded.",
+    "scope": "Money actually received, by payment method",
+    "aliases": [
+     "實收金額"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_payment_enum",
+     "ev_valid_order_payment"
+    ]
+   },
+   {
+    "id": "term_refund_amount",
+    "name": "Refund Amount (Refund Report)",
+    "type": "metric",
+    "definition": "Total refund amount attributed to the period in which the refund occurred (refund time), as used by the refund report.",
+    "scope": "Refund reporting by period or product category",
+    "aliases": [
+     "退款金額",
+     "refund amount"
+    ],
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_refund_attribution",
+     "ev_refund_category_path"
+    ]
+   },
+   {
+    "id": "term_sales_quantity",
+    "name": "Sales Quantity",
+    "type": "metric",
+    "definition": "Number of units sold of a product, summed over order item quantities.",
+    "scope": "Product ranking by units sold",
+    "aliases": [
+     "銷售數量",
+     "銷量"
+    ],
+    "evidence": [
+     "ev_sales_qty_sensitivity"
+    ]
+   }
+  ],
+  "mappings": [
+   {
+    "id": "map_customer",
+    "term_id": "term_customer",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "customer_id",
+    "grain": "one row per customer",
+    "validation": "ev_fk_integrity: orders.customer_id has no orphans",
+    "aggregation_semantics": "count of distinct customers"
+   },
+   {
+    "id": "map_order",
+    "term_id": "term_order",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "order_id",
+    "grain": "one row per order",
+    "validation": "ev_payment_grain: 3000 orders; ev_status_enum",
+    "aggregation_semantics": "count of distinct orders"
+   },
+   {
+    "id": "map_valid_order",
+    "term_id": "term_valid_order",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "status",
+    "grain": "one row per order",
+    "validation": "ev_valid_order_payment: status 1,2,3 orders are exactly those with a successful payment",
+    "semantic_filter": "only orders in paid, shipped or delivered status",
+    "aggregation_semantics": "count of distinct qualifying orders"
+   },
+   {
+    "id": "map_order_status",
+    "term_id": "term_order_status",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "status",
+    "grain": "one row per order",
+    "validation": "ev_status_enum"
+   },
+   {
+    "id": "map_order_time",
+    "term_id": "term_order_time",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "order_ts",
+    "grain": "timestamp per order, UTC text 'YYYY-MM-DD HH:MM:SS'",
+    "validation": "ev_timezone_impact: range and format; zone per glossary"
+   },
+   {
+    "id": "map_sales_channel",
+    "term_id": "term_sales_channel",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "channel",
+    "grain": "one row per order",
+    "validation": "ev_channel_enum"
+   },
+   {
+    "id": "map_app_channel",
+    "term_id": "term_app_channel",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "channel",
+    "grain": "one row per order",
+    "validation": "ev_channel_enum",
+    "semantic_filter": "only orders placed through the mobile app"
+   },
+   {
+    "id": "map_customer_tier",
+    "term_id": "term_customer_tier",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "tier",
+    "grain": "one row per customer; current value",
+    "validation": "ev_tier_enum, ev_customer_snapshot"
+   },
+   {
+    "id": "map_gold_tier",
+    "term_id": "term_gold_tier",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "tier",
+    "grain": "one row per customer; current value",
+    "validation": "ev_tier_enum",
+    "semantic_filter": "only customers of gold tier"
+   },
+   {
+    "id": "map_customer_region",
+    "term_id": "term_customer_region",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "region_code",
+    "grain": "one row per customer; current value",
+    "validation": "ev_region_enum, ev_customer_snapshot"
+   },
+   {
+    "id": "map_north_region",
+    "term_id": "term_north_region",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "region_code",
+    "grain": "one row per customer; current value",
+    "validation": "ev_region_enum",
+    "semantic_filter": "only customers in northern Taiwan"
+   },
+   {
+    "id": "map_product",
+    "term_id": "term_product",
+    "database_source": "shop.sqlite",
+    "table": "products",
+    "column": "product_id",
+    "grain": "one row per product",
+    "validation": "ev_product_enum: 60 distinct products",
+    "aggregation_semantics": "count of distinct products"
+   },
+   {
+    "id": "map_active_product",
+    "term_id": "term_active_product",
+    "database_source": "shop.sqlite",
+    "table": "products",
+    "column": "is_active",
+    "grain": "one row per product; current flag",
+    "validation": "ev_product_enum",
+    "semantic_filter": "only products currently on sale"
+   },
+   {
+    "id": "map_product_category",
+    "term_id": "term_product_category",
+    "database_source": "shop.sqlite",
+    "table": "products",
+    "column": "category",
+    "grain": "one row per product",
+    "validation": "ev_product_enum"
+   },
+   {
+    "id": "map_order_item",
+    "term_id": "term_order_item",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "item_id",
+    "grain": "one row per product line in an order",
+    "validation": "ev_payment_grain: 5238 items over 3000 orders",
+    "aggregation_semantics": "count of order lines"
+   },
+   {
+    "id": "map_item_amount_qty",
+    "term_id": "term_item_amount",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "quantity",
+    "grain": "one row per order item",
+    "validation": "ev_amount_unit",
+    "aggregation_semantics": "quantity multiplies the unit price of the same item before summing"
+   },
+   {
+    "id": "map_item_amount_price",
+    "term_id": "term_item_amount",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "grain": "one row per order item; transaction unit price in 1/100 TWD",
+    "validation": "ev_amount_unit: sum(quantity*unit_price_cents)/100 equals successful payment amount for 2379/2379 valid orders",
+    "aggregation_semantics": "sum of item amounts (quantity x transaction unit price), converted from 1/100 TWD to TWD"
+   },
+   {
+    "id": "map_payment",
+    "term_id": "term_payment",
+    "database_source": "shop.sqlite",
+    "table": "payments",
+    "column": "payment_id",
+    "grain": "one row per payment attempt",
+    "validation": "ev_payment_grain",
+    "aggregation_semantics": "count of payment records"
+   },
+   {
+    "id": "map_payment_method",
+    "term_id": "term_payment_method",
+    "database_source": "shop.sqlite",
+    "table": "payments",
+    "column": "method",
+    "grain": "one row per payment attempt",
+    "validation": "ev_payment_enum"
+   },
+   {
+    "id": "map_refund",
+    "term_id": "term_refund",
+    "database_source": "shop.sqlite",
+    "table": "refunds",
+    "column": "refund_id",
+    "grain": "one row per refunded item",
+    "validation": "ev_refund_link",
+    "aggregation_semantics": "count of refund records"
+   },
+   {
+    "id": "map_refund_time",
+    "term_id": "term_refund_time",
+    "database_source": "shop.sqlite",
+    "table": "refunds",
+    "column": "refund_ts",
+    "grain": "timestamp per refund, UTC text",
+    "validation": "ev_timezone_impact"
+   },
+   {
+    "id": "map_order_attributed_refund",
+    "term_id": "term_order_attributed_refund",
+    "database_source": "shop.sqlite",
+    "table": "refunds",
+    "column": "refund_amount_twd",
+    "grain": "one row per refunded item, linked to its original order via order_id",
+    "validation": "ev_refund_link: all refunds link to a delivered order; ev_refund_attribution",
+    "semantic_filter": "only refunds belonging to the valid orders being measured",
+    "aggregation_semantics": "sum of refund amounts of the measured orders, assigned to the order's period"
+   },
+   {
+    "id": "map_net_revenue",
+    "term_id": "term_net_revenue",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "grain": "item amount summed to valid-order level, then refunds of the same orders deducted",
+    "validation": "ev_amount_unit, ev_refund_link",
+    "semantic_filter": "only valid orders, attributed to the period of order time",
+    "aggregation_semantics": "sum of item amounts of valid orders minus refund amounts of the same orders"
+   },
+   {
+    "id": "map_avg_order_value",
+    "term_id": "term_avg_order_value",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "grain": "item amount summed to valid-order level, averaged across valid orders",
+    "validation": "ev_amount_unit, ev_payment_grain",
+    "semantic_filter": "only valid orders, attributed to the period of order time",
+    "aggregation_semantics": "total item amount of valid orders divided by the number of distinct valid orders; refunds not deducted"
+   },
+   {
+    "id": "map_repeat_customer",
+    "term_id": "term_repeat_customer",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "customer_id",
+    "grain": "customer-year",
+    "validation": "ev_repeat_dist",
+    "semantic_filter": "only valid orders within one Taipei calendar year, customers with at least 2 such orders",
+    "aggregation_semantics": "count of distinct qualifying customers"
+   },
+   {
+    "id": "map_app_order_share",
+    "term_id": "term_app_order_share",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "channel",
+    "grain": "valid-order level, aggregated over a period",
+    "validation": "ev_channel_enum",
+    "semantic_filter": "only valid orders in the period",
+    "aggregation_semantics": "count of app valid orders divided by count of all valid orders, as percentage"
+   },
+   {
+    "id": "map_received_amount",
+    "term_id": "term_received_amount",
+    "database_source": "shop.sqlite",
+    "table": "payments",
+    "column": "amount_twd",
+    "grain": "one row per payment attempt; amount in TWD",
+    "validation": "ev_payment_enum, ev_valid_order_payment",
+    "semantic_filter": "only payment records whose payment status is successful",
+    "aggregation_semantics": "sum of successful payment amounts"
+   },
+   {
+    "id": "map_refund_amount",
+    "term_id": "term_refund_amount",
+    "database_source": "shop.sqlite",
+    "table": "refunds",
+    "column": "refund_amount_twd",
+    "grain": "one row per refunded item; amount in TWD",
+    "validation": "ev_refund_link, ev_refund_category_path",
+    "aggregation_semantics": "sum of refund amounts attributed by refund time"
+   },
+   {
+    "id": "map_sales_quantity",
+    "term_id": "term_sales_quantity",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "quantity",
+    "grain": "one row per order item",
+    "validation": "ev_sales_qty_sensitivity",
+    "aggregation_semantics": "sum of item quantities per product"
+   }
+  ],
+  "relations": [
+   {
+    "id": "rel_order_valid",
+    "source": "term_order",
+    "relation_type": "hierarchy",
+    "target": "term_valid_order",
+    "connection_condition": "valid orders are orders.status in the paid/shipped/delivered values",
+    "description": "A valid order is a subset of orders (status paid, shipped or delivered).",
+    "evidence": [
+     "ev_valid_order_payment"
+    ]
+   },
+   {
+    "id": "rel_channel_app",
+    "source": "term_sales_channel",
+    "relation_type": "hierarchy",
+    "target": "term_app_channel",
+    "connection_condition": "",
+    "description": "The mobile app channel is one value of the sales channel dimension.",
+    "evidence": [
+     "ev_channel_enum"
+    ]
+   },
+   {
+    "id": "rel_tier_gold",
+    "source": "term_customer_tier",
+    "relation_type": "hierarchy",
+    "target": "term_gold_tier",
+    "connection_condition": "",
+    "description": "Gold member is one value of the customer tier dimension.",
+    "evidence": [
+     "ev_tier_enum"
+    ]
+   },
+   {
+    "id": "rel_region_north",
+    "source": "term_customer_region",
+    "relation_type": "hierarchy",
+    "target": "term_north_region",
+    "connection_condition": "",
+    "description": "Northern Taiwan is one value of the customer region dimension.",
+    "evidence": [
+     "ev_region_enum"
+    ]
+   },
+   {
+    "id": "rel_product_active",
+    "source": "term_product",
+    "relation_type": "hierarchy",
+    "target": "term_active_product",
+    "connection_condition": "",
+    "description": "On-sale products are the subset of products flagged active.",
+    "evidence": [
+     "ev_product_enum"
+    ]
+   },
+   {
+    "id": "rel_order_items",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_order_item",
+    "connection_condition": "order_items.order_id references orders.order_id",
+    "description": "An order is composed of one or more order items; an item cannot exist without its order.",
+    "evidence": [
+     "ev_fk_integrity",
+     "ev_payment_grain"
+    ]
+   },
+   {
+    "id": "rel_order_payments",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_payment",
+    "connection_condition": "payments.order_id references orders.order_id",
+    "description": "Payment records are attempts attached to an order; an order may have several (failed attempts and at most one successful).",
+    "evidence": [
+     "ev_payment_grain",
+     "ev_valid_order_payment"
+    ]
+   },
+   {
+    "id": "rel_order_refunds",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_refund",
+    "connection_condition": "refunds.order_id references orders.order_id; refunds.item_id references order_items.item_id of the same order",
+    "description": "A refund is granted against an item of a specific order and cannot exist without it.",
+    "evidence": [
+     "ev_refund_link"
+    ]
+   },
+   {
+    "id": "rel_customer_orders",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_order",
+    "connection_condition": "orders.customer_id corresponds to customers.customer_id",
+    "description": "A customer places orders; customer attributes (tier, region) are current values, not values at order time.",
+    "evidence": [
+     "ev_fk_integrity",
+     "ev_customer_snapshot"
+    ]
+   },
+   {
+    "id": "rel_customer_tier",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_customer_tier",
+    "connection_condition": "customers.tier on the customer row",
+    "description": "Each customer has one current membership tier.",
+    "evidence": [
+     "ev_tier_enum"
+    ]
+   },
+   {
+    "id": "rel_customer_region",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_customer_region",
+    "connection_condition": "customers.region_code on the customer row",
+    "description": "Each customer has one current region code.",
+    "evidence": [
+     "ev_region_enum"
+    ]
+   },
+   {
+    "id": "rel_item_product",
+    "source": "term_order_item",
+    "relation_type": "association",
+    "target": "term_product",
+    "connection_condition": "order_items.product_id corresponds to products.product_id",
+    "description": "An order item sells one product at a transaction price.",
+    "evidence": [
+     "ev_fk_integrity"
+    ]
+   },
+   {
+    "id": "rel_product_category",
+    "source": "term_product",
+    "relation_type": "association",
+    "target": "term_product_category",
+    "connection_condition": "products.category on the product row",
+    "description": "Each product belongs to one merchandise category.",
+    "evidence": [
+     "ev_product_enum"
+    ]
+   },
+   {
+    "id": "rel_order_channel",
+    "source": "term_order",
+    "relation_type": "association",
+    "target": "term_sales_channel",
+    "connection_condition": "orders.channel on the order row",
+    "description": "Each order is placed through one sales channel.",
+    "evidence": [
+     "ev_channel_enum"
+    ]
+   },
+   {
+    "id": "rel_refund_category",
+    "source": "term_refund",
+    "relation_type": "association",
+    "target": "term_product_category",
+    "connection_condition": "indirect: refunds.item_id -> order_items.product_id -> products.category",
+    "description": "A refund's product category is indirect: it is the category of the product of the refunded order item.",
+    "evidence": [
+     "ev_refund_category_path"
+    ]
+   },
+   {
+    "id": "rel_payment_method",
+    "source": "term_payment",
+    "relation_type": "association",
+    "target": "term_payment_method",
+    "connection_condition": "payments.method on the payment row",
+    "description": "Each payment record uses one payment method.",
+    "evidence": [
+     "ev_payment_enum"
+    ]
+   },
+   {
+    "id": "rel_refund_amount_variants",
+    "source": "term_refund_amount",
+    "relation_type": "association",
+    "target": "term_order_attributed_refund",
+    "connection_condition": "both read refunds.refund_amount_twd; they differ in period attribution",
+    "description": "Same underlying refund amounts attributed to different periods: refund-report amount follows refund time, order-attributed amount follows the original order time. They are not interchangeable.",
+    "evidence": [
+     "ev_refund_attribution"
+    ]
+   },
+   {
+    "id": "rel_item_amount_net_revenue",
+    "source": "term_item_amount",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "Net revenue is built from item amounts of valid orders minus order-attributed refunds.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_amount_unit"
+    ]
+   },
+   {
+    "id": "rel_refund_net_revenue",
+    "source": "term_order_attributed_refund",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "Order-attributed refunds are subtracted when deriving net revenue.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_refund_attribution"
+    ]
+   },
+   {
+    "id": "rel_valid_net_revenue",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "Net revenue only covers valid orders.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_valid_order_payment"
+    ]
+   },
+   {
+    "id": "rel_item_amount_aov",
+    "source": "term_item_amount",
+    "relation_type": "derivation",
+    "target": "term_avg_order_value",
+    "connection_condition": "",
+    "description": "Average order value is total item amount divided by valid order count; refunds are not deducted.",
+    "evidence": [
+     "ev_doc_definitions"
+    ]
+   },
+   {
+    "id": "rel_valid_aov",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_avg_order_value",
+    "connection_condition": "",
+    "description": "Valid orders provide both the amount base and the divisor of average order value.",
+    "evidence": [
+     "ev_doc_definitions"
+    ]
+   },
+   {
+    "id": "rel_valid_repeat",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_repeat_customer",
+    "connection_condition": "",
+    "description": "Repeat customers are derived by counting valid orders per customer within a calendar year.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_repeat_dist"
+    ]
+   },
+   {
+    "id": "rel_valid_app_share",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_app_order_share",
+    "connection_condition": "",
+    "description": "App order share is derived from valid order counts overall and for the app channel.",
+    "evidence": [
+     "ev_doc_definitions"
+    ]
+   },
+   {
+    "id": "rel_app_app_share",
+    "source": "term_app_channel",
+    "relation_type": "derivation",
+    "target": "term_app_order_share",
+    "connection_condition": "",
+    "description": "The app channel valid-order count is the numerator of app order share.",
+    "evidence": [
+     "ev_channel_enum"
+    ]
+   },
+   {
+    "id": "rel_payment_received",
+    "source": "term_payment",
+    "relation_type": "derivation",
+    "target": "term_received_amount",
+    "connection_condition": "",
+    "description": "Received amount is the sum of amounts of successful payment records.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_payment_enum"
+    ]
+   },
+   {
+    "id": "rel_item_sales_qty",
+    "source": "term_order_item",
+    "relation_type": "derivation",
+    "target": "term_sales_quantity",
+    "connection_condition": "",
+    "description": "Sales quantity is the sum of order item quantities per product.",
+    "evidence": [
+     "ev_sales_qty_sensitivity"
+    ]
+   }
+  ],
+  "constraints": [
+   {
+    "id": "con_order_status_enum",
+    "target": "term_order_status",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+     "訂單狀態",
+     "待付款",
+     "已付款",
+     "已出貨",
+     "已送達",
+     "已取消",
+     "status",
+     "取消"
+    ],
+    "severity": "block",
+    "scope": "Whenever orders.status is filtered or labeled",
+    "confidence": "high",
+    "description": "orders.status is an integer code: 0 = 待付款 (pending payment), 1 = 已付款 (paid), 2 = 已出貨 (shipped), 3 = 已送達 (delivered), 9 = 已取消 (cancelled).",
+    "evidence": [
+     "ev_status_enum"
+    ]
+   },
+   {
+    "id": "con_valid_order_def",
+    "target": "term_valid_order",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+     "有效訂單",
+     "訂單張數",
+     "訂單數",
+     "valid order",
+     "effective order",
+     "已付款",
+     "不含取消"
+    ],
+    "severity": "block",
+    "scope": "Any order count, revenue, average order value, repeat-customer or channel-share question",
+    "confidence": "high",
+    "description": "A valid order has status paid, shipped or delivered (1, 2, 3). Pending-payment (0) and cancelled (9) orders are excluded. In the data, exactly the status 1/2/3 orders carry a successful payment record, which supports this definition.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_valid_order_payment"
+    ]
+   },
+   {
+    "id": "con_amount_unit",
+    "target": "map_item_amount_price",
+    "constraint_type": "unit",
+    "trigger_keywords": [
+     "商品金額",
+     "單價",
+     "營收",
+     "淨營收",
+     "客單價",
+     "金額",
+     "unit price",
+     "cents",
+     "revenue"
+    ],
+    "severity": "block",
+    "scope": "Any monetary computation based on order_items",
+    "confidence": "high",
+    "description": "order_items.unit_price_cents is in 1/100 TWD (cents), while payments.amount_twd and refunds.refund_amount_twd are in TWD. Item amount in TWD = quantity x unit_price_cents / 100. The unit price is the actual transaction price (80-100% of list price), not products.list_price_twd. Unit conversion is required before combining with refunds or payments.",
+    "evidence": [
+     "ev_amount_unit"
+    ]
+   },
+   {
+    "id": "con_report_timezone_order",
+    "target": "term_order_time",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+     "第一季",
+     "季",
+     "月",
+     "年",
+     "2025",
+     "按月",
+     "當月",
+     "期間",
+     "台北時間",
+     "UTC",
+     "timezone",
+     "Q1"
+    ],
+    "severity": "block",
+    "scope": "Whenever orders.order_ts is used to define a day, month, quarter or year",
+    "confidence": "medium",
+    "description": "Per the business glossary, order timestamps are stored in UTC but all operational reports use Taipei time (UTC+8) to assign dates, months, quarters (Q1 = Jan-Mar) and years. The UTC storage itself cannot be verified from the data (hour-of-day is uniform); the glossary is the only source. The shift matters: 13 orders fall outside Taipei year 2025 by UTC bounds and 23 orders change calendar month.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_timezone_impact"
+    ]
+   },
+   {
+    "id": "con_report_timezone_refund",
+    "target": "term_refund_time",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+     "退款",
+     "退款金額",
+     "月",
+     "2025 年 9 月",
+     "UTC",
+     "台北時間",
+     "refund time"
+    ],
+    "severity": "block",
+    "scope": "Whenever refunds.refund_ts is used to define a period",
+    "confidence": "medium",
+    "description": "refund_ts is stored in UTC and reported in Taipei time (UTC+8), per the glossary only. Refund timestamps extend to 2026-01-13, and 3 refunds change calendar month under the +8h shift.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_timezone_impact"
+    ]
+   },
+   {
+    "id": "con_net_revenue_def",
+    "target": "term_net_revenue",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+     "淨營收",
+     "營收",
+     "net revenue",
+     "扣掉退款",
+     "扣退款",
+     "revenue"
+    ],
+    "severity": "block",
+    "scope": "Net revenue for any period, tier, region or channel",
+    "confidence": "high",
+    "description": "Net revenue = item amounts of valid orders in the period minus refunds of those same orders. The period is the order creation time (Taipei time); each refund is deducted from its original order regardless of when the refund occurred. 101 of 194 refunds fall in a different Taipei month than their order, so using refund time instead would give a different total.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_refund_attribution",
+     "ev_refund_link"
+    ]
+   },
+   {
+    "id": "con_aov_def",
+    "target": "term_avg_order_value",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+     "客單價",
+     "平均訂單金額",
+     "AOV",
+     "average order value"
+    ],
+    "severity": "block",
+    "scope": "Average order value for any period",
+    "confidence": "high",
+    "description": "Average order value = total item amount of valid orders in the period (refunds NOT deducted) divided by the number of valid orders in the period (Taipei time, order creation time).",
+    "evidence": [
+     "ev_doc_definitions"
+    ]
+   },
+   {
+    "id": "con_repeat_customer_def",
+    "target": "term_repeat_customer",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+     "回購",
+     "回購客戶",
+     "repeat",
+     "回頭客",
+     "至少兩張",
+     "2 張"
+    ],
+    "severity": "block",
+    "scope": "Repeat-customer counts per year",
+    "confidence": "high",
+    "description": "A repeat customer has at least 2 valid orders within the same Taipei calendar year; orders in other years or non-valid orders do not count. Distinct customers are counted, not orders.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_repeat_dist"
+    ]
+   },
+   {
+    "id": "con_received_amount_def",
+    "target": "term_received_amount",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+     "實收",
+     "實收金額",
+     "收款",
+     "付款成功",
+     "payment_status",
+     "received"
+    ],
+    "severity": "block",
+    "scope": "Any question about money received or amounts by payment method",
+    "confidence": "high",
+    "description": "Received amount counts only payment records with payment_status = ok. Failed attempts also store a non-zero amount_twd (613 failed rows, e.g. 2.9M TWD for credit_card) and 303 failed attempts belong to valid orders; including them overstates received money.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_payment_enum",
+     "ev_payment_grain"
+    ]
+   },
+   {
+    "id": "con_refund_report_attribution",
+    "target": "term_refund_amount",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+     "退款金額",
+     "退款報表",
+     "退款總計",
+     "退款最高",
+     "refund"
+    ],
+    "severity": "block",
+    "scope": "Refund-report totals by period or category",
+    "confidence": "high",
+    "description": "Refund amount in the refund report is attributed to the period of refund occurrence (refund time, Taipei time), which differs from the order-based attribution used for net revenue. For a category breakdown, the category is that of the refunded item's product. Historical questions ('歷史上') span all refunds with no period restriction.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_refund_attribution",
+     "ev_refund_category_path"
+    ]
+   },
+   {
+    "id": "con_channel_enum",
+    "target": "term_sales_channel",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+     "管道",
+     "通路",
+     "App",
+     "行動 App",
+     "官網",
+     "門市",
+     "channel",
+     "web",
+     "app",
+     "store"
+    ],
+    "severity": "block",
+    "scope": "Whenever orders.channel is filtered or labeled",
+    "confidence": "high",
+    "description": "orders.channel values: web = 官網, app = 行動 App, store = 實體門市.",
+    "evidence": [
+     "ev_channel_enum"
+    ]
+   },
+   {
+    "id": "con_app_share_basis",
+    "target": "term_app_order_share",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+     "占比",
+     "比例",
+     "百分比",
+     "%",
+     "share"
+    ],
+    "severity": "warning",
+    "scope": "Channel-share percentages",
+    "confidence": "medium",
+    "description": "The share is measured on valid order counts (denominator: all valid orders of the period, numerator: valid orders of the app channel), not on amounts. The glossary does not state the basis of '占比' explicitly; order-count basis is the natural reading of the question wording.",
+    "evidence": [
+     "ev_doc_definitions",
+     "ev_channel_enum"
+    ]
+   },
+   {
+    "id": "con_tier_enum",
+    "target": "term_customer_tier",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+     "會員",
+     "等級",
+     "黃金會員",
+     "銀級會員",
+     "一般會員",
+     "tier",
+     "gold"
+    ],
+    "severity": "block",
+    "scope": "Whenever customers.tier is filtered or labeled",
+    "confidence": "high",
+    "description": "customers.tier values: B = 一般會員, S = 銀級會員, G = 黃金會員.",
+    "evidence": [
+     "ev_tier_enum"
+    ]
+   },
+   {
+    "id": "con_region_enum",
+    "target": "term_customer_region",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+     "地區",
+     "北部",
+     "中部",
+     "南部",
+     "日本",
+     "新加坡",
+     "region",
+     "TW-N"
+    ],
+    "severity": "block",
+    "scope": "Whenever customers.region_code is filtered or labeled",
+    "confidence": "high",
+    "description": "customers.region_code values: TW-N = 北部, TW-C = 中部, TW-S = 南部, JP = 日本, SG = 新加坡. Only TW-N is northern Taiwan; JP and SG are overseas.",
+    "evidence": [
+     "ev_region_enum"
+    ]
+   },
+   {
+    "id": "con_customer_attr_snapshot",
+    "target": "term_customer",
+    "constraint_type": "data_quality",
+    "trigger_keywords": [
+     "黃金會員",
+     "北部客戶",
+     "會員等級",
+     "客戶地區",
+     "當時",
+     "tier",
+     "region"
+    ],
+    "severity": "info",
+    "scope": "Questions that segment historical orders by customer tier or region",
+    "confidence": "medium",
+    "description": "Tier and region exist only as current values on the customer row (no history, not copied onto orders). Segmenting past orders by tier or region therefore uses the customer's current value; historical tier/region at order time is not recoverable from this data.",
+    "evidence": [
+     "ev_customer_snapshot"
+    ]
+   },
+   {
+    "id": "con_payment_enum",
+    "target": "term_payment_method",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+     "付款方式",
+     "信用卡",
+     "LINE Pay",
+     "ATM",
+     "貨到付款",
+     "method",
+     "credit_card",
+     "line_pay",
+     "atm",
+     "cod",
+     "付款狀態"
+    ],
+    "severity": "block",
+    "scope": "Whenever payments.method or payments.payment_status is filtered or labeled",
+    "confidence": "high",
+    "description": "payments.method: credit_card = 信用卡, line_pay = LINE Pay, atm = ATM 轉帳, cod = 貨到付款. payments.payment_status: ok = 付款成功, failed = 付款失敗.",
+    "evidence": [
+     "ev_payment_enum"
+    ]
+   },
+   {
+    "id": "con_product_enum",
+    "target": "term_product_category",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+     "商品類別",
+     "品類",
+     "登山背包",
+     "帳篷",
+     "登山鞋",
+     "機能服飾",
+     "配件",
+     "category",
+     "在售",
+     "下架",
+     "is_active"
+    ],
+    "severity": "block",
+    "scope": "Whenever products.category or products.is_active is filtered or labeled",
+    "confidence": "high",
+    "description": "products.category: backpack = 登山背包, tent = 帳篷, shoes = 登山鞋, apparel = 機能服飾, accessory = 配件. products.is_active: 1 = 在售 (on sale), 0 = 已下架 (delisted); delisted products still appear in historical order items.",
+    "evidence": [
+     "ev_product_enum"
+    ]
+   },
+   {
+    "id": "con_active_product_current",
+    "target": "term_active_product",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+     "目前仍在售",
+     "在售",
+     "仍在售",
+     "下架",
+     "上架",
+     "is_active"
+    ],
+    "severity": "warning",
+    "scope": "Questions restricted to products currently on sale",
+    "confidence": "medium",
+    "description": "is_active is a current-state flag with no history. 'Currently on sale' filters on the present flag, while the sales being ranked may include periods before a product was delisted.",
+    "evidence": [
+     "ev_product_enum"
+    ]
+   },
+   {
+    "id": "con_sales_quantity_basis",
+    "target": "term_sales_quantity",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+     "銷售數量",
+     "銷量",
+     "賣最多",
+     "最多",
+     "sales quantity",
+     "units sold"
+    ],
+    "severity": "warning",
+    "scope": "Product ranking by units sold",
+    "confidence": "low",
+    "description": "The glossary does not define which orders count toward sales quantity. Valid-order quantity is the consistent reading with the valid-order convention. In the construction data, ranking active products by all-order quantity and by valid-order quantity returns the same top product, so the choice did not change the ranking there.",
+    "evidence": [
+     "ev_sales_qty_sensitivity",
+     "ev_status_enum"
+    ]
+   },
+   {
+    "id": "con_grain_orders_items_payments",
+    "target": "term_order",
+    "constraint_type": "data_quality",
+    "trigger_keywords": [
+     "訂單數",
+     "訂單張數",
+     "幾張",
+     "多少張",
+     "客單價",
+     "金額總和",
+     "order count"
+    ],
+    "severity": "warning",
+    "scope": "Combining orders with order_items or payments",
+    "confidence": "high",
+    "description": "Orders, order items and payment records are different grains: 5238 items over 3000 orders; 244 orders have 2 or 3 payment records (failed attempts plus a success). Order counts must be at order grain and not inflated by item or payment rows; amounts must not be duplicated by multi-row joins.",
+    "evidence": [
+     "ev_payment_grain",
+     "ev_fk_integrity"
+    ]
+   }
+  ],
+  "evidence": [
+   {
+    "id": "ev_status_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT status, COUNT(*) FROM orders GROUP BY status",
+    "result": "status values: 0=155, 1=169, 2=232, 3=1978, 9=466 (code meanings come from domain_knowledge.md 代碼對照: 0待付款,1已付款,2已出貨,3已送達,9已取消)",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_valid_order_payment",
+    "source": "shop.sqlite",
+    "query": "SELECT o.status, p.payment_status, COUNT(*) FROM orders o LEFT JOIN payments p USING(order_id) GROUP BY 1,2; and SELECT n,COUNT(*) FROM (SELECT order_id,COUNT(*) n FROM payments WHERE payment_status='ok' GROUP BY 1) GROUP BY 1",
+    "result": "status 1/2/3 orders have 169/232/1978 'ok' payments; status 0 and 9 orders have 0 'ok' payments (only failed or no payment). Every order with an 'ok' payment has exactly 1 (2379 orders = 169+232+1978). This corroborates the glossary definition that only status 1,2,3 are effective (paid) orders.",
+    "validation_method": "cross-table consistency check between orders.status and payments.payment_status",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_amount_unit",
+    "source": "shop.sqlite",
+    "query": "WITH t AS (SELECT o.order_id, SUM(i.quantity*i.unit_price_cents)/100.0 gross FROM orders o JOIN order_items i USING(order_id) WHERE o.status IN (1,2,3) GROUP BY 1), p AS (SELECT order_id, SUM(amount_twd) a FROM payments WHERE payment_status='ok' GROUP BY 1) SELECT COUNT(*), SUM(p.a=t.gross), SUM(p.a<>t.gross) FROM t JOIN p USING(order_id); and SELECT MIN(i.unit_price_cents/100.0/p.list_price_twd), MAX(...), AVG(...) FROM order_items i JOIN products p USING(product_id); and SELECT COUNT(*) FROM order_items WHERE unit_price_cents % 100 <> 0",
+    "result": "For all 2379 valid orders, SUM(quantity*unit_price_cents)/100 equals the order's successful payment amount_twd (2379 equal, 0 different). unit_price_cents/100 divided by products.list_price_twd ranges 0.80 to 1.00 (avg 0.946), i.e. unit_price_cents is in 1/100 TWD and is a discounted transaction price at or below list price. All unit_price_cents values are multiples of 100 (0 exceptions).",
+    "validation_method": "reconciliation of two independent columns; unit ratio against list price",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_doc_definitions",
+    "source": "domain_knowledge.md",
+    "query": "read poc/build_input/domain_knowledge.md sections 一 (報表時間規則) and 二 (名詞定義)",
+    "result": "Business glossary states: timestamps are UTC and reports use Taipei time (UTC+8); 有效訂單=status 已付款/已出貨/已送達; 商品金額=數量×成交單價; 淨營收=有效訂單商品金額總和 minus refunds of those orders, attributed by order creation time; 客單價=有效訂單商品金額(不扣退款)/有效訂單張數; 回購客戶=same-year valid orders >=2; 實收金額=sum of successful payments; 退款金額(退款報表)=attributed by refund time.",
+    "validation_method": "documentary source (business-provided); data corroboration recorded in separate evidence items; UTC claim itself cannot be verified from data",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_timezone_impact",
+    "source": "shop.sqlite",
+    "query": "SELECT SUM(strftime('%Y',order_ts)<>strftime('%Y',datetime(order_ts,'+8 hours'))), SUM(substr(order_ts,1,7)<>substr(datetime(order_ts,'+8 hours'),1,7)) FROM orders; SELECT COUNT(*) FROM orders WHERE order_ts<'2024-12-31 16:00:00' OR order_ts>='2025-12-31 16:00:00'; SELECT CAST(substr(order_ts,12,2) AS INT) h, COUNT(*) FROM orders GROUP BY 1; SELECT SUM(substr(refund_ts,1,7)<>substr(datetime(refund_ts,'+8 hours'),1,7)) FROM refunds; SELECT COUNT(*) FROM refunds WHERE datetime(refund_ts,'+8 hours')>='2026-01-01'",
+    "result": "orders.order_ts range is 2024-12-30 02:32:52 to 2025-12-31 21:03:34 (stored as 'YYYY-MM-DD HH:MM:SS', no zone marker). Shifting +8h changes the calendar year for 3 orders and the calendar month for 23 orders (3 of these are in 2025-03/2025-06 UTC); 13 orders fall outside Taipei calendar year 2025. Order hour-of-day is roughly uniform (107-146 per hour) so the data alone cannot confirm the zone. For refunds, 3 refunds change month under +8h and 6 refunds occur in Taipei 2026 (refund_ts max 2026-01-13).",
+    "validation_method": "boundary-impact measurement; zone itself taken from glossary",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_refund_link",
+    "source": "shop.sqlite",
+    "query": "SELECT COUNT(*), SUM(i.order_id<>r.order_id) FROM refunds r JOIN order_items i ON i.item_id=r.item_id; SELECT o.status, COUNT(*) FROM refunds r JOIN orders o USING(order_id) GROUP BY 1; SELECT COUNT(*), COUNT(DISTINCT order_id) FROM refunds; SELECT COUNT(*) FROM refunds r JOIN order_items i ON i.item_id=r.item_id WHERE r.refund_amount_twd > i.quantity*i.unit_price_cents/100.0; SELECT SUM(r.refund_ts<o.order_ts) FROM refunds r JOIN orders o USING(order_id)",
+    "result": "All 194 refunds reference an item whose order_id equals refunds.order_id (0 mismatches); all 194 refunds belong to status=3 orders; 194 refunds over 176 distinct orders; no refund exceeds its item line value (0); no refund precedes its order (0). item_id values are unique within refunds.",
+    "validation_method": "referential integrity and range checks",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_refund_attribution",
+    "source": "shop.sqlite",
+    "query": "SELECT SUM(substr(datetime(r.refund_ts,'+8 hours'),1,7)<>substr(datetime(o.order_ts,'+8 hours'),1,7)), COUNT(*) FROM refunds r JOIN orders o USING(order_id)",
+    "result": "101 of 194 refunds occur in a different Taipei month than their original order, so attribution by order time (net revenue) and by refund time (refund report) give different period totals.",
+    "validation_method": "measurement of attribution divergence",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_refund_category_path",
+    "source": "shop.sqlite",
+    "query": "SELECT COUNT(DISTINCT p.category), COUNT(*) FROM refunds r JOIN order_items i USING(item_id) JOIN products p USING(product_id)",
+    "result": "All 194 refunds resolve through refunds.item_id -> order_items.product_id -> products.category; 5 distinct categories are reachable. refunds has no product or category column of its own.",
+    "validation_method": "join-path completeness check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_channel_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT channel, COUNT(*) FROM orders GROUP BY channel; SELECT channel, COUNT(*) FROM orders WHERE status IN (1,2,3) GROUP BY channel",
+    "result": "orders.channel values: app=1044, store=453, web=1503 (valid orders: app=833, store=350, web=1196). Labels web=官網, app=行動 App, store=實體門市 from glossary. No NULL or variant spellings.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_tier_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT tier, COUNT(*) FROM customers GROUP BY tier",
+    "result": "customers.tier values: B=274, G=49, S=77; no NULLs. Labels B=一般會員, S=銀級會員, G=黃金會員 from glossary.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_region_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT region_code, COUNT(*) FROM customers GROUP BY region_code",
+    "result": "customers.region_code values: JP=46, SG=18, TW-C=93, TW-N=153, TW-S=90; no NULLs. Labels TW-N=北部, TW-C=中部, TW-S=南部, JP=日本, SG=新加坡 from glossary. JP and SG are countries, not Taiwan regions.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_payment_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT method, payment_status, COUNT(*), SUM(amount_twd) FROM payments GROUP BY 1,2",
+    "result": "payments.method values: atm, cod, credit_card, line_pay; payment_status values: ok and failed. ok totals: atm 344 rows/3,461,775; cod 250/2,422,200; credit_card 1298/12,773,170; line_pay 487/4,795,025. failed rows (613 total) carry non-zero amount_twd too (e.g. credit_card failed 312 rows/2,911,335), so failed rows must not be summed as received money.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_payment_grain",
+    "source": "shop.sqlite",
+    "query": "SELECT n, COUNT(*) FROM (SELECT order_id, COUNT(*) n FROM payments GROUP BY 1) GROUP BY 1; SELECT COUNT(*), COUNT(DISTINCT order_id) FROM order_items; SELECT SUM(payment_status='failed') FROM payments p JOIN orders o USING(order_id) WHERE o.status IN (1,2,3)",
+    "result": "payments per order: 1 payment for 2445 orders, 2 for 185, 3 for 59 (2689 orders have payments; 311 have none). 303 failed payments belong to valid orders. order_items has 5238 rows over 3000 orders, so orders, items and payments are different grains (one order to many items / payments).",
+    "validation_method": "grain and cardinality inspection",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_product_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT category, is_active, COUNT(*) FROM products GROUP BY 1,2; SELECT COUNT(DISTINCT sku), COUNT(DISTINCT product_name) FROM products",
+    "result": "products: 60 rows, 60 distinct skus/names. category values: accessory, apparel, backpack, shoes, tent (12 each). is_active=1 for 50 products, 0 for 10 (accessory 1, apparel 1, backpack 1, shoes 3, tent 4). Inactive products still appear in historical order_items.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_repeat_dist",
+    "source": "shop.sqlite",
+    "query": "SELECT n, COUNT(*) FROM (SELECT customer_id, COUNT(*) n FROM orders WHERE status IN (1,2,3) AND datetime(order_ts,'+8 hours')>='2025-01-01' AND datetime(order_ts,'+8 hours')<'2026-01-01' GROUP BY 1) GROUP BY 1",
+    "result": "Customers by number of valid Taipei-2025 orders range 1 to 25; 41 customers have exactly 1 and the rest (the majority) have 2 or more, so the >=2 threshold is a meaningful split. 346 of 400 customers have any order.",
+    "validation_method": "distribution inspection of the glossary threshold",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_fk_integrity",
+    "source": "shop.sqlite",
+    "query": "SELECT COUNT(*) FROM orders WHERE customer_id NOT IN (SELECT customer_id FROM customers); SELECT COUNT(*) FROM order_items WHERE product_id NOT IN (SELECT product_id FROM products); SELECT COUNT(*) FROM orders WHERE order_id NOT IN (SELECT order_id FROM order_items)",
+    "result": "0 orphan orders->customers, 0 orphan order_items->products, 0 orders without items. orders.customer_id, order_items.order_id/product_id, payments.order_id, refunds.order_id/item_id behave as foreign keys (no declared FK constraints exist in the schema).",
+    "validation_method": "referential integrity check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_customer_snapshot",
+    "source": "shop.sqlite",
+    "query": "PRAGMA/--schema of customers: customer_id, name, email, region_code, signup_date, tier",
+    "result": "customers holds one row per customer with a single tier and a single region_code and no effective-date or history columns; orders carry no copy of tier/region. Tier and region therefore describe the customer's current state, not their state at order time.",
+    "validation_method": "schema inspection",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   },
+   {
+    "id": "ev_sales_qty_sensitivity",
+    "source": "shop.sqlite",
+    "query": "top active product by SUM(order_items.quantity) over all orders vs over orders with status IN (1,2,3), restricted to products.is_active=1",
+    "result": "The glossary does not define 銷售數量. Computing the top active product by quantity over all orders and over valid orders only yields the same product in the current data (comparison returned 1 = same). The definition is therefore unconfirmed but did not change the ranking in the construction data.",
+    "validation_method": "sensitivity comparison of two candidate definitions",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+   }
+  ]
+ }
+}

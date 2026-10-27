@@ -1,0 +1,291 @@
+[
+  {
+    "id": "map_customer",
+    "term_id": "term_customer",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "customer_id",
+    "grain": "one row per customer",
+    "validation": "ev_fk_integrity: orders.customer_id has no orphans",
+    "aggregation_semantics": "count of distinct customers"
+  },
+  {
+    "id": "map_order",
+    "term_id": "term_order",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "order_id",
+    "grain": "one row per order",
+    "validation": "ev_payment_grain: 3000 orders; ev_status_enum",
+    "aggregation_semantics": "count of distinct orders"
+  },
+  {
+    "id": "map_valid_order",
+    "term_id": "term_valid_order",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "status",
+    "grain": "one row per order",
+    "validation": "ev_valid_order_payment: status 1,2,3 orders are exactly those with a successful payment",
+    "semantic_filter": "only orders in paid, shipped or delivered status",
+    "aggregation_semantics": "count of distinct qualifying orders"
+  },
+  {
+    "id": "map_order_status",
+    "term_id": "term_order_status",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "status",
+    "grain": "one row per order",
+    "validation": "ev_status_enum"
+  },
+  {
+    "id": "map_order_time",
+    "term_id": "term_order_time",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "order_ts",
+    "grain": "timestamp per order, UTC text 'YYYY-MM-DD HH:MM:SS'",
+    "validation": "ev_timezone_impact: range and format; zone per glossary"
+  },
+  {
+    "id": "map_sales_channel",
+    "term_id": "term_sales_channel",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "channel",
+    "grain": "one row per order",
+    "validation": "ev_channel_enum"
+  },
+  {
+    "id": "map_app_channel",
+    "term_id": "term_app_channel",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "channel",
+    "grain": "one row per order",
+    "validation": "ev_channel_enum",
+    "semantic_filter": "only orders placed through the mobile app"
+  },
+  {
+    "id": "map_customer_tier",
+    "term_id": "term_customer_tier",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "tier",
+    "grain": "one row per customer; current value",
+    "validation": "ev_tier_enum, ev_customer_snapshot"
+  },
+  {
+    "id": "map_gold_tier",
+    "term_id": "term_gold_tier",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "tier",
+    "grain": "one row per customer; current value",
+    "validation": "ev_tier_enum",
+    "semantic_filter": "only customers of gold tier"
+  },
+  {
+    "id": "map_customer_region",
+    "term_id": "term_customer_region",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "region_code",
+    "grain": "one row per customer; current value",
+    "validation": "ev_region_enum, ev_customer_snapshot"
+  },
+  {
+    "id": "map_north_region",
+    "term_id": "term_north_region",
+    "database_source": "shop.sqlite",
+    "table": "customers",
+    "column": "region_code",
+    "grain": "one row per customer; current value",
+    "validation": "ev_region_enum",
+    "semantic_filter": "only customers in northern Taiwan"
+  },
+  {
+    "id": "map_product",
+    "term_id": "term_product",
+    "database_source": "shop.sqlite",
+    "table": "products",
+    "column": "product_id",
+    "grain": "one row per product",
+    "validation": "ev_product_enum: 60 distinct products",
+    "aggregation_semantics": "count of distinct products"
+  },
+  {
+    "id": "map_active_product",
+    "term_id": "term_active_product",
+    "database_source": "shop.sqlite",
+    "table": "products",
+    "column": "is_active",
+    "grain": "one row per product; current flag",
+    "validation": "ev_product_enum",
+    "semantic_filter": "only products currently on sale"
+  },
+  {
+    "id": "map_product_category",
+    "term_id": "term_product_category",
+    "database_source": "shop.sqlite",
+    "table": "products",
+    "column": "category",
+    "grain": "one row per product",
+    "validation": "ev_product_enum"
+  },
+  {
+    "id": "map_order_item",
+    "term_id": "term_order_item",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "item_id",
+    "grain": "one row per product line in an order",
+    "validation": "ev_payment_grain: 5238 items over 3000 orders",
+    "aggregation_semantics": "count of order lines"
+  },
+  {
+    "id": "map_item_amount_qty",
+    "term_id": "term_item_amount",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "quantity",
+    "grain": "one row per order item",
+    "validation": "ev_amount_unit",
+    "aggregation_semantics": "quantity multiplies the unit price of the same item before summing"
+  },
+  {
+    "id": "map_item_amount_price",
+    "term_id": "term_item_amount",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "grain": "one row per order item; transaction unit price in 1/100 TWD",
+    "validation": "ev_amount_unit: sum(quantity*unit_price_cents)/100 equals successful payment amount for 2379/2379 valid orders",
+    "aggregation_semantics": "sum of item amounts (quantity x transaction unit price), converted from 1/100 TWD to TWD"
+  },
+  {
+    "id": "map_payment",
+    "term_id": "term_payment",
+    "database_source": "shop.sqlite",
+    "table": "payments",
+    "column": "payment_id",
+    "grain": "one row per payment attempt",
+    "validation": "ev_payment_grain",
+    "aggregation_semantics": "count of payment records"
+  },
+  {
+    "id": "map_payment_method",
+    "term_id": "term_payment_method",
+    "database_source": "shop.sqlite",
+    "table": "payments",
+    "column": "method",
+    "grain": "one row per payment attempt",
+    "validation": "ev_payment_enum"
+  },
+  {
+    "id": "map_refund",
+    "term_id": "term_refund",
+    "database_source": "shop.sqlite",
+    "table": "refunds",
+    "column": "refund_id",
+    "grain": "one row per refunded item",
+    "validation": "ev_refund_link",
+    "aggregation_semantics": "count of refund records"
+  },
+  {
+    "id": "map_refund_time",
+    "term_id": "term_refund_time",
+    "database_source": "shop.sqlite",
+    "table": "refunds",
+    "column": "refund_ts",
+    "grain": "timestamp per refund, UTC text",
+    "validation": "ev_timezone_impact"
+  },
+  {
+    "id": "map_order_attributed_refund",
+    "term_id": "term_order_attributed_refund",
+    "database_source": "shop.sqlite",
+    "table": "refunds",
+    "column": "refund_amount_twd",
+    "grain": "one row per refunded item, linked to its original order via order_id",
+    "validation": "ev_refund_link: all refunds link to a delivered order; ev_refund_attribution",
+    "semantic_filter": "only refunds belonging to the valid orders being measured",
+    "aggregation_semantics": "sum of refund amounts of the measured orders, assigned to the order's period"
+  },
+  {
+    "id": "map_net_revenue",
+    "term_id": "term_net_revenue",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "grain": "item amount summed to valid-order level, then refunds of the same orders deducted",
+    "validation": "ev_amount_unit, ev_refund_link",
+    "semantic_filter": "only valid orders, attributed to the period of order time",
+    "aggregation_semantics": "sum of item amounts of valid orders minus refund amounts of the same orders"
+  },
+  {
+    "id": "map_avg_order_value",
+    "term_id": "term_avg_order_value",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "grain": "item amount summed to valid-order level, averaged across valid orders",
+    "validation": "ev_amount_unit, ev_payment_grain",
+    "semantic_filter": "only valid orders, attributed to the period of order time",
+    "aggregation_semantics": "total item amount of valid orders divided by the number of distinct valid orders; refunds not deducted"
+  },
+  {
+    "id": "map_repeat_customer",
+    "term_id": "term_repeat_customer",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "customer_id",
+    "grain": "customer-year",
+    "validation": "ev_repeat_dist",
+    "semantic_filter": "only valid orders within one Taipei calendar year, customers with at least 2 such orders",
+    "aggregation_semantics": "count of distinct qualifying customers"
+  },
+  {
+    "id": "map_app_order_share",
+    "term_id": "term_app_order_share",
+    "database_source": "shop.sqlite",
+    "table": "orders",
+    "column": "channel",
+    "grain": "valid-order level, aggregated over a period",
+    "validation": "ev_channel_enum",
+    "semantic_filter": "only valid orders in the period",
+    "aggregation_semantics": "count of app valid orders divided by count of all valid orders, as percentage"
+  },
+  {
+    "id": "map_received_amount",
+    "term_id": "term_received_amount",
+    "database_source": "shop.sqlite",
+    "table": "payments",
+    "column": "amount_twd",
+    "grain": "one row per payment attempt; amount in TWD",
+    "validation": "ev_payment_enum, ev_valid_order_payment",
+    "semantic_filter": "only payment records whose payment status is successful",
+    "aggregation_semantics": "sum of successful payment amounts"
+  },
+  {
+    "id": "map_refund_amount",
+    "term_id": "term_refund_amount",
+    "database_source": "shop.sqlite",
+    "table": "refunds",
+    "column": "refund_amount_twd",
+    "grain": "one row per refunded item; amount in TWD",
+    "validation": "ev_refund_link, ev_refund_category_path",
+    "aggregation_semantics": "sum of refund amounts attributed by refund time"
+  },
+  {
+    "id": "map_sales_quantity",
+    "term_id": "term_sales_quantity",
+    "database_source": "shop.sqlite",
+    "table": "order_items",
+    "column": "quantity",
+    "grain": "one row per order item",
+    "validation": "ev_sales_qty_sensitivity",
+    "aggregation_semantics": "sum of item quantities per product"
+  }
+]

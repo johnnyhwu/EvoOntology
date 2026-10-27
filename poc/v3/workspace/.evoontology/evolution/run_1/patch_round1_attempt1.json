@@ -1,0 +1,387 @@
+{
+ "hypothesis": "語意層缺少文件已明確定義的取消率、出貨實體、carrier 代碼對照、配送天數與準時送達率，且未明文化期間依訂單成立時間（台北時間）歸屬。這使 agent 無法一次 resolve 取得口徑，只能放棄、誤答「無法計算」或選錯分母與期間欄位。補上這些 term、mapping、relation 與 constraint 後，取消率、配送與準時送達類題目應能交出答案，分母改為有效訂單加已取消訂單，期間改依訂單成立時間歸屬。若補上後這些題目仍無法 resolve 到新物件、仍答無法計算，或仍以 shipped_ts 歸屬期間，假說即被推翻。時區類與別名類題目應不變，作為對照。",
+ "dimension": "content",
+ "operations": [
+  {
+   "op": "add_evidence",
+   "evidence": {
+    "id": "ev_doc_cancel_rate",
+    "doc_quote": "期間內（依訂單成立時間）已取消訂單 ÷（有效訂單 + 已取消訂單）。待付款訂單不納入分母。",
+    "validation_method": "doc_quote",
+    "interpretation": "業務文件明定取消率的分子、分母與期間歸屬，待付款不入分母。"
+   }
+  },
+  {
+   "op": "add_evidence",
+   "evidence": {
+    "id": "ev_doc_delivery_days",
+    "doc_quote": "送達時間 − 出貨時間，以天計，可含小數。只計算已送達的出貨紀錄。期間依訂單成立時間歸屬。",
+    "validation_method": "doc_quote",
+    "interpretation": "業務文件明定配送天數的算法、只計已送達，且期間依訂單成立時間歸屬，而非出貨時間。"
+   }
+  },
+  {
+   "op": "add_evidence",
+   "evidence": {
+    "id": "ev_doc_on_time",
+    "doc_quote": "配送天數在 3 天（72 小時）以內。準時送達率 = 準時送達的出貨 ÷ 已送達的出貨。",
+    "validation_method": "doc_quote",
+    "interpretation": "業務文件明定準時送達的門檻為 3 天以內（含 3 天），以及準時送達率的分子與分母。"
+   }
+  },
+  {
+   "op": "add_evidence",
+   "evidence": {
+    "id": "ev_doc_carrier_codes",
+    "doc_quote": "shipments.carrier | blackcat | 黑貓宅急便",
+    "validation_method": "doc_quote",
+    "interpretation": "業務文件的代碼對照表列出 shipments.carrier 的代碼與中文名稱：blackcat 黑貓宅急便、hct 新竹物流、sf 順豐、post 中華郵政。"
+   }
+  },
+  {
+   "op": "add_term",
+   "term": {
+    "id": "term_cancellation_rate",
+    "name": "取消率",
+    "type": "metric",
+    "definition": "期間內已取消訂單占「有效訂單加已取消訂單」的比例。待付款訂單不納入分母。期間依訂單成立時間（台北時間）歸屬。",
+    "scope": "訂單層級的比例指標，可依通路、地區、會員等級等訂單或客戶屬性切分。",
+    "aliases": [
+     "取消率",
+     "cancellation rate",
+     "cancel rate",
+     "訂單取消率",
+     "取消比例",
+     "取消占比"
+    ],
+    "evidence": [
+     "ev_doc_cancel_rate"
+    ]
+   }
+  },
+  {
+   "op": "add_term",
+   "term": {
+    "id": "term_shipment",
+    "name": "出貨紀錄",
+    "type": "entity",
+    "definition": "訂單的出貨與送達紀錄，包含承運商、出貨時間與送達時間。時間戳記為 UTC。",
+    "scope": "用於配送天數與準時送達率；只有已送達的出貨紀錄才有送達時間。",
+    "aliases": [
+     "shipment",
+     "shipments",
+     "出貨",
+     "出貨紀錄",
+     "物流",
+     "配送",
+     "shipped_ts",
+     "delivered_ts"
+    ],
+    "evidence": [
+     "ev_doc_delivery_days"
+    ]
+   }
+  },
+  {
+   "op": "add_term",
+   "term": {
+    "id": "term_carrier",
+    "name": "承運商",
+    "type": "dimension",
+    "definition": "出貨使用的物流業者。代碼 blackcat 為黑貓宅急便、hct 為新竹物流、sf 為順豐、post 為中華郵政。",
+    "scope": "依承運商切分出貨、配送天數或準時送達率時使用。",
+    "aliases": [
+     "carrier",
+     "物流商",
+     "物流公司",
+     "黑貓",
+     "黑貓宅急便",
+     "新竹物流",
+     "新竹貨運",
+     "順豐",
+     "中華郵政",
+     "blackcat",
+     "hct",
+     "sf",
+     "post"
+    ],
+    "evidence": [
+     "ev_doc_carrier_codes"
+    ]
+   }
+  },
+  {
+   "op": "add_term",
+   "term": {
+    "id": "term_delivery_days",
+    "name": "配送天數",
+    "type": "metric",
+    "definition": "送達時間減出貨時間，以天計，可含小數。只計算已送達的出貨紀錄。期間依訂單成立時間（台北時間）歸屬，而非出貨或送達時間。",
+    "scope": "出貨層級指標，常取平均、中位數或最大值。",
+    "aliases": [
+     "配送天數",
+     "送貨天數",
+     "運送天數",
+     "送達天數",
+     "配送時間",
+     "delivery days",
+     "delivery time",
+     "平均配送天數",
+     "幾天送達"
+    ],
+    "evidence": [
+     "ev_doc_delivery_days"
+    ]
+   }
+  },
+  {
+   "op": "add_term",
+   "term": {
+    "id": "term_on_time_delivery_rate",
+    "name": "準時送達率",
+    "type": "metric",
+    "definition": "已送達的出貨中，配送天數在 3 天（72 小時，含 3 天）以內的比例。分母只計已送達的出貨。期間依訂單成立時間（台北時間）歸屬。",
+    "scope": "出貨層級的比例指標，可依承運商、通路等切分。",
+    "aliases": [
+     "準時送達率",
+     "準時送達",
+     "準時率",
+     "準時到貨",
+     "on-time delivery",
+     "on time rate",
+     "3天內送達",
+     "三天內送達",
+     "72小時內送達"
+    ],
+    "evidence": [
+     "ev_doc_on_time"
+    ]
+   }
+  },
+  {
+   "op": "add_mapping",
+   "mapping": {
+    "id": "map_cancellation_rate_status",
+    "term_id": "term_cancellation_rate",
+    "database_source": "main",
+    "table": "orders",
+    "column": "status",
+    "grain": "每張訂單一列",
+    "semantic_filter": "分子為狀態 9（已取消）；分母為狀態 1、2、3（有效訂單）加狀態 9（已取消）；狀態 0（待付款）排除。",
+    "aggregation_semantics": "以不重複訂單編號計數後相除；期間依訂單成立時間換算為台北時間後歸屬。"
+   }
+  },
+  {
+   "op": "add_mapping",
+   "mapping": {
+    "id": "map_shipment_order",
+    "term_id": "term_shipment",
+    "database_source": "main",
+    "table": "shipments",
+    "column": "order_id",
+    "grain": "每筆出貨紀錄一列，透過訂單編號連到訂單",
+    "aggregation_semantics": "計數出貨筆數；期間不用出貨時間，而是連回訂單後依訂單成立時間（台北時間）歸屬。"
+   }
+  },
+  {
+   "op": "add_mapping",
+   "mapping": {
+    "id": "map_carrier",
+    "term_id": "term_carrier",
+    "database_source": "main",
+    "table": "shipments",
+    "column": "carrier",
+    "grain": "每筆出貨紀錄一列",
+    "semantic_filter": "代碼對照：blackcat 黑貓宅急便、hct 新竹物流、sf 順豐、post 中華郵政。"
+   }
+  },
+  {
+   "op": "add_mapping",
+   "mapping": {
+    "id": "map_delivery_days_delivered",
+    "term_id": "term_delivery_days",
+    "database_source": "main",
+    "table": "shipments",
+    "column": "delivered_ts",
+    "grain": "每筆出貨紀錄一列",
+    "semantic_filter": "只納入已送達（送達時間不為空）的出貨紀錄。",
+    "aggregation_semantics": "配送天數為送達時間減出貨時間，以天計，可含小數；時間戳記為 UTC，差值不受時區影響。期間依訂單成立時間（台北時間）歸屬。"
+   }
+  },
+  {
+   "op": "add_mapping",
+   "mapping": {
+    "id": "map_delivery_days_shipped",
+    "term_id": "term_delivery_days",
+    "database_source": "main",
+    "table": "shipments",
+    "column": "shipped_ts",
+    "grain": "每筆出貨紀錄一列",
+    "aggregation_semantics": "作為配送天數的起點。不作為期間歸屬依據，期間歸屬依訂單成立時間。"
+   }
+  },
+  {
+   "op": "add_mapping",
+   "mapping": {
+    "id": "map_on_time_delivered",
+    "term_id": "term_on_time_delivery_rate",
+    "database_source": "main",
+    "table": "shipments",
+    "column": "delivered_ts",
+    "grain": "每筆出貨紀錄一列",
+    "semantic_filter": "分母為已送達的出貨紀錄；分子為其中配送天數小於或等於 3 天（含 3 天）者。",
+    "aggregation_semantics": "以出貨筆數相除；期間依訂單成立時間（台北時間）歸屬。"
+   }
+  },
+  {
+   "op": "add_relation",
+   "relation": {
+    "id": "rel_shipment_belongs_to_order",
+    "source": "term_shipment",
+    "relation_type": "belongs_to",
+    "target": "term_order",
+    "connection_condition": "shipments.order_id 對應 orders.order_id",
+    "description": "出貨紀錄屬於訂單。出貨相關指標的期間須連回訂單，依訂單成立時間（台北時間）歸屬。",
+    "evidence": [
+     "ev_doc_delivery_days"
+    ]
+   }
+  },
+  {
+   "op": "add_relation",
+   "relation": {
+    "id": "rel_cancellation_rate_uses_valid_order",
+    "source": "term_cancellation_rate",
+    "relation_type": "depends_on",
+    "target": "term_valid_order",
+    "description": "取消率的分母由有效訂單加已取消訂單構成，待付款訂單不納入。",
+    "evidence": [
+     "ev_doc_cancel_rate"
+    ]
+   }
+  },
+  {
+   "op": "add_relation",
+   "relation": {
+    "id": "rel_on_time_depends_on_delivery_days",
+    "source": "term_on_time_delivery_rate",
+    "relation_type": "depends_on",
+    "target": "term_delivery_days",
+    "description": "準時送達由配送天數是否在 3 天以內判定。",
+    "evidence": [
+     "ev_doc_on_time"
+    ]
+   }
+  },
+  {
+   "op": "add_constraint",
+   "constraint": {
+    "id": "con_cancellation_rate_definition",
+    "target": "term_cancellation_rate",
+    "constraint_type": "definition",
+    "trigger_keywords": [
+     "取消率",
+     "取消比例",
+     "取消占比",
+     "訂單取消率",
+     "取消的比例",
+     "cancellation rate",
+     "cancel rate"
+    ],
+    "severity": "block",
+    "scope": "所有取消率相關問題",
+    "confidence": 0.95,
+    "description": "取消率等於期間內已取消訂單除以有效訂單加已取消訂單。待付款訂單不納入分母，也不能以全部訂單為分母。期間依訂單成立時間並以台北時間（UTC+8）劃分，而非取消發生時間。取消率是可由訂單狀態計算的指標，不是資料缺口。",
+    "evidence": [
+     "ev_doc_cancel_rate"
+    ]
+   }
+  },
+  {
+   "op": "add_constraint",
+   "constraint": {
+    "id": "con_delivery_days_definition",
+    "target": "term_delivery_days",
+    "constraint_type": "definition",
+    "trigger_keywords": [
+     "配送天數",
+     "送貨天數",
+     "運送天數",
+     "送達天數",
+     "配送時間",
+     "delivery days",
+     "平均配送",
+     "幾天送達",
+     "物流",
+     "出貨到送達"
+    ],
+    "severity": "block",
+    "scope": "所有配送天數相關問題",
+    "confidence": 0.95,
+    "description": "配送天數為送達時間減出貨時間，以天計，可含小數，只計已送達的出貨紀錄。出貨紀錄有出貨時間與送達時間，資料足以計算，不是資料缺口。期間依訂單成立時間（台北時間）歸屬，不是依出貨或送達時間，兩者的月份與年度有一定比例不一致。",
+    "evidence": [
+     "ev_doc_delivery_days"
+    ]
+   }
+  },
+  {
+   "op": "add_constraint",
+   "constraint": {
+    "id": "con_on_time_rate_definition",
+    "target": "term_on_time_delivery_rate",
+    "constraint_type": "definition",
+    "trigger_keywords": [
+     "準時送達率",
+     "準時送達",
+     "準時率",
+     "準時到貨",
+     "3天內",
+     "三天內",
+     "72小時",
+     "on-time",
+     "on time"
+    ],
+    "severity": "block",
+    "scope": "所有準時送達相關問題",
+    "confidence": 0.95,
+    "description": "準時送達指配送天數在 3 天（72 小時）以內，邊界含 3 天。準時送達率等於準時送達的出貨除以已送達的出貨，分母只計已送達的出貨。期間依訂單成立時間（台北時間）歸屬。",
+    "evidence": [
+     "ev_doc_on_time"
+    ]
+   }
+  },
+  {
+   "op": "add_constraint",
+   "constraint": {
+    "id": "con_carrier_codes",
+    "target": "map_carrier",
+    "constraint_type": "code_mapping",
+    "trigger_keywords": [
+     "承運商",
+     "物流商",
+     "物流公司",
+     "黑貓",
+     "黑貓宅急便",
+     "新竹物流",
+     "新竹貨運",
+     "順豐",
+     "中華郵政",
+     "carrier",
+     "blackcat",
+     "hct",
+     "sf",
+     "post"
+    ],
+    "severity": "block",
+    "scope": "涉及承運商的問題",
+    "confidence": 0.95,
+    "description": "shipments.carrier 代碼意義：blackcat 黑貓宅急便、hct 新竹物流、sf 順豐、post 中華郵政。中文名稱須先轉成代碼再使用。",
+    "evidence": [
+     "ev_doc_carrier_codes"
+    ]
+   }
+  }
+ ],
+ "expected_effect": "取消率、配送天數、準時送達率與依承運商切分的題目會改變：resolve 能取得新增物件，使用正確的分母、門檻與期間歸屬，不再放棄或回答無法計算。時區、別名、淨營收、退款等既有類型題目應維持不變，作為對照。",
+ "rollback": "移除本 Candidate 新增的 4 筆證據、5 個 term、6 個 mapping、3 條 relation 與 4 條 constraint，即回復 Parent；Tool Layer 設定未改動。"
+}

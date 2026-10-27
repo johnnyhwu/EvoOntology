@@ -1,0 +1,318 @@
+{
+ "verified": [
+  {
+   "id": "ev_doc_tz_rule",
+   "source": "domain_knowledge.md",
+   "query": "(document excerpt)",
+   "result": "劃分日期、月份、季與年度 | 解讀: 所有期間篩選（年、季、月）都必須先把 UTC 時間戳加 8 小時再切分。",
+   "validation_method": "文件引文，搭配 ev_tz_month_shift 量化影響",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "文件規定所有營運報表以台北時間(UTC+8)劃分日期、月份、季、年度，而資料庫儲存值為 UTC。"
+  },
+  {
+   "id": "ev_tz_month_shift",
+   "source": "shop_v2",
+   "query": "SELECT COUNT(*) n, SUM(strftime('%Y',order_ts)<>strftime('%Y',datetime(order_ts,'+8 hours'))) year_shift, SUM(strftime('%Y-%m',order_ts)<>strftime('%Y-%m',datetime(order_ts,'+8 hours'))) month_shift FROM orders WHERE status IN (1,2,3)",
+   "result": "{\"columns\": [\"n\", \"year_shift\", \"month_shift\"], \"rows\": [[47993, 86, 523]]} | 解讀: 86 張有效訂單換年、523 張換月；時區換算會實質影響月、季、年度彙總。",
+   "validation_method": "比較 UTC 與 UTC+8 的年月切分差異筆數",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "有效訂單中，UTC 與台北時間切分會讓部分訂單換月或換年，直接用 UTC 字串切期間會算錯。"
+  },
+  {
+   "id": "ev_order_year_taipei",
+   "source": "shop_v2",
+   "query": "SELECT strftime('%Y',datetime(order_ts,'+8 hours')) y, COUNT(*) n, SUM(status IN (1,2,3)) valid FROM orders GROUP BY 1",
+   "result": "{\"columns\": [\"y\", \"n\", \"valid\"], \"rows\": [[\"2024\", 301, 250], [\"2025\", 59643, 47699], [\"2026\", 56, 44]]} | 解讀: 2025 年度必須用台北時間切，會排除 2024/2026 的邊界訂單。",
+   "validation_method": "依台北年度分組計數",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "訂單時間涵蓋 2024-12-30 至 2025-12-31(UTC)；換算台北時間後，有部分訂單落在 2024 與 2026。"
+  },
+  {
+   "id": "ev_status_codes",
+   "source": "shop_v2",
+   "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+   "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 5 個狀態與文件一致；有效訂單 = status IN (1,2,3)。",
+   "validation_method": "distinct 值檢查",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "orders.status 只有 0/1/2/3/9 五個值，與文件代碼對照一致。"
+  },
+  {
+   "id": "ev_doc_valid_order",
+   "source": "domain_knowledge.md",
+   "query": "(document excerpt)",
+   "result": "訂單狀態為「已付款、已出貨、已送達」的訂單 | 解讀: 有效訂單 = status 1,2,3。",
+   "validation_method": "文件引文，搭配 ev_valid_has_ok_payment 驗證",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "文件定義有效訂單為已付款、已出貨、已送達。"
+  },
+  {
+   "id": "ev_valid_has_ok_payment",
+   "source": "shop_v2",
+   "query": "SELECT o.status, COUNT(*) n, SUM(ok_cnt=1) one_ok, SUM(ok_cnt=0) zero_ok, SUM(ok_cnt>1) multi_ok FROM orders o JOIN (SELECT o2.order_id, SUM(CASE WHEN p.payment_status='ok' THEN 1 ELSE 0 END) ok_cnt FROM orders o2 LEFT JOIN payments p ON p.order_id=o2.order_id GROUP BY o2.order_id) x ON x.order_id=o.order_id GROUP BY o.status",
+   "result": "{\"columns\": [\"status\", \"n\", \"one_ok\", \"zero_ok\", \"multi_ok\"], \"rows\": [[0, 3003, 0, 3003, 0], [1, 3549, 3549, 0, 0], [2, 4870, 4870, 0, 0], [3, 39574, 39574, 0, 0], [9, 9004, 0, 9004, 0]]} | 解讀: 狀態 1/2/3 皆恰 1 筆 ok；狀態 0/9 為 0 筆 ok。",
+   "validation_method": "依訂單狀態統計成功付款筆數分佈",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "每張有效訂單恰有一筆成功付款；待付款與已取消訂單沒有任何成功付款，資料佐證有效訂單定義。"
+  },
+  {
+   "id": "ev_failed_payments_duplicates",
+   "source": "shop_v2",
+   "query": "SELECT COUNT(*) total_rows, SUM(payment_status='failed') failed_rows, COUNT(DISTINCT order_id) distinct_orders FROM payments",
+   "result": "{\"columns\": [\"total_rows\", \"failed_rows\", \"distinct_orders\"], \"rows\": [[61319, 13326, 53976]]} | 解讀: 61319 列付款僅對應 53976 張訂單，13326 列為失敗；實收金額須只計 ok。",
+   "validation_method": "比較付款列數、失敗列數與不重複訂單數",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "payments 一張訂單可有多筆紀錄（含失敗），直接對 payments 加總或計數會重複／混入失敗付款，必須限定 payment_status='ok'。"
+  },
+  {
+   "id": "ev_unit_price_units",
+   "source": "shop_v2",
+   "query": "SELECT COUNT(*) n, MIN(i.unit_price_cents*1.0/p.list_price_twd) minr, MAX(i.unit_price_cents*1.0/p.list_price_twd) maxr, SUM(i.unit_price_cents/100.0 > p.list_price_twd) above_list FROM order_items i JOIN products p ON p.product_id=i.product_id",
+   "result": "{\"columns\": [\"n\", \"minr\", \"maxr\", \"above_list\"], \"rows\": [[104966, 80.0, 100.0, 0]]} | 解讀: 金額換算為 TWD 需除以 100；成交價為標價的 80%~100%，符合含折扣說明。",
+   "validation_method": "成交單價與標價比值檢查",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "unit_price_cents 的單位是「分」(TWD×100)；與商品標價 list_price_twd 比為 80~100，且從不高於標價。"
+  },
+  {
+   "id": "ev_doc_item_amount",
+   "source": "domain_knowledge.md",
+   "query": "(document excerpt)",
+   "result": "成交單價是客人實際付的價格（已含折扣與優惠碼），不是商品目錄上的標價。 | 解讀: 商品金額 = quantity × unit_price_cents / 100 (TWD)，不得用 list_price_twd。",
+   "validation_method": "文件引文，搭配 ev_payment_reconcile 對帳",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "文件定義成交單價為實付價格而非標價。"
+  },
+  {
+   "id": "ev_payment_reconcile",
+   "source": "shop_v2",
+   "query": "SELECT COUNT(*) n, SUM(ABS(pay.amt-it.amt)<1) match_exact, SUM(pay.amt>it.amt) pay_gt, SUM(pay.amt<it.amt) pay_lt FROM (SELECT order_id, SUM(amount_twd) amt FROM payments WHERE payment_status='ok' GROUP BY order_id) pay JOIN (SELECT order_id, SUM(quantity*unit_price_cents)/100.0 amt FROM order_items GROUP BY order_id) it ON it.order_id=pay.order_id",
+   "result": "{\"columns\": [\"n\", \"match_exact\", \"pay_gt\", \"pay_lt\"], \"rows\": [[47993, 47993, 0, 0]]} | 解讀: 47993/47993 張完全吻合；優惠碼折扣已內含於成交單價，不應再扣一次。",
+   "validation_method": "訂單層級對帳 payments(ok) vs order_items",
+   "timestamp": "2026-10-27T00:15:53Z",
+   "_claim": "成功付款金額總和與該訂單明細(數量×成交單價/100)完全相符，證明單位換算與成交價定義正確。"
+  },
+  {
+   "id": "ev_coupon_already_applied",
+   "source": "shop_v2",
+   "query": "SELECT o.coupon_code, COUNT(*) n, AVG(pay.amt*1.0/it.amt) ratio FROM orders o JOIN (SELECT order_id, SUM(amount_twd) amt FROM payments WHERE payment_status='ok' GROUP BY order_id) pay ON pay.order_id=o.order_id JOIN (SELECT order_id, SUM(quantity*unit_price_cents)/100.0 amt FROM order_items GROUP BY order_id) it ON it.order_id=o.order_id GROUP BY o.coupon_code",
+   "result": "{\"columns\": [\"coupon_code\", \"n\", \"ratio\"], \"rows\": [[null, 33585, 1.0], [\"SUMMER15\", 7350, 1.0], [\"WELCOME10\", 7058, 1.0]]} | 解讀: NULL、SUMMER15、WELCOME10 比值皆為 1.0。",
+   "validation_method": "依優惠碼分組比較付款/明細比",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "有無優惠碼的訂單，付款額與明細金額比皆為 1.0，優惠已內含於成交單價。"
+  },
+  {
+   "id": "ev_doc_net_revenue",
+   "source": "domain_knowledge.md",
+   "query": "(document excerpt)",
+   "result": "期間依「訂單成立時間」歸屬，退款扣回它所屬的原訂單，不看退款發生在哪個月。 | 解讀: 淨營收 = 期間內有效訂單商品金額 − 這些訂單的退款(不論退款時間)。",
+   "validation_method": "文件引文，搭配 ev_refund_cross_period 驗證存在跨期退款",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "文件定義淨營收的期間依訂單成立時間歸屬，退款扣回原訂單。"
+  },
+  {
+   "id": "ev_refund_cross_period",
+   "source": "shop_v2",
+   "query": "SELECT strftime('%Y',datetime(o.order_ts,'+8 hours')) order_year, strftime('%Y',datetime(r.refund_ts,'+8 hours')) refund_year, COUNT(*) n, SUM(r.refund_amount_twd) amt FROM refunds r JOIN orders o ON o.order_id=r.order_id GROUP BY 1,2",
+   "result": "{\"columns\": [\"order_year\", \"refund_year\", \"n\", \"amt\"], \"rows\": [[\"2024\", \"2025\", 22, 109937], [\"2025\", \"2025\", 3839, 17126954], [\"2025\", \"2026\", 175, 825342], [\"2026\", \"2026\", 3, 9537]]} | 解讀: 2024 訂單的 22 筆退款發生在 2025；2025 訂單的 175 筆退款發生在 2026。兩種口徑對 2025 年數字會不同。",
+   "validation_method": "依訂單年度與退款年度交叉彙總",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "退款常發生在原訂單之後（5~26 天），且有跨年退款，因此退款報表（依退款時間）與淨營收（依訂單時間）口徑不同。"
+  },
+  {
+   "id": "ev_doc_refund_report",
+   "source": "domain_knowledge.md",
+   "query": "(document excerpt)",
+   "result": "依「退款發生時間」歸屬期間，與淨營收的歸屬方式不同。 | 解讀: 退款金額類題目（C15,C16,C17,C28）以 refund_ts 的台北時間切期間；C17「歷史上」不限期間。",
+   "validation_method": "文件引文",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "文件定義退款報表依退款發生時間歸屬。"
+  },
+  {
+   "id": "ev_refunds_only_delivered",
+   "source": "shop_v2",
+   "query": "SELECT o.status, COUNT(*) n, SUM(r.refund_amount_twd) amt FROM refunds r JOIN orders o ON o.order_id=r.order_id GROUP BY o.status",
+   "result": "{\"columns\": [\"status\", \"n\", \"amt\"], \"rows\": [[3, 4039, 18071770]]} | 解讀: 4039 筆退款全在 status=3；扣回淨營收時無需另外過濾訂單狀態。",
+   "validation_method": "退款依訂單狀態分組",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "所有退款都對應已送達(status=3)的有效訂單，不會出現在取消或待付款訂單上。"
+  },
+  {
+   "id": "ev_refund_item_level",
+   "source": "shop_v2",
+   "query": "SELECT COUNT(*) n, COUNT(DISTINCT r.item_id) distinct_items, SUM(r.order_id<>i.order_id) order_mismatch, SUM(r.refund_amount_twd > i.quantity*i.unit_price_cents/100.0) over_refund, AVG(r.refund_amount_twd*100.0/(i.quantity*i.unit_price_cents)) avg_ratio FROM refunds r JOIN order_items i ON i.item_id=r.item_id",
+   "result": "{\"columns\": [\"n\", \"distinct_items\", \"order_mismatch\", \"over_refund\", \"avg_ratio\"], \"rows\": [[4039, 4039, 0, 0, 0.8463702250440032]]} | 解讀: 平均退款約為明細金額 85%；可透過 item_id 連到 products 取得商品類別（C17,C18）。",
+   "validation_method": "退款與明細對帳",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "退款為明細(item)層級且為部分退款：refund.item_id 唯一，且 order_id 與明細所屬訂單一致，退款金額不超過明細金額。"
+  },
+  {
+   "id": "ev_refund_reason_category",
+   "source": "shop_v2",
+   "query": "SELECT p.category, r.reason_code, COUNT(*) n, SUM(r.refund_amount_twd) amt FROM refunds r JOIN order_items i ON i.item_id=r.item_id JOIN products p ON p.product_id=i.product_id WHERE r.reason_code='R2' GROUP BY 1,2 ORDER BY amt DESC",
+   "result": "{\"columns\": [\"category\", \"reason_code\", \"n\", \"amt\"], \"rows\": [[\"tent\", \"R2\", 293, 2875457], [\"shoes\", \"R2\", 365, 1992215], [\"backpack\", \"R2\", 296, 1185567], [\"apparel\", \"R2\", 343, 899198], [\"accessory\", \"R2\", 324, 330147]]} | 解讀: 各類別皆有 R2 退款，類別來源為 products.category。",
+   "validation_method": "依類別彙總 R2 退款",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "退款原因代碼 R1~R4 可透過 item → product 與商品類別交叉，R2(改變心意) 有足夠資料支持各類別分析。"
+  },
+  {
+   "id": "ev_doc_repeat_customer",
+   "source": "domain_knowledge.md",
+   "query": "(document excerpt)",
+   "result": "某一年度內有效訂單達 2 張（含）以上的客戶 | 解讀: 以台北年度計有效訂單數 >=2 的 distinct customer。",
+   "validation_method": "文件引文，搭配 ev_repeat_customer_scale",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "文件定義回購客戶為某年度有效訂單達 2 張以上的客戶。"
+  },
+  {
+   "id": "ev_repeat_customer_scale",
+   "source": "shop_v2",
+   "query": "SELECT COUNT(*) customers_with_valid, SUM(c>=2) repeat_cust FROM (SELECT customer_id, COUNT(*) c FROM orders WHERE status IN (1,2,3) AND strftime('%Y',datetime(order_ts,'+8 hours'))='2025' GROUP BY customer_id)",
+   "result": "{\"columns\": [\"customers_with_valid\", \"repeat_cust\"], \"rows\": [[4526, 3990]]} | 解讀: 4526 位有有效訂單客戶中 3990 位為回購；地區條件需 join customers。",
+   "validation_method": "依客戶計數有效訂單",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "2025 年有下過有效訂單的客戶數與回購客戶數可由訂單依 customer_id 彙總得到。"
+  },
+  {
+   "id": "ev_products_active",
+   "source": "shop_v2",
+   "query": "SELECT p.is_active, COUNT(DISTINCT p.product_id) prods, COUNT(DISTINCT i.product_id) sold_prods, SUM(i.quantity) qty FROM products p LEFT JOIN order_items i ON i.product_id=p.product_id GROUP BY p.is_active",
+   "result": "{\"columns\": [\"is_active\", \"prods\", \"sold_prods\", \"qty\"], \"rows\": [[0, 35, 35, 23516], [1, 165, 165, 123489]]} | 解讀: 已下架商品仍有歷史銷量，若不過濾會影響 C21/C22 的排名。銷售數量是否限有效訂單需於建構時明確定義。",
+   "validation_method": "依在售狀態彙總銷量",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "products.is_active 有 165 個在售、35 個已下架，且兩者都有銷售紀錄；「目前仍在售」需用 is_active=1 過濾。"
+  },
+  {
+   "id": "ev_customer_dims",
+   "source": "shop_v2",
+   "query": "SELECT c.region_code, c.tier, COUNT(*) n FROM customers c GROUP BY 1,2 ORDER BY 1,2",
+   "result": "{\"columns\": [\"region_code\", \"tier\", \"n\"], \"rows\": [[\"JP\", \"B\", 362], [\"JP\", \"G\", 42], [\"JP\", \"S\", 97], [\"SG\", \"B\", 166], [\"SG\", \"G\", 25], [\"SG\", \"S\", 47], [\"TW-C\", \"B\", 931], [\"TW-C\", \"G\", 126], [\"TW-C\", \"S\", 232], [\"TW-N\", \"B\", 1393], [\"TW-N\", \"G\", 213], [\"TW-N\", \"S\", 379], [\"TW-S\", \"B\", 687], [\"TW-S\", \"G\", 85], [\"TW-S\", \"S\", 215]]} | 解讀: 5 地區 × 3 等級皆存在；客戶維度屬於下單者的目前屬性。",
+   "validation_method": "distinct 值檢查；孤兒檢查見資料剖析(orders→customers 孤兒 0)",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "customers 的 region_code 與 tier 值域與文件代碼對照一致，且 orders.customer_id 無孤兒。"
+  },
+  {
+   "id": "ev_channel_share_base",
+   "source": "shop_v2",
+   "query": "SELECT channel, COUNT(*) n FROM orders WHERE status IN (1,2,3) AND strftime('%Y',datetime(order_ts,'+8 hours'))='2025' GROUP BY channel",
+   "result": "{\"columns\": [\"channel\", \"n\"], \"rows\": [[\"app\", 16679], [\"store\", 7121], [\"web\", 23899]]} | 解讀: 三種通路皆有；占比 = 該通路有效訂單 ÷ 全部有效訂單。",
+   "validation_method": "有效訂單依通路分組",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "orders.channel 只有 web/app/store 三值，通路占比以有效訂單張數為分母。"
+  },
+  {
+   "id": "ev_payment_method_ok_2025",
+   "source": "shop_v2",
+   "query": "SELECT method, COUNT(*) n, SUM(amount_twd) amt FROM payments WHERE payment_status='ok' AND strftime('%Y',datetime(paid_ts,'+8 hours'))='2025' GROUP BY method",
+   "result": "{\"columns\": [\"method\", \"n\", \"amt\"], \"rows\": [[\"atm\", 7291, 68552425], [\"cod\", 4769, 44054680], [\"credit_card\", 26302, 245642360], [\"line_pay\", 9337, 86819845]]} | 解讀: 四種付款方式皆有 ok 紀錄；需以 paid_ts 而非 order_ts 切期間。",
+   "validation_method": "依付款方式彙總 ok 金額",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "實收金額依付款成功時間(台北年度)歸屬，只計 ok，各付款方式皆有資料。"
+  },
+  {
+   "id": "ev_doc_paid_ts",
+   "source": "domain_knowledge.md",
+   "query": "(document excerpt)",
+   "result": "期間依「付款成功時間」歸屬。 | 解讀: 實收口徑以 payments.paid_ts 為準。",
+   "validation_method": "文件引文，搭配 ev_pay_month_shift",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "文件定義實收金額依付款成功時間歸屬。"
+  },
+  {
+   "id": "ev_pay_month_shift",
+   "source": "shop_v2",
+   "query": "SELECT COUNT(*) n, SUM(strftime('%Y-%m',datetime(o.order_ts,'+8 hours'))<>strftime('%Y-%m',datetime(p.paid_ts,'+8 hours'))) differs FROM payments p JOIN orders o ON o.order_id=p.order_id WHERE p.payment_status='ok'",
+   "result": "{\"columns\": [\"n\", \"differs\"], \"rows\": [[47993, 9]]} | 解讀: 9 筆 ok 付款與訂單不同月，差異小但存在，不能混用口徑。",
+   "validation_method": "比較付款月與訂單月",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "付款成功時間與訂單成立時間偶爾落在不同月份，兩種歸屬方式在邊界會有差異。"
+  },
+  {
+   "id": "ev_shipments_consistency",
+   "source": "shop_v2",
+   "query": "SELECT o.status, COUNT(*) n, SUM(s.order_id IS NOT NULL) has_ship, SUM(s.delivered_ts IS NOT NULL) delivered FROM orders o LEFT JOIN shipments s ON s.order_id=o.order_id GROUP BY o.status",
+   "result": "{\"columns\": [\"status\", \"n\", \"has_ship\", \"delivered\"], \"rows\": [[0, 3003, 0, 0], [1, 3549, 0, 0], [2, 4870, 4870, 0], [3, 39574, 39574, 39574], [9, 9004, 0, 0]]} | 解讀: 狀態與出貨資料相互印證；本建構題未涉及配送，但此關係可支撐未來擴充。",
+   "validation_method": "訂單狀態與出貨紀錄對帳",
+   "timestamp": "2026-10-27T00:15:54Z",
+   "_claim": "出貨資料與訂單狀態一致：status 2/3 有出貨紀錄，只有 status 3 有送達時間；狀態 0/1/9 無出貨。"
+  }
+ ],
+ "rejected": [],
+ "steps": 7,
+ "tool_calls": [
+  {
+   "tool": "get_schema",
+   "arguments": {},
+   "error": false
+  },
+  {
+   "tool": "sql_query",
+   "arguments": {
+    "queries": [
+     "SELECT order_ts, paid_ts FROM orders o JOIN payments p ON p.order_id=o.order_id LIMIT 3",
+     "SELECT status, COUNT(*) n, MIN(order_ts), MAX(order_ts) FROM orders GROUP BY status",
+     "SELECT COUNT(*) total_orders_with_pay, SUM(c>1) multi_pay FROM (SELECT order_id, COUNT(*) c FROM payments GROUP BY order_id)",
+     "SELECT o.status, p.payment_status, COUNT(*) n FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY 1,2 ORDER BY 1,2",
+     "SELECT o.status, COUNT(*) n, SUM(r.refund_amount_twd) amt FROM refunds r JOIN orders o ON o.order_id=r.order_id GROUP BY o.status",
+     "SELECT COUNT(*) n, SUM(r.refund_amount_twd > i.quantity*i.unit_price_cents/100.0) over_refund, MIN(i.unit_price_cents), MAX(i.unit_price_cents), AVG(r.refund_amount_twd*100.0/(i.quantity*i.unit_price_cents)) ratio FROM refunds r JOIN order_items i ON i.item_id=r.item_id"
+    ]
+   },
+   "error": false
+  },
+  {
+   "tool": "sql_query",
+   "arguments": {
+    "queries": [
+     "SELECT COUNT(*) n, MIN(i.unit_price_cents*1.0/(p.list_price_twd)) minr, MAX(i.unit_price_cents*1.0/(p.list_price_twd)) maxr, AVG(i.unit_price_cents*1.0/(p.list_price_twd)) avgr, SUM(i.unit_price_cents/100.0 > p.list_price_twd) above_list FROM order_items i JOIN products p ON p.product_id=i.product_id",
+     "SELECT o.status, COUNT(*) n, SUM(ok_cnt=1) one_ok, SUM(ok_cnt=0) zero_ok, SUM(ok_cnt>1) multi_ok FROM orders o JOIN (SELECT o2.order_id, SUM(CASE WHEN p.payment_status='ok' THEN 1 ELSE 0 END) ok_cnt FROM orders o2 LEFT JOIN payments p ON p.order_id=o2.order_id GROUP BY o2.order_id) x ON x.order_id=o.order_id GROUP BY o.status",
+     "SELECT COUNT(*) n, SUM(ABS(pay.amt - it.amt) < 1) match_exact, SUM(pay.amt > it.amt) pay_gt, SUM(pay.amt < it.amt) pay_lt, AVG(pay.amt*1.0/it.amt) ratio FROM (SELECT order_id, SUM(amount_twd) amt FROM payments WHERE payment_status='ok' GROUP BY order_id) pay JOIN (SELECT order_id, SUM(quantity*unit_price_cents)/100.0 amt FROM order_items GROUP BY order_id) it ON it.order_id=pay.order_id",
+     "SELECT o.coupon_code, COUNT(*) n, AVG(pay.amt*1.0/it.amt) ratio FROM orders o JOIN (SELECT order_id, SUM(amount_twd) amt FROM payments WHERE payment_status='ok' GROUP BY order_id) pay ON pay.order_id=o.order_id JOIN (SELECT order_id, SUM(quantity*unit_price_cents)/100.0 amt FROM order_items GROUP BY order_id) it ON it.order_id=o.order_id GROUP BY o.coupon_code",
+     "SELECT SUM(r.refund_ts < o.order_ts) refund_before_order, COUNT(*) n, MIN(julianday(r.refund_ts)-julianday(o.order_ts)) min_days, MAX(julianday(r.refund_ts)-julianday(o.order_ts)) max_days FROM refunds r JOIN orders o ON o.order_id=r.order_id",
+     "SELECT COUNT(*) orders_without_items FROM orders WHERE order_id NOT IN (SELECT order_id FROM order_items)",
+     "SELECT o.status, COUNT(*) n, SUM(s.delivered_ts IS NOT NULL) delivered, SUM(s.order_id IS NULL) no_ship FROM orders o LEFT JOIN shipments s ON s.order_id=o.order_id GROUP BY o.status"
+    ]
+   },
+   "error": true
+  },
+  {
+   "tool": "sql_query",
+   "arguments": {
+    "queries": [
+     "SELECT COUNT(*) n, MIN(i.unit_price_cents*1.0/(p.list_price_twd)) minr, MAX(i.unit_price_cents*1.0/(p.list_price_twd)) maxr, AVG(i.unit_price_cents*1.0/(p.list_price_twd)) avgr, SUM(i.unit_price_cents/100.0 > p.list_price_twd) above_list FROM order_items i JOIN products p ON p.product_id=i.product_id",
+     "SELECT o.status, COUNT(*) n, SUM(ok_cnt=1) one_ok, SUM(ok_cnt=0) zero_ok, SUM(ok_cnt>1) multi_ok FROM orders o JOIN (SELECT o2.order_id, SUM(CASE WHEN p.payment_status='ok' THEN 1 ELSE 0 END) ok_cnt FROM orders o2 LEFT JOIN payments p ON p.order_id=o2.order_id GROUP BY o2.order_id) x ON x.order_id=o.order_id GROUP BY o.status",
+     "SELECT COUNT(*) n, SUM(ABS(pay.amt - it.amt) < 1) match_exact, SUM(pay.amt > it.amt) pay_gt, SUM(pay.amt < it.amt) pay_lt, AVG(pay.amt*1.0/it.amt) ratio FROM (SELECT order_id, SUM(amount_twd) amt FROM payments WHERE payment_status='ok' GROUP BY order_id) pay JOIN (SELECT order_id, SUM(quantity*unit_price_cents)/100.0 amt FROM order_items GROUP BY order_id) it ON it.order_id=pay.order_id",
+     "SELECT o.coupon_code, COUNT(*) n, AVG(pay.amt*1.0/it.amt) ratio FROM orders o JOIN (SELECT order_id, SUM(amount_twd) amt FROM payments WHERE payment_status='ok' GROUP BY order_id) pay ON pay.order_id=o.order_id JOIN (SELECT order_id, SUM(quantity*unit_price_cents)/100.0 amt FROM order_items GROUP BY order_id) it ON it.order_id=o.order_id GROUP BY o.coupon_code",
+     "SELECT SUM(r.refund_ts < o.order_ts) refund_before_order, COUNT(*) n, MIN(julianday(r.refund_ts)-julianday(o.order_ts)) min_days, MAX(julianday(r.refund_ts)-julianday(o.order_ts)) max_days FROM refunds r JOIN orders o ON o.order_id=r.order_id",
+     "SELECT COUNT(*) orders_without_items FROM orders WHERE order_id NOT IN (SELECT order_id FROM order_items)"
+    ]
+   },
+   "error": false
+  },
+  {
+   "tool": "sql_query",
+   "arguments": {
+    "queries": [
+     "SELECT SUM(strftime('%Y',order_ts)<>strftime('%Y',datetime(order_ts,'+8 hours'))) year_shift, SUM(strftime('%Y-%m',order_ts)<>strftime('%Y-%m',datetime(order_ts,'+8 hours'))) month_shift, COUNT(*) n FROM orders WHERE status IN (1,2,3)",
+     "SELECT strftime('%Y',datetime(order_ts,'+8 hours')) y, COUNT(*) n, SUM(status IN (1,2,3)) valid FROM orders GROUP BY 1",
+     "SELECT strftime('%Y',datetime(o.order_ts,'+8 hours')) order_year, strftime('%Y',datetime(r.refund_ts,'+8 hours')) refund_year, COUNT(*) n, SUM(r.refund_amount_twd) amt FROM refunds r JOIN orders o ON o.order_id=r.order_id GROUP BY 1,2",
+     "SELECT COUNT(*) customers_with_valid, SUM(c>=2) repeat_cust FROM (SELECT customer_id, COUNT(*) c FROM orders WHERE status IN (1,2,3) AND strftime('%Y',datetime(order_ts,'+8 hours'))='2025' GROUP BY customer_id)",
+     "SELECT p.is_active, COUNT(DISTINCT p.product_id) prods, COUNT(DISTINCT i.product_id) sold_prods, SUM(i.quantity) qty FROM products p LEFT JOIN order_items i ON i.product_id=p.product_id GROUP BY p.is_active",
+     "SELECT c.region_code, c.tier, COUNT(*) n FROM customers c GROUP BY 1,2 ORDER BY 1,2"
+    ]
+   },
+   "error": false
+  },
+  {
+   "tool": "sql_query",
+   "arguments": {
+    "queries": [
+     "SELECT o.status, COUNT(*) n, SUM(s.order_id IS NOT NULL) has_ship, SUM(s.delivered_ts IS NOT NULL) delivered FROM orders o LEFT JOIN shipments s ON s.order_id=o.order_id GROUP BY o.status",
+     "SELECT COUNT(*) n, SUM(s.shipped_ts < o.order_ts) ship_before_order, SUM(s.delivered_ts < s.shipped_ts) deliv_before_ship, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s JOIN orders o ON o.order_id=s.order_id",
+     "SELECT COUNT(*) n, SUM(p.payment_status='ok') ok_n FROM payments p JOIN orders o ON o.order_id=p.order_id WHERE o.status IN (0,9)",
+     "SELECT COUNT(*) n, SUM(r.order_id<>i.order_id) order_mismatch FROM refunds r JOIN order_items i ON i.item_id=r.item_id",
+     "SELECT p.method, COUNT(*) n, SUM(p.amount_twd) amt FROM payments p WHERE p.payment_status='ok' AND strftime('%Y',datetime(p.paid_ts,'+8 hours'))='2025' GROUP BY 1",
+     "SELECT SUM(strftime('%Y-%m',datetime(o.order_ts,'+8 hours'))<>strftime('%Y-%m',datetime(p.paid_ts,'+8 hours'))) pay_month_differs_order_month, COUNT(*) n FROM payments p JOIN orders o ON o.order_id=p.order_id WHERE p.payment_status='ok'"
+    ]
+   },
+   "error": false
+  }
+ ]
+}

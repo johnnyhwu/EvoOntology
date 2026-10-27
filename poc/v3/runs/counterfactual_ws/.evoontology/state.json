@@ -1,0 +1,9 @@
+{
+  "checkpoint_trajectory": "task_935466fa8276",
+  "checkpoint_time": "2026-10-27T12:38:44.543523+00:00",
+  "evolution_due": false,
+  "thresholds": {
+    "min_new_trajectories": 30,
+    "min_days": 7
+  }
+}

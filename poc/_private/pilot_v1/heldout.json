@@ -1,0 +1,113 @@
+[
+  {
+    "id": "H01",
+    "group": "near",
+    "question": "2025 年第三季的淨營收是多少？",
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-07-01' AND datetime(o.order_ts,'+8 hours') < '2025-10-01' ) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id) - (SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id), 2)",
+    "kind": "number",
+    "answer": 5342715.0,
+    "accept": [
+      5342715.0
+    ]
+  },
+  {
+    "id": "H02",
+    "group": "near",
+    "question": "2025 年 11 月的客單價是多少？",
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-11-01' AND datetime(o.order_ts,'+8 hours') < '2025-12-01' ) SELECT ROUND(SUM(oi.quantity*oi.unit_price_cents)/100.0/COUNT(DISTINCT vo.order_id),2) FROM vo JOIN order_items oi ON oi.order_id=vo.order_id",
+    "kind": "number",
+    "answer": 10857.43,
+    "accept": [
+      10857.43
+    ]
+  },
+  {
+    "id": "H03",
+    "group": "near",
+    "question": "南部客戶在 2025 年共有多少張有效訂單？",
+    "gt_sql": "SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id=o.customer_id WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND c.region_code='TW-S'",
+    "kind": "number",
+    "answer": 612,
+    "accept": [
+      612
+    ]
+  },
+  {
+    "id": "H04",
+    "group": "near",
+    "question": "銀級會員在 2025 年的淨營收是多少？",
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE tier='S')) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id) - (SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id), 2)",
+    "kind": "number",
+    "answer": 3430135.0,
+    "accept": [
+      3430135.0
+    ]
+  },
+  {
+    "id": "H05",
+    "group": "near",
+    "question": "2025 年 4 月的退款金額總計是多少？",
+    "gt_sql": "SELECT COALESCE(SUM(refund_amount_twd),0) FROM refunds WHERE datetime(refund_ts,'+8 hours') >= '2025-04-01' AND datetime(refund_ts,'+8 hours') < '2025-05-01'",
+    "kind": "number",
+    "answer": 56575,
+    "accept": [
+      56575
+    ]
+  },
+  {
+    "id": "H06",
+    "group": "near",
+    "question": "2025 年有效訂單中，透過官網下單的占比是多少（%）？",
+    "gt_sql": "SELECT ROUND(100.0*SUM(o.channel='web')/COUNT(*),1) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'",
+    "kind": "number",
+    "answer": 50.3,
+    "accept": [
+      50.3
+    ]
+  },
+  {
+    "id": "H07",
+    "group": "far",
+    "question": "帳篷類商品在 2025 年的淨營收是多少？",
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' ) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE p.category='tent') - (SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE p.category='tent'), 2)",
+    "kind": "number",
+    "answer": 8178790.0,
+    "accept": [
+      8178790.0
+    ]
+  },
+  {
+    "id": "H08",
+    "group": "far",
+    "question": "因配送延遲而退款的金額，哪個商品類別最高？",
+    "gt_sql": "SELECT p.category FROM refunds r JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE r.reason_code='R4' GROUP BY p.category ORDER BY SUM(r.refund_amount_twd) DESC LIMIT 1",
+    "kind": "text",
+    "answer": "tent",
+    "accept": [
+      "tent",
+      "帳篷"
+    ]
+  },
+  {
+    "id": "H09",
+    "group": "far",
+    "question": "2025 年每位回購客戶平均下了幾張有效訂單？",
+    "gt_sql": "SELECT ROUND(1.0*SUM(c)/COUNT(*),2) FROM (SELECT customer_id, COUNT(*) c FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' GROUP BY customer_id HAVING c>=2)",
+    "kind": "number",
+    "answer": 7.86,
+    "accept": [
+      7.86
+    ]
+  },
+  {
+    "id": "H10",
+    "group": "far",
+    "question": "有多少張訂單曾經付款失敗、之後又付款成功？",
+    "gt_sql": "SELECT COUNT(*) FROM (SELECT order_id FROM payments GROUP BY order_id HAVING SUM(payment_status='failed')>=1 AND SUM(payment_status='ok')>=1)",
+    "kind": "number",
+    "answer": 244,
+    "accept": [
+      244
+    ]
+  }
+]

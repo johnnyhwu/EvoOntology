@@ -1,0 +1,219 @@
+{
+ "task_id": "task_1f32bb37afbb",
+ "question": "2025 年 3 月新註冊的客戶有幾位？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "新註冊客戶",
+     "註冊日期"
+    ],
+    "context": "2025 年 3 月新註冊的客戶有幾位？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "新註冊客戶",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '新註冊客戶'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "註冊日期",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '註冊日期'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT signup_date, COUNT(*) AS n FROM customers GROUP BY length(signup_date), substr(signup_date,1,4) ORDER BY n DESC LIMIT 50",
+     "SELECT signup_date FROM customers ORDER BY random() LIMIT 15"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT signup_date, COUNT(*) AS n FROM customers GROUP BY length(signup_date), substr(signup_date,1,4) ORDER BY n DESC LIMIT 50",
+     "columns": [
+      "signup_date",
+      "n"
+     ],
+     "rows": [
+      [
+       "2024-06-27",
+       1708
+      ],
+      [
+       "2023-06-30",
+       1659
+      ],
+      [
+       "2025-10-04",
+       1633
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT signup_date FROM customers ORDER BY random() LIMIT 15",
+     "columns": [
+      "signup_date"
+     ],
+     "rows": [
+      [
+       "2025-03-09"
+      ],
+      [
+       "2024-06-14"
+      ],
+      [
+       "2025-08-13"
+      ],
+      [
+       "2023-10-10"
+      ],
+      [
+       "2025-08-25"
+      ],
+      [
+       "2025-06-18"
+      ],
+      [
+       "2025-04-05"
+      ],
+      [
+       "2024-05-31"
+      ],
+      [
+       "2024-01-06"
+      ],
+      [
+       "2024-12-08"
+      ],
+      [
+       "2024-08-22"
+      ],
+      [
+       "2025-03-21"
+      ],
+      [
+       "2025-06-02"
+      ],
+      [
+       "2024-04-12"
+      ],
+      [
+       "2025-09-07"
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT signup_date, COUNT(*) AS n FROM customers GROUP BY length(signup_date), substr(signup_date,1,4) ORDER BY n DESC LIMIT 50', 'columns': ['signup_date', 'n'], 'rows': [['2024-06-27', 1708], ['2023-06-30', 1659], ['2025-10-04', 1633]], 'truncated': False}, {'query': 'SELECT signup_date FROM customers ORDER BY random() LIMIT 15', 'columns': ['signup_date'], 'rows': [['2025-03-09'], ['2024-06-14'], ['2025-08-13'], ['2023-10-10'], ['2025-08-25'], ['2025-06-18'], ['2025-04-05'], ['2024-05-31'], ['2024-01-06'], ['2024-12-08'], ['2024-08-22'], ['2025-03-21'], ['2025-06-02'], ['2024-04-12'], ['2025-09-07']], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT COUNT(*) AS n_march_2025 FROM customers WHERE signup_date >= '2025-03-01' AND signup_date < '2025-04-01'",
+     "SELECT length(signup_date) AS len, COUNT(*) AS n, MIN(signup_date) AS min_d, MAX(signup_date) AS max_d FROM customers GROUP BY length(signup_date)",
+     "SELECT COUNT(*) AS n_bad_format FROM customers WHERE signup_date IS NULL OR signup_date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT COUNT(*) AS n_march_2025 FROM customers WHERE signup_date >= '2025-03-01' AND signup_date < '2025-04-01'",
+     "columns": [
+      "n_march_2025"
+     ],
+     "rows": [
+      [
+       150
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT length(signup_date) AS len, COUNT(*) AS n, MIN(signup_date) AS min_d, MAX(signup_date) AS max_d FROM customers GROUP BY length(signup_date)",
+     "columns": [
+      "len",
+      "n",
+      "min_d",
+      "max_d"
+     ],
+     "rows": [
+      [
+       10,
+       5000,
+       "2023-01-01",
+       "2025-12-31"
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT COUNT(*) AS n_bad_format FROM customers WHERE signup_date IS NULL OR signup_date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'",
+     "columns": [
+      "n_bad_format"
+     ],
+     "rows": [
+      [
+       0
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT COUNT(*) AS n_march_2025 FROM customers WHERE signup_date >= '2025-03-01' AND signup_date < '2025-04-01'\", 'columns': ['n_march_2025'], 'rows': [[150]], 'truncated': False}, {'query': 'SELECT length(signup_date) AS len, COUNT(*) AS n, MIN(signup_date) AS min_d, MAX(signup_date) AS max_d FROM customers GROUP BY length(signup_date)', 'columns': ['len', 'n', 'min_d', 'max_d'], 'rows': [[10, 5000, '2023-01-01', '2025-12-31']], 'truncated': False}, {'query': \"SELECT COUNT(*) AS n_bad_format FROM customers WHERE signup_date IS NULL OR signup_date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'\", 'columns': ['n_bad_format'], 'rows': [[0]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "150",
+  "basis": "以 customers.signup_date（純日期 YYYY-MM-DD，格式檢查無異常）篩選 2025-03-01 至 2025-03-31，計 150 位。時區換算規則只適用於 orders.order_ts，不適用於此欄位。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S32",
+ "arm": "ontology",
+ "steps": 5,
+ "ended_by": "final"
+}

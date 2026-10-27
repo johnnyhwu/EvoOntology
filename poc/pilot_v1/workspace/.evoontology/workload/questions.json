@@ -1,0 +1,195 @@
+{
+  "questions": [
+    {
+      "id": "C10",
+      "question": "目前仍在售的商品中，銷售數量最多的是哪一個？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444152+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C09",
+      "question": "2025 年 9 月的退款金額總計是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444149+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C08",
+      "question": "黃金會員在 2025 年的淨營收是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444146+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C07",
+      "question": "哪一種付款方式的實收金額最高？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444143+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C06",
+      "question": "2025 年有效訂單中，透過行動 App 下單的占比是多少（%）？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444140+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C05",
+      "question": "2025 年有多少位回購客戶？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444135+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C04",
+      "question": "北部客戶在 2025 年共有多少張有效訂單？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444132+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C03",
+      "question": "歷史上哪個商品類別的退款金額最高？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444126+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C02",
+      "question": "2025 年 6 月的客單價是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444120+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C01",
+      "question": "2025 年第一季的淨營收是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-22T10:44:32.444003+00:00",
+      "purpose": "construction"
+    }
+  ],
+  "updated_at": "2026-10-22T10:44:32.444173+00:00"
+}

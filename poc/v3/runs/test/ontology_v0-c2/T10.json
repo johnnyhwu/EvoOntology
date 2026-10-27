@@ -1,0 +1,633 @@
+{
+ "task_id": "task_5b5b8fecd6c2",
+ "question": "順豐 2025 年的準時送達率是多少？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "準時送達率",
+     "順豐",
+     "2025 年"
+    ],
+    "context": "順豐 2025 年的準時送達率是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "準時送達率",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '準時送達率'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "順豐",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '順豐'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "2025 年",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '2025 年'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 3,
+    "processed_count": 3,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "準時 送達 on-time delivery 物流",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [
+     {
+      "id": "con_refund_history_scope",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "詢問「歷史上」或不限期間的退款統計時",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_order_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "所有依訂單成立時間歸屬期間的分析（淨營收、客單價、訂單數、回購、通路占比、取消、銷量）",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_paid_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "實收金額的期間歸屬",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_refund_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "退款報表的期間歸屬",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     },
+     {
+      "id": "map_order_time",
+      "name": "term_order_time -> orders",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     },
+     {
+      "id": "map_paid_time",
+      "name": "term_paid_time -> payments",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     }
+    ],
+    "matched_total": 10,
+    "catalog_total": 116,
+    "version": "v0-c2",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "shipment carrier delivered 運送 SLA 天數 順豐 sf",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [],
+    "matched_total": 0,
+    "catalog_total": 116,
+    "version": "v0-c2",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "shipment",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [],
+    "matched_total": 0,
+    "catalog_total": 116,
+    "version": "v0-c2",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "delivery late 延遲 配送 出貨",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [],
+    "matched_total": 0,
+    "catalog_total": 116,
+    "version": "v0-c2",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "carrier",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [],
+    "matched_total": 0,
+    "catalog_total": 116,
+    "version": "v0-c2",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "shipments delivered_ts shipped_ts on_time",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [
+     {
+      "id": "con_tz_order_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "所有依訂單成立時間歸屬期間的分析（淨營收、客單價、訂單數、回購、通路占比、取消、銷量）",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_paid_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "實收金額的期間歸屬",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_refund_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "退款報表的期間歸屬",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "map_order_time",
+      "name": "term_order_time -> orders",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "map_paid_time",
+      "name": "term_paid_time -> payments",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "map_refund_time",
+      "name": "term_refund_time -> refunds",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     }
+    ],
+    "matched_total": 10,
+    "catalog_total": 116,
+    "version": "v0-c2",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT carrier, COUNT(*) n, SUM(delivered_ts IS NULL) null_delivered, SUM(shipped_ts IS NULL) null_shipped, MIN(shipped_ts), MAX(shipped_ts) FROM shipments GROUP BY carrier",
+     "SELECT * FROM shipments LIMIT 5",
+     "SELECT order_id, COUNT(*) c FROM shipments GROUP BY order_id HAVING c>1 LIMIT 5"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT carrier, COUNT(*) n, SUM(delivered_ts IS NULL) null_delivered, SUM(shipped_ts IS NULL) null_shipped, MIN(shipped_ts), MAX(shipped_ts) FROM shipments GROUP BY carrier",
+     "columns": [
+      "carrier",
+      "n",
+      "null_delivered",
+      "null_shipped",
+      "MIN(shipped_ts)",
+      "MAX(shipped_ts)"
+     ],
+     "rows": [
+      [
+       "blackcat",
+       19911,
+       2134,
+       0,
+       "2024-12-31 05:07:42",
+       "2026-01-04 15:04:46"
+      ],
+      [
+       "hct",
+       11092,
+       1233,
+       0,
+       "2024-12-31 10:14:46",
+       "2026-01-04 17:53:02"
+      ],
+      [
+       "post",
+       6635,
+       768,
+       0,
+       "2024-12-31 04:11:32",
+       "2026-01-04 00:08:37"
+      ],
+      [
+       "sf",
+       6806,
+       735,
+       0,
+       "2024-12-31 08:50:28",
+       "2026-01-04 09:29:21"
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT * FROM shipments LIMIT 5",
+     "columns": [
+      "shipment_id",
+      "order_id",
+      "carrier",
+      "shipped_ts",
+      "delivered_ts"
+     ],
+     "rows": [
+      [
+       1,
+       1,
+       "post",
+       "2025-05-29 05:32:55",
+       "2025-06-03 18:32:55"
+      ],
+      [
+       2,
+       2,
+       "blackcat",
+       "2025-06-03 17:04:51",
+       "2025-06-06 13:04:51"
+      ],
+      [
+       3,
+       3,
+       "hct",
+       "2025-09-28 09:46:07",
+       "2025-09-29 19:46:07"
+      ],
+      [
+       4,
+       4,
+       "blackcat",
+       "2025-04-12 17:13:13",
+       "2025-04-14 18:13:13"
+      ],
+      [
+       5,
+       6,
+       "blackcat",
+       "2025-05-15 04:04:09",
+       "2025-05-16 09:04:09"
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT order_id, COUNT(*) c FROM shipments GROUP BY order_id HAVING c>1 LIMIT 5",
+     "columns": [
+      "order_id",
+      "c"
+     ],
+     "rows": [],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT carrier, COUNT(*) n, SUM(delivered_ts IS NULL) null_delivered, SUM(shipped_ts IS NULL) null_shipped, MIN(shipped_ts), MAX(shipped_ts) FROM shipments GROUP BY carrier', 'columns': ['carrier', 'n', 'null_delivered', 'null_shipped', 'MIN(shipped_ts)', 'MAX(shipped_ts)'], 'rows': [['blackcat', 19911, 2134, 0, '2024-12-31 05:07:42', '2026-01-04 15:04:46'], ['hct', 11092, 1233, 0, '2024-12-31 10:14:46', '2026-01-04 17:53:02'], ['post', 6635, 768, 0, '2024-12-31 04:11:32', '2026-01-04 00:08:37'], ['sf', 6806, 735, 0, '2024-12-31 08:50:28', '2026-01-04 09:29:21']], 'truncated': False}, {'query': 'SELECT * FROM shipments LIMIT 5', 'columns': ['shipment_id', 'order_id', 'carrier', 'shipped_ts', 'delivered_ts'], 'rows': [[1, 1, 'post', '2025-05-29 05:32:55', '2025-06-03 18:32:55'], [2, 2, 'blackcat', '2025-06-03 17:04:51', '2025-06-06 13:04:51'], [3, 3, 'hct', '2025-09-28 09:46:07', '2025-09-29 19:46:07'], [4, 4, 'blackcat', '2025-04-12 17:13:13', '2025-04-14 18:13:13'], [5, 6, 'blackcat', '2025-05-15 04:04:09', '2025-05-16 09:04:09']], 'truncated': False}, {'query': 'SELECT order_id, COUNT(*) c FROM shipments GROUP BY order_id HAVING c>1 LIMIT 5', 'columns': ['order_id', 'c'], 'rows': [], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT COUNT(*) n, SUM(delivered_ts IS NULL) null_d, MIN((julianday(delivered_ts)-julianday(shipped_ts))*24) min_h, MAX((julianday(delivered_ts)-julianday(shipped_ts))*24) max_h, AVG((julianday(delivered_ts)-julianday(shipped_ts))*24) avg_h FROM shipments WHERE carrier='sf'",
+     "SELECT CAST((julianday(delivered_ts)-julianday(shipped_ts)) AS INT) days, COUNT(*) n FROM shipments WHERE carrier='sf' AND delivered_ts IS NOT NULL GROUP BY days ORDER BY days",
+     "SELECT carrier, CAST((julianday(delivered_ts)-julianday(shipped_ts)) AS INT) days, COUNT(*) n FROM shipments WHERE delivered_ts IS NOT NULL GROUP BY carrier, days ORDER BY carrier, days"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT COUNT(*) n, SUM(delivered_ts IS NULL) null_d, MIN((julianday(delivered_ts)-julianday(shipped_ts))*24) min_h, MAX((julianday(delivered_ts)-julianday(shipped_ts))*24) max_h, AVG((julianday(delivered_ts)-julianday(shipped_ts))*24) avg_h FROM shipments WHERE carrier='sf'",
+     "columns": [
+      "n",
+      "null_d",
+      "min_h",
+      "max_h",
+      "avg_h"
+     ],
+     "rows": [
+      [
+       6806,
+       735,
+       15.0,
+       80.00000000372529,
+       47.79064404543381
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT CAST((julianday(delivered_ts)-julianday(shipped_ts)) AS INT) days, COUNT(*) n FROM shipments WHERE carrier='sf' AND delivered_ts IS NOT NULL GROUP BY days ORDER BY days",
+     "columns": [
+      "days",
+      "n"
+     ],
+     "rows": [
+      [
+       0,
+       791
+      ],
+      [
+       1,
+       2207
+      ],
+      [
+       2,
+       2232
+      ],
+      [
+       3,
+       841
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT carrier, CAST((julianday(delivered_ts)-julianday(shipped_ts)) AS INT) days, COUNT(*) n FROM shipments WHERE delivered_ts IS NOT NULL GROUP BY carrier, days ORDER BY carrier, days",
+     "columns": [
+      "carrier",
+      "days",
+      "n"
+     ],
+     "rows": [
+      [
+       "blackcat",
+       0,
+       881
+      ],
+      [
+       "blackcat",
+       1,
+       5326
+      ],
+      [
+       "blackcat",
+       2,
+       5260
+      ],
+      [
+       "blackcat",
+       3,
+       5156
+      ],
+      [
+       "blackcat",
+       4,
+       1154
+      ],
+      [
+       "hct",
+       1,
+       1712
+      ],
+      [
+       "hct",
+       2,
+       2395
+      ],
+      [
+       "hct",
+       3,
+       2324
+      ],
+      [
+       "hct",
+       4,
+       2338
+      ],
+      [
+       "hct",
+       5,
+       1090
+      ],
+      [
+       "post",
+       1,
+       409
+      ],
+      [
+       "post",
+       2,
+       1050
+      ],
+      [
+       "post",
+       3,
+       1055
+      ],
+      [
+       "post",
+       4,
+       1063
+      ],
+      [
+       "post",
+       5,
+       1070
+      ],
+      [
+       "post",
+       6,
+       1083
+      ],
+      [
+       "post",
+       7,
+       137
+      ],
+      [
+       "sf",
+       0,
+       791
+      ],
+      [
+       "sf",
+       1,
+       2207
+      ],
+      [
+       "sf",
+       2,
+       2232
+      ],
+      [
+       "sf",
+       3,
+       841
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT COUNT(*) n, SUM(delivered_ts IS NULL) null_d, MIN((julianday(delivered_ts)-julianday(shipped_ts))*24) min_h, MAX((julianday(delivered_ts)-julianday(shipped_ts))*24) max_h, AVG((julianday(delivered_ts)-julianday(shipped_ts))*24) avg_h FROM shipments WHERE carrier='sf'\", 'columns': ['n', 'null_d', 'min_h', 'max_h', 'avg_h'], 'rows': [[6806, 735, 15.0, 80.00000000372529, 47.79064404543381]], 'truncated': False}, {'query': \"SELECT CAST((julianday(delivered_ts)-julianday(shipped_ts)) AS INT) days, COUNT(*) n FROM shipments WHERE carrier='sf' AND delivered_ts IS NOT NULL GROUP BY days ORDER BY days\", 'columns': ['days', 'n'], 'rows': [[0, 791], [1, 2207], [2, 2232], [3, 841]], 'truncated': False}, {'query': 'SELECT carrier, CAST((julianday(delivered_ts)-julianday(shipped_ts)) AS INT) days, COUNT(*) n FROM shipments WHERE delivered_ts IS NOT NULL GROUP BY carrier, days ORDER BY carrier, days', 'columns': ['carrier', 'days', 'n'], 'rows': [['blackcat', 0, 881], ['blackcat', 1, 5326], ['blackcat', 2, 5260], ['blackcat', 3, 5156], ['blackcat', 4, 1154], ['hct', 1, 1712], ['hct', 2, 2395], ['hct', 3, 2324], ['hct', 4, 2338], ['hct', 5, 1090], ['post', 1, 409], ['post', 2, 1050], ['post', 3, 1055], ['post', 4, 1063], ['post', 5, 1070], ['post', 6, 1083], ['post', 7, 137], ['sf', 0, 791], ['sf', 1, 2207], ['sf', 2, 2232], ['sf', 3, 841]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": null,
+ "task_status": "failed",
+ "errors": [],
+ "question_id": "T10",
+ "arm": "ontology",
+ "steps": 10,
+ "ended_by": "max_steps"
+}

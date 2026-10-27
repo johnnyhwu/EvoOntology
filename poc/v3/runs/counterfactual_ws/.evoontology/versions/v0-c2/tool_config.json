@@ -1,0 +1,11 @@
+{
+  "resolve": {
+    "trigger_keyword_constraints": true,
+    "fuzzy_fallback": false
+  },
+  "manifest": {
+    "pinned_constraint_ids": [
+      "con_tz_order_time"
+    ]
+  }
+}

@@ -1,0 +1,506 @@
+{
+ "task_id": "task_4844353a9759",
+ "question": "2025 年 9 月的取消率是多少？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "取消率",
+     "訂單",
+     "訂單日期 order_ts"
+    ],
+    "context": "2025 年 9 月的取消率是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "取消率",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '取消率'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "訂單",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '訂單'",
+      "term": {
+       "id": "term_order",
+       "type": "entity",
+       "name": "訂單",
+       "aliases": [
+        "order",
+        "orders",
+        "order_id",
+        "訂單編號",
+        "張數"
+       ],
+       "definition": "一張客戶下的訂單，含成立時間、狀態、通路與優惠碼；與訂單明細為一對多。",
+       "scope": "訂單層級分析",
+       "evidence_refs": [
+        "ev_multi_item_orders",
+        "ev_status_codes"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_order_id",
+        "term_id": "term_order",
+        "table": "orders",
+        "column": "order_id",
+        "semantic_filter": "",
+        "aggregation_semantics": "不重複訂單計數；訂單與明細一對多，不可以明細列數代替訂單張數",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_order_valid",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_valid_order",
+        "connection_condition": "有效訂單是訂單狀態為已付款、已出貨、已送達的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_doc_valid_order"
+        ]
+       },
+       {
+        "id": "rel_order_pending",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_pending_order",
+        "connection_condition": "待付款訂單是訂單狀態為待付款的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_status_payment_consistency"
+        ]
+       },
+       {
+        "id": "rel_order_cancelled",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_cancelled_order",
+        "connection_condition": "已取消訂單是訂單狀態為已取消的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_status_payment_consistency"
+        ]
+       },
+       {
+        "id": "rel_order_items",
+        "relation_type": "composition",
+        "source": "term_order",
+        "target": "term_order_item",
+        "connection_condition": "訂單明細透過訂單編號隸屬於訂單；一張訂單含一到四筆明細。",
+        "evidence_refs": [
+         "ev_multi_item_orders"
+        ]
+       },
+       {
+        "id": "rel_order_payment",
+        "relation_type": "association",
+        "source": "term_order",
+        "target": "term_payment",
+        "connection_condition": "付款紀錄以訂單編號對應到訂單；一張訂單可有多筆付款嘗試。",
+        "evidence_refs": [
+         "ev_payment_single_ok",
+         "ev_failed_payment_orders"
+        ]
+       },
+       {
+        "id": "rel_customer_order",
+        "relation_type": "association",
+        "source": "term_customer",
+        "target": "term_order",
+        "connection_condition": "訂單以客戶編號對應到客戶。",
+        "evidence_refs": [
+         "ev_dim_region_tier"
+        ]
+       },
+       {
+        "id": "rel_order_channel",
+        "relation_type": "association",
+        "source": "term_order",
+        "target": "term_channel",
+        "connection_condition": "訂單資料表中的通路欄位記錄下單通路。",
+        "evidence_refs": [
+         "ev_channel_values"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_multi_item_orders",
+        "source": "shop_v2",
+        "query": "SELECT items_per_order, COUNT(*) orders FROM (SELECT order_id, COUNT(*) items_per_order FROM order_items GROUP BY order_id) GROUP BY items_per_order ORDER BY items_per_order",
+        "result": "{\"columns\": [\"items_per_order\", \"orders\"], \"rows\": [[1, 29911], [2, 18155], [3, 8991], [4, 2943]]} | 解讀: 多明細訂單佔相當比例，join order_items 後直接 COUNT(*) 會高估訂單數；所有訂單都至少有一筆明細（無孤兒訂單）。",
+        "validation_method": "每張訂單的明細數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_valid_order",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "待付款與已取消的訂單不算有效訂單。 | 解讀: 有效訂單 = 狀態 1/2/3。",
+        "validation_method": "文件原文引用；搭配 ev_status_payment_consistency 驗證",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_payment_consistency",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(DISTINCT o.order_id) orders, COUNT(DISTINCT CASE WHEN p.payment_status='ok' THEN o.order_id END) paid_ok FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"orders\", \"paid_ok\"], \"rows\": [[0, 3003, 0], [1, 3549, 3549], [2, 4870, 4870], [3, 39574, 39574], [9, 9004, 0]]} | 解讀: 狀態 1/2/3 的訂單全數有付款成功；0 與 9 為 0，與有效訂單定義互相佐證。",
+        "validation_method": "訂單狀態與付款成功狀態對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_payment_single_ok",
+        "source": "shop_v2",
+        "query": "SELECT payment_status, COUNT(*) n, COUNT(DISTINCT order_id) distinct_orders, SUM(amount_twd) amt FROM payments GROUP BY payment_status",
+        "result": "{\"columns\": [\"payment_status\", \"n\", \"distinct_orders\", \"amt\"], \"rows\": [[\"failed\", 13326, 11824, 125980715], [\"ok\", 47993, 47993, 447706825]]} | 解讀: ok 為 47993 列對應 47993 張訂單（無重複付款）；failed 13326 列僅涵蓋 11824 張訂單，部分訂單有多次失敗。若不過濾 ok 會高估實收金額。",
+        "validation_method": "依付款狀態比較列數與 distinct 訂單數",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_failed_payment_orders",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(*) failed_rows, COUNT(DISTINCT p.order_id) failed_orders FROM payments p JOIN orders o ON o.order_id=p.order_id WHERE p.payment_status='failed' GROUP BY o.status ORDER BY o.status",
+        "result": "{\"columns\": [\"status\", \"failed_rows\", \"failed_orders\"], \"rows\": [[0, 1486, 1486], [1, 534, 437], [2, 731, 580], [3, 6078, 4824], [9, 4497, 4497]]} | 解讀: 失敗紀錄會出現在待付款、已取消，也可能出現在後來付款成功的訂單，必須用 payment_status='ok' 而非存在性判斷。",
+        "validation_method": "失敗付款依訂單狀態分組",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_dim_region_tier",
+        "source": "shop_v2",
+        "query": "SELECT c.region_code, c.tier, COUNT(*) valid_orders FROM orders o JOIN customers c ON c.customer_id=o.customer_id WHERE o.status IN (1,2,3) AND strftime('%Y',datetime(o.order_ts,'+8 hours'))='2025' GROUP BY 1,2 ORDER BY 3 DESC",
+        "result": "{\"columns\": [\"region_code\", \"tier\", \"valid_orders\"], \"rows\": [[\"TW-N\", \"B\", 12994], [\"TW-C\", \"B\", 9322], [\"TW-S\", \"B\", 6366], [\"TW-N\", \"S\", 3698], [\"JP\", \"B\", 3422], [\"TW-S\", \"S\", 2336], [\"TW-C\", \"S\", 2154], [\"TW-N\", \"G\", 2131], [\"SG\", \"B\", 1568], [\"TW-C\", \"G\", 1155], [\"JP\", \"S\", 869], [\"TW-S\", \"G\", 623], [\"SG\", \"S\", 437], [\"JP\", \"G\", 416], [\"SG\", \"G\", 208]]} | 解讀: customers 與 orders 無孤兒；region_code 與 tier 為客戶當前屬性（無歷史版本），日本客戶 = region_code 'JP'。",
+        "validation_method": "客戶維度串接有效訂單並檢查代碼值",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_channel_values",
+        "source": "shop_v2",
+        "query": "SELECT channel, COUNT(*) valid_orders, ROUND(100.0*COUNT(*)/SUM(COUNT(*)) OVER (),2) pct FROM orders WHERE status IN (1,2,3) AND strftime('%Y',datetime(order_ts,'+8 hours'))='2025' GROUP BY channel ORDER BY 2 DESC",
+        "result": "{\"columns\": [\"channel\", \"valid_orders\", \"pct\"], \"rows\": [[\"web\", 23899, 50.1], [\"app\", 16679, 34.97], [\"store\", 7121, 14.93]]} | 解讀: 通路代碼與文件一致；占比分母需先限定為台北時間 2025 的有效訂單。",
+        "validation_method": "distinct 值與占比計算",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "訂單日期 order_ts",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '訂單日期 order_ts'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 3,
+    "processed_count": 3,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_tier_codes",
+      "target": "map_tier",
+      "severity": "block",
+      "description": "customers.tier 代碼意義：B 一般會員、S 銀級會員、G 黃金會員。會員等級屬於客戶，訂單須經客戶編號連到客戶才能依等級歸類。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  },
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "已取消訂單",
+     "待付款訂單"
+    ],
+    "context": "2025 年 9 月的取消率是多少？需確認已取消訂單對應的 status 代碼與取消率分母定義"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "已取消訂單",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '已取消訂單'",
+      "term": {
+       "id": "term_cancelled_order",
+       "type": "category",
+       "name": "已取消訂單",
+       "aliases": [
+        "已取消",
+        "取消訂單",
+        "cancelled order",
+        "canceled",
+        "status 9",
+        "取消"
+       ],
+       "definition": "訂單狀態為 9（已取消）的訂單，不屬於有效訂單。",
+       "scope": "取消訂單數量與取消率分析",
+       "evidence_refs": [
+        "ev_status_codes",
+        "ev_status_payment_consistency"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_cancelled_order",
+        "term_id": "term_cancelled_order",
+        "table": "orders",
+        "column": "status",
+        "semantic_filter": "狀態碼為 9（已取消）",
+        "aggregation_semantics": "不重複訂單張數；期間依訂單成立時間（台北時間）",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_order_cancelled",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_cancelled_order",
+        "connection_condition": "已取消訂單是訂單狀態為已取消的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_status_payment_consistency"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_payment_consistency",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(DISTINCT o.order_id) orders, COUNT(DISTINCT CASE WHEN p.payment_status='ok' THEN o.order_id END) paid_ok FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"orders\", \"paid_ok\"], \"rows\": [[0, 3003, 0], [1, 3549, 3549], [2, 4870, 4870], [3, 39574, 39574], [9, 9004, 0]]} | 解讀: 狀態 1/2/3 的訂單全數有付款成功；0 與 9 為 0，與有效訂單定義互相佐證。",
+        "validation_method": "訂單狀態與付款成功狀態對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "待付款訂單",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '待付款訂單'",
+      "term": {
+       "id": "term_pending_order",
+       "type": "category",
+       "name": "待付款訂單",
+       "aliases": [
+        "待付款",
+        "pending payment",
+        "unpaid order",
+        "status 0"
+       ],
+       "definition": "訂單狀態為 0（待付款）的訂單，不屬於有效訂單。",
+       "scope": "目前待付款訂單數量分析",
+       "evidence_refs": [
+        "ev_status_codes",
+        "ev_status_payment_consistency"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_pending_order",
+        "term_id": "term_pending_order",
+        "table": "orders",
+        "column": "status",
+        "semantic_filter": "狀態碼為 0（待付款）",
+        "aggregation_semantics": "不重複訂單張數；為目前狀態計數，不限定期間",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_order_pending",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_pending_order",
+        "connection_condition": "待付款訂單是訂單狀態為待付款的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_status_payment_consistency"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_payment_consistency",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(DISTINCT o.order_id) orders, COUNT(DISTINCT CASE WHEN p.payment_status='ok' THEN o.order_id END) paid_ok FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"orders\", \"paid_ok\"], \"rows\": [[0, 3003, 0], [1, 3549, 3549], [2, 4870, 4870], [3, 39574, 39574], [9, 9004, 0]]} | 解讀: 狀態 1/2/3 的訂單全數有付款成功；0 與 9 為 0，與有效訂單定義互相佐證。",
+        "validation_method": "訂單狀態與付款成功狀態對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_order_status_codes",
+      "target": "map_order_status",
+      "severity": "block",
+      "description": "orders.status 代碼意義：0 待付款、1 已付款、2 已出貨、3 已送達、9 已取消。資料中只出現這五個代碼，沒有文件未記載的狀態碼。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_cancelled_order_period",
+      "target": "map_cancelled_order",
+      "severity": "block",
+      "description": "已取消訂單指狀態碼 9，不屬於有效訂單。期間依訂單成立時間並以台北時間（UTC+8）劃分，而非取消發生時間。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_amount_unit_cents",
+      "target": "map_item_amount_price",
+      "severity": "block",
+      "description": "order_items.unit_price_cents 的單位是分（新台幣乘以 100），換算成 TWD 須除以 100。payments.amount_twd 與 refunds.refund_amount_twd 已是 TWD。與退款或實收金額相加減前必須先統一單位。每筆付款成功金額與該訂單明細金額換算後完全相符，可作為單位換算正確的對帳依據。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_tier_codes",
+      "target": "map_tier",
+      "severity": "block",
+      "description": "customers.tier 代碼意義：B 一般會員、S 銀級會員、G 黃金會員。會員等級屬於客戶，訂單須經客戶編號連到客戶才能依等級歸類。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT status, COUNT(*) n FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-09-01' AND datetime(order_ts, '+8 hours') < '2025-10-01' GROUP BY status ORDER BY status",
+     "SELECT order_ts FROM orders LIMIT 3"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT status, COUNT(*) n FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-09-01' AND datetime(order_ts, '+8 hours') < '2025-10-01' GROUP BY status ORDER BY status",
+     "columns": [
+      "status",
+      "n"
+     ],
+     "rows": [
+      [
+       0,
+       263
+      ],
+      [
+       1,
+       305
+      ],
+      [
+       2,
+       406
+      ],
+      [
+       3,
+       3203
+      ],
+      [
+       9,
+       761
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT order_ts FROM orders LIMIT 3",
+     "columns": [
+      "order_ts"
+     ],
+     "rows": [
+      [
+       "2025-05-27 02:32:55"
+      ],
+      [
+       "2025-06-01 06:04:51"
+      ],
+      [
+       "2025-09-27 08:46:07"
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT status, COUNT(*) n FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-09-01' AND datetime(order_ts, '+8 hours') < '2025-10-01' GROUP BY status ORDER BY status\", 'columns': ['status', 'n'], 'rows': [[0, 263], [1, 305], [2, 406], [3, 3203], [9, 761]], 'truncated': False}, {'query': 'SELECT order_ts FROM orders LIMIT 3', 'columns': ['order_ts'], 'rows': [['2025-05-27 02:32:55'], ['2025-06-01 06:04:51'], ['2025-09-27 08:46:07']], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "15.41",
+  "basis": "已取消訂單定義為 orders.status=9，期間依台北時間（order_ts+8 小時）劃分 2025 年 9 月。取消率 = 已取消訂單 761 張 ÷ 當月全部訂單 4938 張（status 0/1/2/3/9 合計）×100 = 15.41。語意層未定義取消率的分母，因此以全部訂單為分母。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "T07",
+ "arm": "ontology",
+ "steps": 5,
+ "ended_by": "final"
+}

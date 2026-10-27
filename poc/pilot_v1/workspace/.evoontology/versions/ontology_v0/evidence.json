@@ -1,0 +1,146 @@
+[
+  {
+    "id": "ev_status_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT status, COUNT(*) FROM orders GROUP BY status",
+    "result": "status values: 0=155, 1=169, 2=232, 3=1978, 9=466 (code meanings come from domain_knowledge.md 代碼對照: 0待付款,1已付款,2已出貨,3已送達,9已取消)",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_valid_order_payment",
+    "source": "shop.sqlite",
+    "query": "SELECT o.status, p.payment_status, COUNT(*) FROM orders o LEFT JOIN payments p USING(order_id) GROUP BY 1,2; and SELECT n,COUNT(*) FROM (SELECT order_id,COUNT(*) n FROM payments WHERE payment_status='ok' GROUP BY 1) GROUP BY 1",
+    "result": "status 1/2/3 orders have 169/232/1978 'ok' payments; status 0 and 9 orders have 0 'ok' payments (only failed or no payment). Every order with an 'ok' payment has exactly 1 (2379 orders = 169+232+1978). This corroborates the glossary definition that only status 1,2,3 are effective (paid) orders.",
+    "validation_method": "cross-table consistency check between orders.status and payments.payment_status",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_amount_unit",
+    "source": "shop.sqlite",
+    "query": "WITH t AS (SELECT o.order_id, SUM(i.quantity*i.unit_price_cents)/100.0 gross FROM orders o JOIN order_items i USING(order_id) WHERE o.status IN (1,2,3) GROUP BY 1), p AS (SELECT order_id, SUM(amount_twd) a FROM payments WHERE payment_status='ok' GROUP BY 1) SELECT COUNT(*), SUM(p.a=t.gross), SUM(p.a<>t.gross) FROM t JOIN p USING(order_id); and SELECT MIN(i.unit_price_cents/100.0/p.list_price_twd), MAX(...), AVG(...) FROM order_items i JOIN products p USING(product_id); and SELECT COUNT(*) FROM order_items WHERE unit_price_cents % 100 <> 0",
+    "result": "For all 2379 valid orders, SUM(quantity*unit_price_cents)/100 equals the order's successful payment amount_twd (2379 equal, 0 different). unit_price_cents/100 divided by products.list_price_twd ranges 0.80 to 1.00 (avg 0.946), i.e. unit_price_cents is in 1/100 TWD and is a discounted transaction price at or below list price. All unit_price_cents values are multiples of 100 (0 exceptions).",
+    "validation_method": "reconciliation of two independent columns; unit ratio against list price",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_doc_definitions",
+    "source": "domain_knowledge.md",
+    "query": "read poc/build_input/domain_knowledge.md sections 一 (報表時間規則) and 二 (名詞定義)",
+    "result": "Business glossary states: timestamps are UTC and reports use Taipei time (UTC+8); 有效訂單=status 已付款/已出貨/已送達; 商品金額=數量×成交單價; 淨營收=有效訂單商品金額總和 minus refunds of those orders, attributed by order creation time; 客單價=有效訂單商品金額(不扣退款)/有效訂單張數; 回購客戶=same-year valid orders >=2; 實收金額=sum of successful payments; 退款金額(退款報表)=attributed by refund time.",
+    "validation_method": "documentary source (business-provided); data corroboration recorded in separate evidence items; UTC claim itself cannot be verified from data",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_timezone_impact",
+    "source": "shop.sqlite",
+    "query": "SELECT SUM(strftime('%Y',order_ts)<>strftime('%Y',datetime(order_ts,'+8 hours'))), SUM(substr(order_ts,1,7)<>substr(datetime(order_ts,'+8 hours'),1,7)) FROM orders; SELECT COUNT(*) FROM orders WHERE order_ts<'2024-12-31 16:00:00' OR order_ts>='2025-12-31 16:00:00'; SELECT CAST(substr(order_ts,12,2) AS INT) h, COUNT(*) FROM orders GROUP BY 1; SELECT SUM(substr(refund_ts,1,7)<>substr(datetime(refund_ts,'+8 hours'),1,7)) FROM refunds; SELECT COUNT(*) FROM refunds WHERE datetime(refund_ts,'+8 hours')>='2026-01-01'",
+    "result": "orders.order_ts range is 2024-12-30 02:32:52 to 2025-12-31 21:03:34 (stored as 'YYYY-MM-DD HH:MM:SS', no zone marker). Shifting +8h changes the calendar year for 3 orders and the calendar month for 23 orders (3 of these are in 2025-03/2025-06 UTC); 13 orders fall outside Taipei calendar year 2025. Order hour-of-day is roughly uniform (107-146 per hour) so the data alone cannot confirm the zone. For refunds, 3 refunds change month under +8h and 6 refunds occur in Taipei 2026 (refund_ts max 2026-01-13).",
+    "validation_method": "boundary-impact measurement; zone itself taken from glossary",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_refund_link",
+    "source": "shop.sqlite",
+    "query": "SELECT COUNT(*), SUM(i.order_id<>r.order_id) FROM refunds r JOIN order_items i ON i.item_id=r.item_id; SELECT o.status, COUNT(*) FROM refunds r JOIN orders o USING(order_id) GROUP BY 1; SELECT COUNT(*), COUNT(DISTINCT order_id) FROM refunds; SELECT COUNT(*) FROM refunds r JOIN order_items i ON i.item_id=r.item_id WHERE r.refund_amount_twd > i.quantity*i.unit_price_cents/100.0; SELECT SUM(r.refund_ts<o.order_ts) FROM refunds r JOIN orders o USING(order_id)",
+    "result": "All 194 refunds reference an item whose order_id equals refunds.order_id (0 mismatches); all 194 refunds belong to status=3 orders; 194 refunds over 176 distinct orders; no refund exceeds its item line value (0); no refund precedes its order (0). item_id values are unique within refunds.",
+    "validation_method": "referential integrity and range checks",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_refund_attribution",
+    "source": "shop.sqlite",
+    "query": "SELECT SUM(substr(datetime(r.refund_ts,'+8 hours'),1,7)<>substr(datetime(o.order_ts,'+8 hours'),1,7)), COUNT(*) FROM refunds r JOIN orders o USING(order_id)",
+    "result": "101 of 194 refunds occur in a different Taipei month than their original order, so attribution by order time (net revenue) and by refund time (refund report) give different period totals.",
+    "validation_method": "measurement of attribution divergence",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_refund_category_path",
+    "source": "shop.sqlite",
+    "query": "SELECT COUNT(DISTINCT p.category), COUNT(*) FROM refunds r JOIN order_items i USING(item_id) JOIN products p USING(product_id)",
+    "result": "All 194 refunds resolve through refunds.item_id -> order_items.product_id -> products.category; 5 distinct categories are reachable. refunds has no product or category column of its own.",
+    "validation_method": "join-path completeness check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_channel_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT channel, COUNT(*) FROM orders GROUP BY channel; SELECT channel, COUNT(*) FROM orders WHERE status IN (1,2,3) GROUP BY channel",
+    "result": "orders.channel values: app=1044, store=453, web=1503 (valid orders: app=833, store=350, web=1196). Labels web=官網, app=行動 App, store=實體門市 from glossary. No NULL or variant spellings.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_tier_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT tier, COUNT(*) FROM customers GROUP BY tier",
+    "result": "customers.tier values: B=274, G=49, S=77; no NULLs. Labels B=一般會員, S=銀級會員, G=黃金會員 from glossary.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_region_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT region_code, COUNT(*) FROM customers GROUP BY region_code",
+    "result": "customers.region_code values: JP=46, SG=18, TW-C=93, TW-N=153, TW-S=90; no NULLs. Labels TW-N=北部, TW-C=中部, TW-S=南部, JP=日本, SG=新加坡 from glossary. JP and SG are countries, not Taiwan regions.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_payment_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT method, payment_status, COUNT(*), SUM(amount_twd) FROM payments GROUP BY 1,2",
+    "result": "payments.method values: atm, cod, credit_card, line_pay; payment_status values: ok and failed. ok totals: atm 344 rows/3,461,775; cod 250/2,422,200; credit_card 1298/12,773,170; line_pay 487/4,795,025. failed rows (613 total) carry non-zero amount_twd too (e.g. credit_card failed 312 rows/2,911,335), so failed rows must not be summed as received money.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_payment_grain",
+    "source": "shop.sqlite",
+    "query": "SELECT n, COUNT(*) FROM (SELECT order_id, COUNT(*) n FROM payments GROUP BY 1) GROUP BY 1; SELECT COUNT(*), COUNT(DISTINCT order_id) FROM order_items; SELECT SUM(payment_status='failed') FROM payments p JOIN orders o USING(order_id) WHERE o.status IN (1,2,3)",
+    "result": "payments per order: 1 payment for 2445 orders, 2 for 185, 3 for 59 (2689 orders have payments; 311 have none). 303 failed payments belong to valid orders. order_items has 5238 rows over 3000 orders, so orders, items and payments are different grains (one order to many items / payments).",
+    "validation_method": "grain and cardinality inspection",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_product_enum",
+    "source": "shop.sqlite",
+    "query": "SELECT category, is_active, COUNT(*) FROM products GROUP BY 1,2; SELECT COUNT(DISTINCT sku), COUNT(DISTINCT product_name) FROM products",
+    "result": "products: 60 rows, 60 distinct skus/names. category values: accessory, apparel, backpack, shoes, tent (12 each). is_active=1 for 50 products, 0 for 10 (accessory 1, apparel 1, backpack 1, shoes 3, tent 4). Inactive products still appear in historical order_items.",
+    "validation_method": "distinct value inspection + glossary cross-check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_repeat_dist",
+    "source": "shop.sqlite",
+    "query": "SELECT n, COUNT(*) FROM (SELECT customer_id, COUNT(*) n FROM orders WHERE status IN (1,2,3) AND datetime(order_ts,'+8 hours')>='2025-01-01' AND datetime(order_ts,'+8 hours')<'2026-01-01' GROUP BY 1) GROUP BY 1",
+    "result": "Customers by number of valid Taipei-2025 orders range 1 to 25; 41 customers have exactly 1 and the rest (the majority) have 2 or more, so the >=2 threshold is a meaningful split. 346 of 400 customers have any order.",
+    "validation_method": "distribution inspection of the glossary threshold",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_fk_integrity",
+    "source": "shop.sqlite",
+    "query": "SELECT COUNT(*) FROM orders WHERE customer_id NOT IN (SELECT customer_id FROM customers); SELECT COUNT(*) FROM order_items WHERE product_id NOT IN (SELECT product_id FROM products); SELECT COUNT(*) FROM orders WHERE order_id NOT IN (SELECT order_id FROM order_items)",
+    "result": "0 orphan orders->customers, 0 orphan order_items->products, 0 orders without items. orders.customer_id, order_items.order_id/product_id, payments.order_id, refunds.order_id/item_id behave as foreign keys (no declared FK constraints exist in the schema).",
+    "validation_method": "referential integrity check",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_customer_snapshot",
+    "source": "shop.sqlite",
+    "query": "PRAGMA/--schema of customers: customer_id, name, email, region_code, signup_date, tier",
+    "result": "customers holds one row per customer with a single tier and a single region_code and no effective-date or history columns; orders carry no copy of tier/region. Tier and region therefore describe the customer's current state, not their state at order time.",
+    "validation_method": "schema inspection",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  },
+  {
+    "id": "ev_sales_qty_sensitivity",
+    "source": "shop.sqlite",
+    "query": "top active product by SUM(order_items.quantity) over all orders vs over orders with status IN (1,2,3), restricted to products.is_active=1",
+    "result": "The glossary does not define 銷售數量. Computing the top active product by quantity over all orders and over valid orders only yields the same product in the current data (comparison returned 1 = same). The definition is therefore unconfirmed but did not change the ranking in the construction data.",
+    "validation_method": "sensitivity comparison of two candidate definitions",
+    "timestamp": "2026-10-22T10:47:28+00:00"
+  }
+]

@@ -1,0 +1,318 @@
+{
+ "task_id": "task_bbc054ef203e",
+ "question": "2025 年 5 月 LINE Pay 的實收金額是多少？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "LINE Pay",
+     "實收金額"
+    ],
+    "context": "2025 年 5 月 LINE Pay 的實收金額是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "line pay",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact alias match: term '付款方式'",
+      "term": {
+       "id": "term_payment_method",
+       "type": "dimension",
+       "name": "付款方式",
+       "aliases": [
+        "method",
+        "payment method",
+        "付款方式",
+        "信用卡",
+        "LINE Pay",
+        "ATM 轉帳",
+        "貨到付款",
+        "credit_card",
+        "line_pay",
+        "atm",
+        "cod"
+       ],
+       "definition": "付款方式：credit_card 信用卡、line_pay LINE Pay、atm ATM 轉帳、cod 貨到付款。",
+       "scope": "依付款方式分類的實收分析",
+       "evidence_refs": [
+        "ev_payment_method_amount"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_payment_method",
+        "term_id": "term_payment_method",
+        "table": "payments",
+        "column": "method",
+        "semantic_filter": "",
+        "aggregation_semantics": "",
+        "grain": "每筆付款嘗試一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_payment_method",
+        "relation_type": "association",
+        "source": "term_payment",
+        "target": "term_payment_method",
+        "connection_condition": "付款資料表中的付款方式欄位記錄付款方式。",
+        "evidence_refs": [
+         "ev_payment_method_amount"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_payment_method_amount",
+        "source": "shop_v2",
+        "query": "SELECT method, COUNT(*) n, SUM(amount_twd) amt FROM payments WHERE payment_status='ok' GROUP BY method ORDER BY amt DESC",
+        "result": "{\"columns\": [\"method\", \"n\", \"amt\"], \"rows\": [[\"credit_card\", 26469, 247206780], [\"line_pay\", 9402, 87353750], [\"atm\", 7330, 68895700], [\"cod\", 4792, 44250595]]} | 解讀: 實收金額依付款成功時間歸屬，且須過濾 failed；四種付款方式與文件一致。",
+        "validation_method": "過濾 ok 後依付款方式彙總",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "實收金額",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '實收金額'",
+      "term": {
+       "id": "term_received_amount",
+       "type": "metric",
+       "name": "實收金額",
+       "aliases": [
+        "received amount",
+        "實收",
+        "收款金額",
+        "amount_twd",
+        "收入",
+        "付款金額",
+        "paid amount"
+       ],
+       "definition": "付款成功之付款紀錄的金額總和（TWD）；期間依付款成功時間（台北時間）歸屬。",
+       "scope": "實收分析，歸屬時間與營收不同",
+       "evidence_refs": [
+        "ev_payment_single_ok",
+        "ev_payment_time_shift",
+        "ev_payment_reconcile_items"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_received_amount",
+        "term_id": "term_received_amount",
+        "table": "payments",
+        "column": "amount_twd",
+        "semantic_filter": "僅付款成功（ok）的付款紀錄；期間依付款成功時間（台北時間）",
+        "aggregation_semantics": "付款成功金額總和，單位 TWD",
+        "grain": "每筆付款嘗試一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_received_from_payment",
+        "relation_type": "derivation",
+        "source": "term_payment",
+        "target": "term_received_amount",
+        "connection_condition": "實收金額由付款狀態為成功的付款紀錄金額加總而得。",
+        "evidence_refs": [
+         "ev_payment_single_ok",
+         "ev_payment_reconcile_items"
+        ]
+       }
+      ],
+      "constraints": [
+       {
+        "id": "con_received_amount_attribution",
+        "severity": "block",
+        "description": "實收金額的期間依付款成功時間（台北時間）歸屬，而非訂單成立時間，因此與以訂單時間歸屬的營收是不同指標，且不扣退款。付款金額已是 TWD。",
+        "evidence_refs": [
+         "ev_payment_time_shift",
+         "ev_payment_reconcile_items",
+         "ev_payment_single_ok"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_payment_single_ok",
+        "source": "shop_v2",
+        "query": "SELECT payment_status, COUNT(*) n, COUNT(DISTINCT order_id) distinct_orders, SUM(amount_twd) amt FROM payments GROUP BY payment_status",
+        "result": "{\"columns\": [\"payment_status\", \"n\", \"distinct_orders\", \"amt\"], \"rows\": [[\"failed\", 13326, 11824, 125980715], [\"ok\", 47993, 47993, 447706825]]} | 解讀: ok 為 47993 列對應 47993 張訂單（無重複付款）；failed 13326 列僅涵蓋 11824 張訂單，部分訂單有多次失敗。若不過濾 ok 會高估實收金額。",
+        "validation_method": "依付款狀態比較列數與 distinct 訂單數",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_payment_time_shift",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) n, SUM(CASE WHEN strftime('%Y-%m',datetime(p.paid_ts,'+8 hours'))<>strftime('%Y-%m',datetime(o.order_ts,'+8 hours')) THEN 1 ELSE 0 END) month_differs, SUM(CASE WHEN strftime('%Y',datetime(p.paid_ts,'+8 hours'))<>strftime('%Y',datetime(o.order_ts,'+8 hours')) THEN 1 ELSE 0 END) year_differs FROM payments p JOIN orders o ON o.order_id=p.order_id WHERE p.payment_status='ok'",
+        "result": "{\"columns\": [\"n\", \"month_differs\", \"year_differs\"], \"rows\": [[47993, 9, 2]]} | 解讀: 實收金額與營收的歸屬時間不同，是兩個獨立指標。",
+        "validation_method": "比較付款成功與訂單成立的台北月份/年份",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_payment_reconcile_items",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) n, SUM(CASE WHEN ABS(p.amount_twd - t.item_twd) < 1 THEN 1 ELSE 0 END) match_exact, SUM(CASE WHEN p.amount_twd > t.item_twd THEN 1 ELSE 0 END) pay_gt, SUM(CASE WHEN p.amount_twd < t.item_twd THEN 1 ELSE 0 END) pay_lt FROM payments p JOIN (SELECT order_id, SUM(quantity*unit_price_cents/100.0) item_twd FROM order_items GROUP BY order_id) t ON t.order_id=p.order_id WHERE p.payment_status='ok'",
+        "result": "{\"columns\": [\"n\", \"match_exact\", \"pay_gt\", \"pay_lt\"], \"rows\": [[47993, 47993, 0, 0]]} | 解讀: 47993/47993 完全相符，payments.amount_twd 已是 TWD、無運費或手續費差異；實收金額與有效訂單的商品金額在訂單層級一致，但歸屬時間用付款成功時間。",
+        "validation_method": "付款成功金額與明細金額逐訂單對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_tz_paid_time",
+      "target": "map_paid_time",
+      "severity": "block",
+      "description": "payments.paid_ts 以 UTC 儲存，實收金額的期間依付款成功時間換算為台北時間後歸屬，且付款成功時間的月份不一定與訂單成立時間的月份相同。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_amount_unit_cents",
+      "target": "map_item_amount_price",
+      "severity": "block",
+      "description": "order_items.unit_price_cents 的單位是分（新台幣乘以 100），換算成 TWD 須除以 100。payments.amount_twd 與 refunds.refund_amount_twd 已是 TWD。與退款或實收金額相加減前必須先統一單位。每筆付款成功金額與該訂單明細金額換算後完全相符，可作為單位換算正確的對帳依據。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_payment_ok_only",
+      "target": "map_received_amount",
+      "severity": "block",
+      "description": "付款紀錄包含失敗重試產生的額外列，失敗紀錄會出現在待付款、已取消，也可能出現在後來付款成功的訂單上。實收金額只計付款狀態為 ok 的紀錄，每張訂單至多一筆成功紀錄；不能以「有付款紀錄」判斷訂單已付款或金額已收到。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_payment_method_codes",
+      "target": "map_payment_method",
+      "severity": "block",
+      "description": "payments.method 代碼意義：credit_card 信用卡、line_pay LINE Pay、atm ATM 轉帳、cod 貨到付款。資料中只有這四個值。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT COUNT(*) AS n, COUNT(DISTINCT order_id) AS distinct_orders, SUM(amount_twd) AS amt FROM payments WHERE payment_status = 'ok' AND payment_method_check_placeholder IS NULL"
+   },
+   "result": {
+    "error": "no such column: payment_method_check_placeholder"
+   },
+   "result_truncated": false,
+   "result_summary": "{'error': 'no such column: payment_method_check_placeholder'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT COUNT(*) AS n, COUNT(DISTINCT order_id) AS distinct_orders, SUM(amount_twd) AS amt FROM payments WHERE payment_status = 'ok' AND method = 'line_pay' AND strftime('%Y-%m', datetime(paid_ts, '+8 hours')) = '2025-05'",
+     "SELECT paid_ts, method, payment_status, amount_twd FROM payments WHERE method = 'line_pay' AND payment_status = 'ok' ORDER BY paid_ts LIMIT 5"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT COUNT(*) AS n, COUNT(DISTINCT order_id) AS distinct_orders, SUM(amount_twd) AS amt FROM payments WHERE payment_status = 'ok' AND method = 'line_pay' AND strftime('%Y-%m', datetime(paid_ts, '+8 hours')) = '2025-05'",
+     "columns": [
+      "n",
+      "distinct_orders",
+      "amt"
+     ],
+     "rows": [
+      [
+       798,
+       798,
+       7449980
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT paid_ts, method, payment_status, amount_twd FROM payments WHERE method = 'line_pay' AND payment_status = 'ok' ORDER BY paid_ts LIMIT 5",
+     "columns": [
+      "paid_ts",
+      "method",
+      "payment_status",
+      "amount_twd"
+     ],
+     "rows": [
+      [
+       "2024-12-30 00:16:54",
+       "line_pay",
+       "ok",
+       3700
+      ],
+      [
+       "2024-12-30 01:14:32",
+       "line_pay",
+       "ok",
+       5500
+      ],
+      [
+       "2024-12-30 03:10:49",
+       "line_pay",
+       "ok",
+       5700
+      ],
+      [
+       "2024-12-30 03:33:26",
+       "line_pay",
+       "ok",
+       700
+      ],
+      [
+       "2024-12-30 03:49:43",
+       "line_pay",
+       "ok",
+       28000
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT COUNT(*) AS n, COUNT(DISTINCT order_id) AS distinct_orders, SUM(amount_twd) AS amt FROM payments WHERE payment_status = 'ok' AND method = 'line_pay' AND strftime('%Y-%m', datetime(paid_ts, '+8 hours')) = '2025-05'\", 'columns': ['n', 'distinct_orders', 'amt'], 'rows': [[798, 798, 7449980]], 'truncated': False}, {'query': \"SELECT paid_ts, method, payment_status, amount_twd FROM payments WHERE method = 'line_pay' AND payment_status = 'ok' ORDER BY paid_ts LIMIT 5\", 'columns': ['paid_ts', 'method', 'payment_status', 'amount_twd'], 'rows': [['2024-12-30 00:16:54', 'line_pay', 'ok', 3700], ['2024-12-30 01:14:32', 'line_pay', 'ok', 5500], ['2024-12-30 03:10:49', 'line_pay', 'ok', 5700], ['2024-12-30 03:33:26', 'line_pay', 'ok', 700], ['2024-12-30 03:49:43', 'line_pay', 'ok', 28000]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "7449980",
+  "basis": "依語意層定義，實收金額為 payment_status='ok' 的 amount_twd 加總（單位 TWD），期間以付款成功時間 paid_ts 加 8 小時換算為台北時間後歸屬。篩選 method='line_pay' 且台北時間為 2025-05，共 798 筆、798 張訂單，無重複。"
+ },
+ "task_status": "completed",
+ "errors": [
+  {
+   "tool": "sql_query"
+  }
+ ],
+ "question_id": "S40",
+ "arm": "ontology",
+ "steps": 4,
+ "ended_by": "final"
+}

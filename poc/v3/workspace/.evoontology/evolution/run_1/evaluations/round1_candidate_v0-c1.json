@@ -1,0 +1,265 @@
+{
+  "subject": "v0-c1",
+  "role": "candidate",
+  "round": 1,
+  "metrics": {
+    "candidate_wins": 7,
+    "parent_wins": 5,
+    "ties": 12,
+    "candidate_critical_errors": 0,
+    "repetitions": 2,
+    "per_repetition": [
+      {
+        "accept": true,
+        "candidate_wins": 5,
+        "parent_wins": 1,
+        "ties": 6,
+        "candidate_critical_errors": 0,
+        "protocol": "llm_judge"
+      },
+      {
+        "accept": false,
+        "candidate_wins": 2,
+        "parent_wins": 4,
+        "ties": 6,
+        "candidate_critical_errors": 0,
+        "protocol": "llm_judge"
+      }
+    ],
+    "mechanism": {
+      "tested": 6,
+      "activation_rate": 1.0,
+      "answer_changed_rate": 0.8333333333333334
+    }
+  },
+  "cases": [
+    {
+      "id": "rep1:S29",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep1:S30",
+      "status": "parent",
+      "score": null
+    },
+    {
+      "id": "rep1:S31",
+      "status": "candidate",
+      "score": null
+    },
+    {
+      "id": "rep1:S32",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep1:S33",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep1:S34",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep1:S35",
+      "status": "candidate",
+      "score": null
+    },
+    {
+      "id": "rep1:S36",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep1:S37",
+      "status": "candidate",
+      "score": null
+    },
+    {
+      "id": "rep1:S38",
+      "status": "candidate",
+      "score": null
+    },
+    {
+      "id": "rep1:S39",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep1:S40",
+      "status": "candidate",
+      "score": null
+    },
+    {
+      "id": "rep2:S29",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep2:S30",
+      "status": "candidate",
+      "score": null
+    },
+    {
+      "id": "rep2:S31",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep2:S32",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep2:S33",
+      "status": "parent",
+      "score": null
+    },
+    {
+      "id": "rep2:S34",
+      "status": "parent",
+      "score": null
+    },
+    {
+      "id": "rep2:S35",
+      "status": "candidate",
+      "score": null
+    },
+    {
+      "id": "rep2:S36",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep2:S37",
+      "status": "parent",
+      "score": null
+    },
+    {
+      "id": "rep2:S38",
+      "status": "parent",
+      "score": null
+    },
+    {
+      "id": "rep2:S39",
+      "status": "tie",
+      "score": null
+    },
+    {
+      "id": "rep2:S40",
+      "status": "tie",
+      "score": null
+    }
+  ],
+  "artifact_paths": [
+    "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/workspace/.evoontology/evolution/run_1/artifacts/round1/rep1/candidate",
+    "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/workspace/.evoontology/evolution/run_1/artifacts/round1/rep2/candidate"
+  ],
+  "provenance": "synthetic",
+  "gate_input": {
+    "protocol": "llm_judge",
+    "verdicts": [
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      }
+    ],
+    "unacceptable_regressions": true
+  },
+  "recorded_at": "2026-10-27T00:38:46.195661+00:00"
+}

@@ -1,0 +1,329 @@
+[
+  {
+    "id": "rel_order_items",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_order_item",
+    "connection_condition": "order_items.order_id corresponds to orders.order_id",
+    "description": "訂單由一到多筆明細組成，明細離開訂單沒有意義；訂單金額由明細的數量與成交單價構成。",
+    "evidence": [
+      "ev_fk_integrity",
+      "ev_payment_equals_items"
+    ]
+  },
+  {
+    "id": "rel_order_payments",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_payment",
+    "connection_condition": "payments.order_id corresponds to orders.order_id",
+    "description": "付款紀錄是訂單的付款嘗試；一張訂單可有多次嘗試，有效訂單各有一筆付款成功紀錄。",
+    "evidence": [
+      "ev_status_payment"
+    ]
+  },
+  {
+    "id": "rel_item_refunds",
+    "source": "term_order_item",
+    "relation_type": "composition",
+    "target": "term_refund",
+    "connection_condition": "refunds.item_id corresponds to order_items.item_id; refunds.order_id equals the order of that item",
+    "description": "退款是針對單一訂單明細發生的，退款所屬訂單與明細所屬訂單一致；退款的商品類別透過明細的商品取得。",
+    "evidence": [
+      "ev_refund_linkage"
+    ]
+  },
+  {
+    "id": "rel_customer_orders",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_order",
+    "connection_condition": "orders.customer_id corresponds to customers.customer_id",
+    "description": "客戶下訂單；客戶屬性（地區、等級）可用來切分訂單層指標。客戶是獨立主檔，訂單不是客戶的組成部分。",
+    "evidence": [
+      "ev_fk_integrity",
+      "ev_orders_per_customer"
+    ]
+  },
+  {
+    "id": "rel_item_product",
+    "source": "term_order_item",
+    "relation_type": "association",
+    "target": "term_product",
+    "connection_condition": "order_items.product_id corresponds to products.product_id",
+    "description": "明細指向所售商品；商品類別與在售狀態來自商品主檔。商品是獨立主檔。",
+    "evidence": [
+      "ev_fk_integrity"
+    ]
+  },
+  {
+    "id": "rel_order_valid",
+    "source": "term_order",
+    "relation_type": "hierarchy",
+    "target": "term_valid_order",
+    "connection_condition": "",
+    "description": "有效訂單是狀態為 1/2/3 的訂單，值域為全部訂單的子集合。",
+    "evidence": [
+      "ev_status_dist",
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_order_cancelled",
+    "source": "term_order",
+    "relation_type": "hierarchy",
+    "target": "term_cancelled_order",
+    "connection_condition": "",
+    "description": "已取消訂單是狀態為 9 的訂單，值域為全部訂單的子集合。",
+    "evidence": [
+      "ev_status_dist"
+    ]
+  },
+  {
+    "id": "rel_order_pending",
+    "source": "term_order",
+    "relation_type": "hierarchy",
+    "target": "term_pending_payment_order",
+    "connection_condition": "",
+    "description": "待付款訂單是狀態為 0 的訂單，值域為全部訂單的子集合。",
+    "evidence": [
+      "ev_status_dist"
+    ]
+  },
+  {
+    "id": "rel_product_active",
+    "source": "term_product",
+    "relation_type": "hierarchy",
+    "target": "term_active_product",
+    "connection_condition": "",
+    "description": "在售商品是 is_active=1 的商品，為全部商品的子集合。",
+    "evidence": [
+      "ev_category_active"
+    ]
+  },
+  {
+    "id": "rel_region_north",
+    "source": "term_customer_region",
+    "relation_type": "hierarchy",
+    "target": "term_region_north",
+    "connection_condition": "",
+    "description": "北部(TW-N)是客戶地區維度的一個取值。",
+    "evidence": [
+      "ev_region_values"
+    ]
+  },
+  {
+    "id": "rel_region_japan",
+    "source": "term_customer_region",
+    "relation_type": "hierarchy",
+    "target": "term_region_japan",
+    "connection_condition": "",
+    "description": "日本(JP)是客戶地區維度的一個取值。",
+    "evidence": [
+      "ev_region_values"
+    ]
+  },
+  {
+    "id": "rel_tier_gold",
+    "source": "term_member_tier",
+    "relation_type": "hierarchy",
+    "target": "term_tier_gold",
+    "connection_condition": "",
+    "description": "黃金會員(G)是會員等級維度的一個取值。",
+    "evidence": [
+      "ev_tier_values"
+    ]
+  },
+  {
+    "id": "rel_tier_silver",
+    "source": "term_member_tier",
+    "relation_type": "hierarchy",
+    "target": "term_tier_silver",
+    "connection_condition": "",
+    "description": "銀級會員(S)是會員等級維度的一個取值。",
+    "evidence": [
+      "ev_tier_values"
+    ]
+  },
+  {
+    "id": "rel_tier_basic",
+    "source": "term_member_tier",
+    "relation_type": "hierarchy",
+    "target": "term_tier_basic",
+    "connection_condition": "",
+    "description": "一般會員(B)是會員等級維度的一個取值。",
+    "evidence": [
+      "ev_tier_values"
+    ]
+  },
+  {
+    "id": "rel_channel_web",
+    "source": "term_sales_channel",
+    "relation_type": "hierarchy",
+    "target": "term_channel_web",
+    "connection_condition": "",
+    "description": "官網(web)是下單通路維度的一個取值。",
+    "evidence": [
+      "ev_channel_values"
+    ]
+  },
+  {
+    "id": "rel_channel_app",
+    "source": "term_sales_channel",
+    "relation_type": "hierarchy",
+    "target": "term_channel_app",
+    "connection_condition": "",
+    "description": "行動 App(app)是下單通路維度的一個取值。",
+    "evidence": [
+      "ev_channel_values"
+    ]
+  },
+  {
+    "id": "rel_channel_store",
+    "source": "term_sales_channel",
+    "relation_type": "hierarchy",
+    "target": "term_channel_store",
+    "connection_condition": "",
+    "description": "實體門市(store)是下單通路維度的一個取值。",
+    "evidence": [
+      "ev_channel_values"
+    ]
+  },
+  {
+    "id": "rel_category_shoes",
+    "source": "term_product_category",
+    "relation_type": "hierarchy",
+    "target": "term_category_shoes",
+    "connection_condition": "",
+    "description": "登山鞋(shoes)是商品類別維度的一個取值。",
+    "evidence": [
+      "ev_category_active"
+    ]
+  },
+  {
+    "id": "rel_method_credit_card",
+    "source": "term_payment_method",
+    "relation_type": "hierarchy",
+    "target": "term_method_credit_card",
+    "connection_condition": "",
+    "description": "信用卡(credit_card)是付款方式維度的一個取值。",
+    "evidence": [
+      "ev_payment_values"
+    ]
+  },
+  {
+    "id": "rel_reason_change_of_mind",
+    "source": "term_refund_reason",
+    "relation_type": "hierarchy",
+    "target": "term_reason_change_of_mind",
+    "connection_condition": "",
+    "description": "改變心意(R2)是退款原因維度的一個取值。",
+    "evidence": [
+      "ev_reason_values"
+    ]
+  },
+  {
+    "id": "rel_price_to_amount",
+    "source": "term_deal_unit_price",
+    "relation_type": "derivation",
+    "target": "term_item_amount",
+    "connection_condition": "",
+    "description": "商品金額 = 數量 x 成交單價（再由分換算為元）。",
+    "evidence": [
+      "ev_payment_equals_items",
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_qty_to_amount",
+    "source": "term_units_sold",
+    "relation_type": "derivation",
+    "target": "term_item_amount",
+    "connection_condition": "",
+    "description": "商品金額 = 數量 x 成交單價；數量為明細上的件數。",
+    "evidence": [
+      "ev_payment_equals_items",
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_amount_to_net",
+    "source": "term_item_amount",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "淨營收 = 有效訂單商品金額總和 - 對應退款金額總和；此為被減項。",
+    "evidence": [
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_refund_to_net",
+    "source": "term_refund_amount",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "refunds.order_id identifies the original order whose order time determines the period",
+    "description": "淨營收 = 有效訂單商品金額總和 - 對應退款金額總和；此為扣除項，退款扣回原訂單。",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_refund_linkage"
+    ]
+  },
+  {
+    "id": "rel_valid_to_count",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_valid_order_count",
+    "connection_condition": "",
+    "description": "有效訂單張數是對有效訂單的計數。",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_status_dist"
+    ]
+  },
+  {
+    "id": "rel_amount_to_aov",
+    "source": "term_item_amount",
+    "relation_type": "derivation",
+    "target": "term_avg_order_value",
+    "connection_condition": "",
+    "description": "客單價 = 有效訂單商品金額總和（不扣退款）/ 有效訂單張數；此為分子。",
+    "evidence": [
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_count_to_aov",
+    "source": "term_valid_order_count",
+    "relation_type": "derivation",
+    "target": "term_avg_order_value",
+    "connection_condition": "",
+    "description": "客單價 = 有效訂單商品金額總和（不扣退款）/ 有效訂單張數；此為分母。",
+    "evidence": [
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_count_to_share",
+    "source": "term_valid_order_count",
+    "relation_type": "derivation",
+    "target": "term_channel_order_share",
+    "connection_condition": "",
+    "description": "通路訂單占比 = 某通路有效訂單張數 / 同期全部有效訂單張數。",
+    "evidence": [
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_valid_to_repeat",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_repeat_customer",
+    "connection_condition": "orders.customer_id identifies the customer of each valid order",
+    "description": "回購客戶由客戶在年度內的有效訂單張數推得（達 2 張含以上）。",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_orders_per_customer"
+    ]
+  }
+]

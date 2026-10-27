@@ -1,0 +1,1203 @@
+{
+  "summary": "共產生 25 條 Relation（hierarchy 4、composition 1、association 12、derivation 8，無 equivalence，因資料中未發現跨來源同義欄位）與 26 條 Constraint（皆 severity=block，confidence=high）。Constraint 涵蓋有效訂單與訂單狀態代碼、台北時間（UTC+8）換算（訂單、退款、付款三種時間戳）、金額單位與成交價定義、淨營收、客單價、回購客戶、通路占比、退款報表歸屬、實收金額只計付款成功，以及地區、等級、類別、在售、通路、付款方式、退款原因、付款結果的代碼意義。每個物件皆只引用已驗證證據。文件有寫但資料無法佐證的主張、C30 地區解讀、銷量是否限有效訂單、C25「目前」的範圍，已列入 known_limitations，沒有建成物件。",
+  "limitations": [
+    "C30「淨營收最高的地區」中的「地區」，資料中沒有獨立的地區維度表；解讀為客戶 region_code 是合理推定，但文件未明確界定，故未建成 Constraint。",
+    "銷售數量（C21、C22）是否僅計有效訂單，文件未明確規定，資料證據也只顯示在售與已下架商品皆有銷量；Mapping 中以有效訂單為預設屬待確認假設，未建成 Constraint。",
+    "「目前有多少張待付款訂單」(C25) 的「目前」未限定期間，僅以狀態代碼 0 定義，資料也沒有時間快照可佐證。",
+    "文件說明「第一季」為 1~3 月、「第三季」為 7~9 月、「上半年」為 1~6 月，屬日曆定義，已提供的證據不含可驗證此對照的觀察，故未建成 Constraint。",
+    "文件說明 customers.signup_date 本身即為台北日期、不需換算，但已提供的證據未驗證此主張，且本批建構題未使用註冊日期，故未建立對應物件。",
+    "配送天數、準時送達率與新註冊客戶有文件定義，本批建構題未涉及，故未建立對應 Term 或 Constraint。出貨資料與訂單狀態一致的證據僅作為未來擴充的佐證。",
+    "優惠碼 WELCOME10 九折、SUMMER15 85 折的折扣比例僅來自文件；資料只佐證優惠已內含於成交單價（付款額與明細金額比值為 1.0），未驗證折扣比例本身。"
+  ],
+  "links": [
+    {
+      "question_id": "C01",
+      "object_ids": [
+        "con_item_amount_definition",
+        "con_net_revenue_definition",
+        "con_tz_order_time",
+        "map_item_amount",
+        "map_item_amount_qty",
+        "map_net_revenue",
+        "map_net_revenue_refund",
+        "map_order_time",
+        "rel_item_amount_aov",
+        "rel_item_amount_net_revenue",
+        "rel_refund_net_revenue",
+        "rel_unit_price_item_amount",
+        "term_item_amount",
+        "term_net_revenue",
+        "term_order_time"
+      ]
+    },
+    {
+      "question_id": "C02",
+      "object_ids": [
+        "con_item_amount_definition",
+        "con_net_revenue_definition",
+        "con_region_enum",
+        "map_customer",
+        "map_item_amount",
+        "map_item_amount_qty",
+        "map_net_revenue",
+        "map_net_revenue_refund",
+        "map_order_customer",
+        "map_region",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_item_amount_aov",
+        "rel_item_amount_net_revenue",
+        "rel_order_customer",
+        "rel_refund_net_revenue",
+        "rel_unit_price_item_amount",
+        "term_customer",
+        "term_item_amount",
+        "term_net_revenue",
+        "term_region"
+      ]
+    },
+    {
+      "question_id": "C03",
+      "object_ids": [
+        "con_item_amount_definition",
+        "con_net_revenue_definition",
+        "con_tier_enum",
+        "map_customer",
+        "map_item_amount",
+        "map_item_amount_qty",
+        "map_net_revenue",
+        "map_net_revenue_refund",
+        "map_order_customer",
+        "map_tier",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_item_amount_aov",
+        "rel_item_amount_net_revenue",
+        "rel_order_customer",
+        "rel_refund_net_revenue",
+        "rel_unit_price_item_amount",
+        "term_customer",
+        "term_item_amount",
+        "term_member_tier",
+        "term_net_revenue"
+      ]
+    },
+    {
+      "question_id": "C04",
+      "object_ids": [
+        "con_item_amount_definition",
+        "con_net_revenue_definition",
+        "map_item_amount",
+        "map_item_amount_qty",
+        "map_net_revenue",
+        "map_net_revenue_refund",
+        "rel_item_amount_aov",
+        "rel_item_amount_net_revenue",
+        "rel_refund_net_revenue",
+        "rel_unit_price_item_amount",
+        "term_item_amount",
+        "term_net_revenue"
+      ]
+    },
+    {
+      "question_id": "C05",
+      "object_ids": [
+        "con_aov_definition",
+        "con_unit_price_unit",
+        "map_aov",
+        "map_unit_price",
+        "rel_item_amount_aov",
+        "rel_unit_price_item_amount",
+        "rel_valid_order_aov",
+        "term_avg_order_value",
+        "term_deal_unit_price"
+      ]
+    },
+    {
+      "question_id": "C06",
+      "object_ids": [
+        "con_aov_definition",
+        "con_channel_enum",
+        "con_tz_order_time",
+        "con_unit_price_unit",
+        "map_aov",
+        "map_channel",
+        "map_order_time",
+        "map_unit_price",
+        "rel_item_amount_aov",
+        "rel_order_channel",
+        "rel_unit_price_item_amount",
+        "rel_valid_order_aov",
+        "term_avg_order_value",
+        "term_channel",
+        "term_deal_unit_price",
+        "term_order_time"
+      ]
+    },
+    {
+      "question_id": "C07",
+      "object_ids": [
+        "con_aov_definition",
+        "con_tier_enum",
+        "con_unit_price_unit",
+        "map_aov",
+        "map_customer",
+        "map_order_customer",
+        "map_tier",
+        "map_unit_price",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_item_amount_aov",
+        "rel_order_customer",
+        "rel_unit_price_item_amount",
+        "rel_valid_order_aov",
+        "term_avg_order_value",
+        "term_customer",
+        "term_deal_unit_price",
+        "term_member_tier"
+      ]
+    },
+    {
+      "question_id": "C08",
+      "object_ids": [
+        "con_region_enum",
+        "con_valid_order_definition",
+        "map_customer",
+        "map_item_order_ref",
+        "map_order_customer",
+        "map_order_id",
+        "map_region",
+        "map_valid_order",
+        "rel_cancelled_order_is_order",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_order_channel",
+        "rel_order_customer",
+        "rel_order_has_items",
+        "rel_pending_order_is_order",
+        "rel_valid_order_aov",
+        "rel_valid_order_channel_share",
+        "rel_valid_order_is_order",
+        "rel_valid_order_repeat_customer",
+        "term_customer",
+        "term_order",
+        "term_region",
+        "term_valid_order"
+      ]
+    },
+    {
+      "question_id": "C09",
+      "object_ids": [
+        "con_valid_order_definition",
+        "map_item_order_ref",
+        "map_order_id",
+        "map_valid_order",
+        "rel_cancelled_order_is_order",
+        "rel_order_channel",
+        "rel_order_customer",
+        "rel_order_has_items",
+        "rel_pending_order_is_order",
+        "rel_valid_order_aov",
+        "rel_valid_order_channel_share",
+        "rel_valid_order_is_order",
+        "rel_valid_order_repeat_customer",
+        "term_order",
+        "term_valid_order"
+      ]
+    },
+    {
+      "question_id": "C10",
+      "object_ids": [
+        "con_channel_enum",
+        "con_valid_order_definition",
+        "map_channel",
+        "map_item_order_ref",
+        "map_order_id",
+        "map_valid_order",
+        "rel_cancelled_order_is_order",
+        "rel_order_channel",
+        "rel_order_customer",
+        "rel_order_has_items",
+        "rel_pending_order_is_order",
+        "rel_valid_order_aov",
+        "rel_valid_order_channel_share",
+        "rel_valid_order_is_order",
+        "rel_valid_order_repeat_customer",
+        "term_channel",
+        "term_order",
+        "term_valid_order"
+      ]
+    },
+    {
+      "question_id": "C11",
+      "object_ids": [
+        "con_repeat_customer_definition",
+        "map_customer",
+        "map_order_customer",
+        "map_repeat_customer",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_order_customer",
+        "rel_valid_order_repeat_customer",
+        "term_customer",
+        "term_repeat_customer"
+      ]
+    },
+    {
+      "question_id": "C12",
+      "object_ids": [
+        "con_region_enum",
+        "con_repeat_customer_definition",
+        "map_customer",
+        "map_order_customer",
+        "map_region",
+        "map_repeat_customer",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_order_customer",
+        "rel_valid_order_repeat_customer",
+        "term_customer",
+        "term_region",
+        "term_repeat_customer"
+      ]
+    },
+    {
+      "question_id": "C13",
+      "object_ids": [
+        "con_channel_enum",
+        "con_channel_share_definition",
+        "con_valid_order_definition",
+        "map_channel",
+        "map_channel_share",
+        "map_item_order_ref",
+        "map_order_id",
+        "map_valid_order",
+        "rel_cancelled_order_is_order",
+        "rel_order_channel",
+        "rel_order_customer",
+        "rel_order_has_items",
+        "rel_pending_order_is_order",
+        "rel_valid_order_aov",
+        "rel_valid_order_channel_share",
+        "rel_valid_order_is_order",
+        "rel_valid_order_repeat_customer",
+        "term_channel",
+        "term_channel_share",
+        "term_order",
+        "term_valid_order"
+      ]
+    },
+    {
+      "question_id": "C14",
+      "object_ids": [
+        "con_channel_enum",
+        "con_channel_share_definition",
+        "con_valid_order_definition",
+        "map_channel",
+        "map_channel_share",
+        "map_item_order_ref",
+        "map_order_id",
+        "map_valid_order",
+        "rel_cancelled_order_is_order",
+        "rel_order_channel",
+        "rel_order_customer",
+        "rel_order_has_items",
+        "rel_pending_order_is_order",
+        "rel_valid_order_aov",
+        "rel_valid_order_channel_share",
+        "rel_valid_order_is_order",
+        "rel_valid_order_repeat_customer",
+        "term_channel",
+        "term_channel_share",
+        "term_order",
+        "term_valid_order"
+      ]
+    },
+    {
+      "question_id": "C15",
+      "object_ids": [
+        "con_refund_report_attribution",
+        "map_refund_amount",
+        "map_refund_item",
+        "rel_item_refund",
+        "rel_refund_net_revenue",
+        "rel_refund_reason_amount",
+        "rel_refund_time_amount",
+        "term_refund_amount"
+      ]
+    },
+    {
+      "question_id": "C16",
+      "object_ids": [
+        "con_refund_report_attribution",
+        "con_tz_order_time",
+        "map_order_time",
+        "map_refund_amount",
+        "map_refund_item",
+        "rel_item_refund",
+        "rel_refund_net_revenue",
+        "rel_refund_reason_amount",
+        "rel_refund_time_amount",
+        "term_order_time",
+        "term_refund_amount"
+      ]
+    },
+    {
+      "question_id": "C17",
+      "object_ids": [
+        "con_category_enum",
+        "con_refund_report_attribution",
+        "map_item_product",
+        "map_product",
+        "map_product_category",
+        "map_product_name",
+        "map_refund_amount",
+        "map_refund_item",
+        "rel_item_product",
+        "rel_item_refund",
+        "rel_on_sale_is_product",
+        "rel_product_category",
+        "rel_refund_net_revenue",
+        "rel_refund_reason_amount",
+        "rel_refund_time_amount",
+        "term_product",
+        "term_product_category",
+        "term_refund_amount"
+      ]
+    },
+    {
+      "question_id": "C18",
+      "object_ids": [
+        "con_category_enum",
+        "con_refund_reason_enum",
+        "con_refund_report_attribution",
+        "map_item_product",
+        "map_product",
+        "map_product_category",
+        "map_product_name",
+        "map_refund_amount",
+        "map_refund_item",
+        "map_refund_reason",
+        "rel_item_product",
+        "rel_item_refund",
+        "rel_on_sale_is_product",
+        "rel_product_category",
+        "rel_refund_net_revenue",
+        "rel_refund_reason_amount",
+        "rel_refund_time_amount",
+        "term_product",
+        "term_product_category",
+        "term_refund_amount",
+        "term_refund_reason"
+      ]
+    },
+    {
+      "question_id": "C19",
+      "object_ids": [
+        "con_payment_method_enum",
+        "con_received_amount_definition",
+        "map_payment_method",
+        "map_received_amount",
+        "rel_paid_time_received",
+        "rel_payment_method_received",
+        "rel_payment_status_received",
+        "term_payment_method",
+        "term_received_amount"
+      ]
+    },
+    {
+      "question_id": "C20",
+      "object_ids": [
+        "con_payment_method_enum",
+        "con_received_amount_definition",
+        "map_payment_method",
+        "map_received_amount",
+        "rel_paid_time_received",
+        "rel_payment_method_received",
+        "rel_payment_status_received",
+        "term_payment_method",
+        "term_received_amount"
+      ]
+    },
+    {
+      "question_id": "C21",
+      "object_ids": [
+        "con_on_sale_enum",
+        "map_item_product",
+        "map_on_sale",
+        "map_product",
+        "map_product_name",
+        "map_sales_quantity",
+        "rel_item_product",
+        "rel_on_sale_is_product",
+        "rel_product_category",
+        "term_on_sale_product",
+        "term_product",
+        "term_sales_quantity"
+      ]
+    },
+    {
+      "question_id": "C22",
+      "object_ids": [
+        "con_on_sale_enum",
+        "con_tz_order_time",
+        "map_item_product",
+        "map_on_sale",
+        "map_order_time",
+        "map_product",
+        "map_product_name",
+        "map_sales_quantity",
+        "rel_item_product",
+        "rel_on_sale_is_product",
+        "rel_product_category",
+        "term_on_sale_product",
+        "term_order_time",
+        "term_product",
+        "term_sales_quantity"
+      ]
+    },
+    {
+      "question_id": "C23",
+      "object_ids": [
+        "con_category_enum",
+        "con_item_amount_definition",
+        "con_net_revenue_definition",
+        "map_item_amount",
+        "map_item_amount_qty",
+        "map_net_revenue",
+        "map_net_revenue_refund",
+        "map_product_category",
+        "rel_item_amount_aov",
+        "rel_item_amount_net_revenue",
+        "rel_product_category",
+        "rel_refund_net_revenue",
+        "rel_unit_price_item_amount",
+        "term_item_amount",
+        "term_net_revenue",
+        "term_product_category"
+      ]
+    },
+    {
+      "question_id": "C24",
+      "object_ids": [
+        "con_cancelled_order_scope",
+        "con_tz_order_time",
+        "map_cancelled_order",
+        "map_item_order_ref",
+        "map_order_id",
+        "map_order_time",
+        "rel_cancelled_order_is_order",
+        "rel_order_channel",
+        "rel_order_customer",
+        "rel_order_has_items",
+        "rel_pending_order_is_order",
+        "rel_valid_order_is_order",
+        "term_cancelled_order",
+        "term_order",
+        "term_order_time"
+      ]
+    },
+    {
+      "question_id": "C25",
+      "object_ids": [
+        "con_pending_order_scope",
+        "map_item_order_ref",
+        "map_order_id",
+        "map_pending_order",
+        "rel_cancelled_order_is_order",
+        "rel_order_channel",
+        "rel_order_customer",
+        "rel_order_has_items",
+        "rel_pending_order_is_order",
+        "rel_valid_order_is_order",
+        "term_order",
+        "term_pending_payment_order"
+      ]
+    },
+    {
+      "question_id": "C26",
+      "object_ids": [
+        "con_item_amount_definition",
+        "con_net_revenue_definition",
+        "con_region_enum",
+        "map_customer",
+        "map_item_amount",
+        "map_item_amount_qty",
+        "map_net_revenue",
+        "map_net_revenue_refund",
+        "map_order_customer",
+        "map_region",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_item_amount_aov",
+        "rel_item_amount_net_revenue",
+        "rel_order_customer",
+        "rel_refund_net_revenue",
+        "rel_unit_price_item_amount",
+        "term_customer",
+        "term_item_amount",
+        "term_net_revenue",
+        "term_region"
+      ]
+    },
+    {
+      "question_id": "C27",
+      "object_ids": [
+        "con_aov_definition",
+        "con_tier_enum",
+        "con_unit_price_unit",
+        "map_aov",
+        "map_customer",
+        "map_order_customer",
+        "map_tier",
+        "map_unit_price",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_item_amount_aov",
+        "rel_order_customer",
+        "rel_unit_price_item_amount",
+        "rel_valid_order_aov",
+        "term_avg_order_value",
+        "term_customer",
+        "term_deal_unit_price",
+        "term_member_tier"
+      ]
+    },
+    {
+      "question_id": "C28",
+      "object_ids": [
+        "con_refund_report_attribution",
+        "map_refund_amount",
+        "map_refund_item",
+        "rel_item_refund",
+        "rel_refund_net_revenue",
+        "rel_refund_reason_amount",
+        "rel_refund_time_amount",
+        "term_refund_amount"
+      ]
+    },
+    {
+      "question_id": "C29",
+      "object_ids": [
+        "con_tier_enum",
+        "con_valid_order_definition",
+        "map_customer",
+        "map_item_order_ref",
+        "map_order_customer",
+        "map_order_id",
+        "map_tier",
+        "map_valid_order",
+        "rel_cancelled_order_is_order",
+        "rel_customer_region",
+        "rel_customer_tier",
+        "rel_order_channel",
+        "rel_order_customer",
+        "rel_order_has_items",
+        "rel_pending_order_is_order",
+        "rel_valid_order_aov",
+        "rel_valid_order_channel_share",
+        "rel_valid_order_is_order",
+        "rel_valid_order_repeat_customer",
+        "term_customer",
+        "term_member_tier",
+        "term_order",
+        "term_valid_order"
+      ]
+    },
+    {
+      "question_id": "C30",
+      "object_ids": [
+        "con_item_amount_definition",
+        "con_net_revenue_definition",
+        "con_region_enum",
+        "map_item_amount",
+        "map_item_amount_qty",
+        "map_net_revenue",
+        "map_net_revenue_refund",
+        "map_region",
+        "rel_customer_region",
+        "rel_item_amount_aov",
+        "rel_item_amount_net_revenue",
+        "rel_refund_net_revenue",
+        "rel_unit_price_item_amount",
+        "term_item_amount",
+        "term_net_revenue",
+        "term_region"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "C30",
+      "question": "2025 年淨營收最高的地區是哪一個？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556884+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C29",
+      "question": "銀級會員在 2025 年共有多少張有效訂單？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556880+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C28",
+      "question": "2025 年 12 月的退款金額總計是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556877+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C27",
+      "question": "黃金會員在 2025 年的客單價是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556874+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C26",
+      "question": "日本客戶在 2025 年的淨營收是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556870+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C25",
+      "question": "目前有多少張待付款的訂單？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556867+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C24",
+      "question": "2025 年第四季有多少張已取消的訂單？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556864+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C23",
+      "question": "登山鞋在 2025 年的淨營收是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556861+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C22",
+      "question": "在售商品中，2025 年第四季銷售數量最多的是哪一個？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556858+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C21",
+      "question": "目前仍在售的商品中，銷售數量最多的是哪一個？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556854+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C20",
+      "question": "信用卡在 2025 年的實收金額是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556850+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C19",
+      "question": "哪一種付款方式的實收金額最高？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556847+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C18",
+      "question": "因改變心意而退款的金額，哪個商品類別最高？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556844+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C17",
+      "question": "歷史上哪個商品類別的退款金額最高？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556841+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C16",
+      "question": "2025 年第二季的退款金額總計是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556837+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C15",
+      "question": "2025 年 9 月的退款金額總計是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556834+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C14",
+      "question": "2025 年有效訂單中，實體門市的占比是多少（%）？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556831+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C13",
+      "question": "2025 年有效訂單中，透過行動 App 下單的占比是多少（%）？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556827+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C12",
+      "question": "北部客戶在 2025 年有多少位回購客戶？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556823+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C11",
+      "question": "2025 年有多少位回購客戶？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556819+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C10",
+      "question": "行動 App 在 2025 年共有多少張有效訂單？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556815+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C09",
+      "question": "2025 年 3 月有多少張有效訂單？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556811+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C08",
+      "question": "北部客戶在 2025 年共有多少張有效訂單？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556809+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C07",
+      "question": "一般會員在 2025 年的客單價是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556805+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C06",
+      "question": "官網通路在 2025 年第二季的客單價是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556802+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C05",
+      "question": "2025 年 6 月的客單價是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556798+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C04",
+      "question": "2025 年 8 月的淨營收是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556795+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C03",
+      "question": "黃金會員在 2025 年的淨營收是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556792+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C02",
+      "question": "北部客戶在 2025 年的淨營收是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556786+00:00",
+      "purpose": "construction"
+    },
+    {
+      "id": "C01",
+      "question": "2025 年第一季的淨營收是多少？",
+      "origin": "user",
+      "data_source": {
+        "type": "sqlite",
+        "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+      },
+      "provenance": [
+        {
+          "origin": "user",
+          "source_ref": "current request",
+          "evidence_refs": []
+        }
+      ],
+      "topics": [],
+      "recorded_at": "2026-10-27T00:12:30.556637+00:00",
+      "purpose": "construction"
+    }
+  ],
+  "recorded_at": "2026-10-27T00:18:02.239822+00:00",
+  "version": "ontology_v0"
+}

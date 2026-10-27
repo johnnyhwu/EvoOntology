@@ -1,0 +1,69 @@
+{
+ "hypotheses": [
+  {
+   "id": "H1",
+   "problems": [
+    "P1",
+    "P2",
+    "P3"
+   ],
+   "dimension": "content",
+   "nature": "missing_capability_or_coverage",
+   "mechanism": "語意層缺少文件已明確定義的出貨與取消類指標：(a) 取消率 = 已取消 ÷（有效訂單 + 已取消），待付款不入分母；(b) shipments 實體、carrier 代碼對照（sf、blackcat、hct、post）與配送天數；(c) 準時送達率 = 已送達出貨中配送天數 ≤ 3 天的比例；(d) 這些指標的期間依訂單成立時間（台北時間）歸屬。這些詞 resolve 全部 unresolved，33 個 mapping 沒有任何一個指向 shipments。agent 沒有可對照的口徑，只能自行猜測：有的放棄（S04、S05、S19 沒交出答案），有的誤判為資料缺口而答「無法計算」（S02、S03、S14），有的選錯分母或期間欄位（S17、S06、S07、S08）。這是獨立根因，不是下游症狀。",
+   "test_performed": "probe resolve：取消率、準時送達率、配送天數、新竹物流、官網通路都回 unresolved。SQL 驗證資料足以計算：shipments 有 shipped_ts 與 delivered_ts，已送達 39574 筆，其中 3 天內 22733 筆（<3 天為 22263 筆，邊界是否含 3 天會有影響，需語意層明文化）。取消率分母：2025Q1（台北時間）各通路待付款訂單量大（web 384、app 250、store 112），以業務口徑與以全部訂單為分母的結果不同（web 16.84% 對 15.97%，store 16.14% 對 15.31%），可見分母選擇會直接改變答案。期間歸屬：以台北時間 order_ts 與以 shipped_ts 歸屬，2025Q1 的月分布不同（1月 3365 對 3303，2月 3034 對 3051，3月 3399 對 3358）。全部已送達出貨中有 2988 筆（約 7.5%）月份不一致，413 筆年份不一致，所以 S06、S07、S08 用 shipped_ts 歸屬期間很可能偏差。",
+   "predicted_effect": "補上 metric 的 term、mapping、constraint 與 relation 後，agent 一次 resolve 就能取得正確分母與期間規則。S04、S05、S19 應能交出答案；S17 分母改為有效訂單加已取消；S02、S03、S14 不再回答「無法計算」；S06、S07、S08 改以訂單成立時間（台北時間）歸屬期間。carrier 代碼可直接對照中文名稱。時區類（S10、S11 等）與別名類題目不應因此改變，可作為對照組檢查有無副作用。",
+   "priority": 1
+  },
+  {
+   "id": "H2",
+   "problems": [
+    "P4",
+    "P7"
+   ],
+   "dimension": "tool",
+   "nature": "existing_design_error",
+   "mechanism": "時區規則（con_tz_order_time，block 級）存在，但 resolve 只在 mention 精確命中 term 時回傳單一規則。trigger_keyword_constraints=false，pinned_constraint_ids=[]，所以「2025年11月」這類時間詞不會帶出時區提醒，agent 直接用 UTC 的 order_ts 切月、季、年。這是規則存在卻取不到，不是知識缺失。",
+   "test_performed": "probe resolve('2025年11月') 回 unresolved，無任何約束；resolve('有效訂單') 只附帶 con_valid_order_definition，沒有 con_tz_order_time 或 con_order_count_unit。SQL 顯示 2025Q1 有效訂單的 UTC 月計數（4089、3668、4144）與台北時間月計數（4098、3674、4128，另有 2024-12 101 筆、2025-04 43 筆）不同，所以精確計數題在邊界月份會答錯。偏差約 1%，但對精確數字題是靜默錯誤。",
+   "predicted_effect": "啟用 trigger_keyword_constraints，或 pin 時區約束後，凡涉及月、季、年的題目都會看到 UTC+8 規則，S10、S11、S15、S18、S21、S24、S27 的期間邊界應修正。對 H1 涵蓋的題目沒有直接幫助。",
+   "priority": 2
+  },
+  {
+   "id": "H3",
+   "problems": [
+    "P5"
+   ],
+   "dimension": "tool",
+   "nature": "existing_design_error",
+   "mechanism": "resolve 只做精確別名比對且關閉 fuzzy_fallback，「官網通路」「南部客戶」「成立日期」等複合或同義說法無法命中既有 term。這屬於下游的檢索症狀，影響較小。agent 多半能靠 SQL 資料自行對應代碼，並不是答錯的主因。",
+   "test_performed": "probe resolve：官網通路、南部客戶都回 unresolved，但 term_channel 的別名有「官網」，term_region 的別名有「南部」。尚未比較補別名與開 fuzzy_fallback 兩種做法的效果。",
+   "predicted_effect": "補別名或開 fuzzy 後，這些 mention 會命中，agent 不必再花步數繞路。對答案正確性的提升有限，但可以減少步數消耗，間接降低 S04、S05 這類逾時型失敗的機率。",
+   "priority": 3
+  },
+  {
+   "id": "H4",
+   "problems": [
+    "P6"
+   ],
+   "dimension": "content",
+   "nature": "missing_capability_or_coverage",
+   "mechanism": "customers.signup_date、orders.coupon_code、待出貨訂單沒有 term 或 mapping，「signup_date 已是台北日期、免換算」等規則也沒有寫進語意層。目前相關題目看起來答對了，風險是潛在的，agent 若誤把 UTC 換算套用到 signup_date 就會出錯。",
+   "test_performed": "probe 顯示新註冊客戶、優惠碼、待出貨訂單皆 unresolved。S09、S13、S23、S16 的結果與文件一致，是靠資料觀察而非語意層依據。",
+   "predicted_effect": "補上後可追溯性提高並避免潛在誤用，但現有答案不太會改變，所以驗證價值低。",
+   "priority": 4
+  },
+  {
+   "id": "H5",
+   "problems": [
+    "P4"
+   ],
+   "dimension": "schema",
+   "nature": "structural_mismatch",
+   "mechanism": "目前物件模型下，一個 mention 只能帶一條規則，沒有「指標加期間」的組合規則表達方式，也沒有全域約束物件。這可能是 H2 的更深層成因，但 PoC 程式只能執行 content 與 tool 修補，所以不單獨驗證，由 H2 緩解。",
+   "test_performed": "未直接測試 resolve 回傳多條規則的行為，這點仍是推測。",
+   "predicted_effect": "H2 的 pinned 約束或 keyword 觸發若能穩定消除時區錯誤，就可視為 schema 問題已被緩解。",
+   "priority": 5
+  }
+ ],
+ "primary": "H1",
+ "reasoning": "H1 是影響最大、證據最強的獨立根因：6 題完全沒有交出答案或答「無法計算」，另有 S17、S06、S07、S08 的口徑偏離業務文件。我用 SQL 確認資料足以計算，分母選擇與期間歸屬欄位會讓結果明顯不同（相差約 1 個百分點，月份不一致約 7.5%）。業務文件有明確規則，所以不需要靠猜測補知識，可重現性高，驗證成本也低：新增 term、mapping、constraint 與 relation 即可，並可用 S04、S05、S19、S02、S03、S14 直接驗證。H2 影響題數多（7 題）但每題偏差小（約 1%），而且修法（pinned 或 keyword 觸發）仍需實驗選擇，所以排在第二。H1 的新約束會明確寫入台北時間歸屬規則，不依賴 H2。一個 Candidate 只驗證 H1，H2 留給後續 Candidate。仍有不確定處：3 天邊界是否含等號、S04、S05、S19 失敗的直接原因（逾時還是步數用盡）。"
+}

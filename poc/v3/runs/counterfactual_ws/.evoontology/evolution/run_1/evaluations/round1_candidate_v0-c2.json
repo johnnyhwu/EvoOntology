@@ -1,0 +1,114 @@
+{
+  "subject": "v0-c2",
+  "role": "candidate",
+  "round": 1,
+  "metrics": {
+    "note": "recorded round-2 verdicts"
+  },
+  "cases": [],
+  "artifact_paths": [],
+  "provenance": "synthetic",
+  "gate_input": {
+    "protocol": "llm_judge",
+    "verdicts": [
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "candidate",
+        "critical_error": false
+      },
+      {
+        "winner": "tie",
+        "critical_error": false
+      },
+      {
+        "winner": "parent",
+        "critical_error": false
+      }
+    ],
+    "unacceptable_regressions": false
+  },
+  "recorded_at": "2026-10-27T12:38:44.530501+00:00"
+}

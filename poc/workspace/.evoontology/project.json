@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "mode": "rolling_trajectory",
+  "data_source": {
+    "type": "sqlite",
+    "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/data/shop_v2.sqlite"
+  },
+  "workload_source": {
+    "type": "project_workload",
+    "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/build_input_v2/construction_questions.json",
+    "note": "user-supplied exhaustive construction workload C01-C30; domain_knowledge.md supplied as data-environment document"
+  },
+  "evaluation": {
+    "type": "llm_judge"
+  },
+  "boundary": {
+    "strategy": "rolling_trajectory"
+  }
+}

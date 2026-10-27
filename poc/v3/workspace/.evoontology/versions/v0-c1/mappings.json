@@ -1,0 +1,395 @@
+[
+  {
+    "id": "map_valid_order_status",
+    "term_id": "term_valid_order",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "status",
+    "semantic_filter": "狀態碼為 1（已付款）、2（已出貨）、3（已送達）",
+    "aggregation_semantics": "以不重複訂單編號計張數",
+    "grain": "每張訂單一列",
+    "validation": "ev_status_codes,ev_doc_valid_order,ev_status_payment_consistency"
+  },
+  {
+    "id": "map_order_id",
+    "term_id": "term_order",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "order_id",
+    "aggregation_semantics": "不重複訂單計數；訂單與明細一對多，不可以明細列數代替訂單張數",
+    "grain": "每張訂單一列",
+    "validation": "ev_multi_item_orders"
+  },
+  {
+    "id": "map_order_status",
+    "term_id": "term_order_status",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "status",
+    "grain": "每張訂單一列",
+    "validation": "ev_status_codes"
+  },
+  {
+    "id": "map_pending_order",
+    "term_id": "term_pending_order",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "status",
+    "semantic_filter": "狀態碼為 0（待付款）",
+    "aggregation_semantics": "不重複訂單張數；為目前狀態計數，不限定期間",
+    "grain": "每張訂單一列",
+    "validation": "ev_status_codes,ev_status_payment_consistency"
+  },
+  {
+    "id": "map_cancelled_order",
+    "term_id": "term_cancelled_order",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "status",
+    "semantic_filter": "狀態碼為 9（已取消）",
+    "aggregation_semantics": "不重複訂單張數；期間依訂單成立時間（台北時間）",
+    "grain": "每張訂單一列",
+    "validation": "ev_status_codes,ev_status_payment_consistency"
+  },
+  {
+    "id": "map_order_time",
+    "term_id": "term_order_time",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "order_ts",
+    "semantic_filter": "時間為 UTC，期間須以台北時間（UTC+8）判斷；2025 年需排除台北時間落在 2024 與 2026 的訂單",
+    "grain": "秒級時間戳記",
+    "validation": "ev_doc_utc,ev_utc_shift_orders,ev_year_boundary"
+  },
+  {
+    "id": "map_item_order_id",
+    "term_id": "term_order_item",
+    "database_source": "shop_v2",
+    "table": "order_items",
+    "column": "item_id",
+    "aggregation_semantics": "明細為最細粒度，一張訂單含 1~4 筆明細",
+    "grain": "每筆明細一列",
+    "validation": "ev_multi_item_orders,ev_refund_item_level"
+  },
+  {
+    "id": "map_item_amount_price",
+    "term_id": "term_item_amount",
+    "database_source": "shop_v2",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "semantic_filter": "僅計入有效訂單的明細",
+    "aggregation_semantics": "各明細的數量乘以成交單價後加總；單位為分，換算成 TWD 須除以 100；成交單價已含折扣，不得再次折扣",
+    "grain": "每筆明細一列",
+    "validation": "ev_price_unit_cents,ev_coupon_discount,ev_doc_item_amount,ev_payment_reconcile_items"
+  },
+  {
+    "id": "map_item_amount_qty",
+    "term_id": "term_item_amount",
+    "database_source": "shop_v2",
+    "table": "order_items",
+    "column": "quantity",
+    "aggregation_semantics": "與成交單價相乘構成商品金額",
+    "grain": "每筆明細一列",
+    "validation": "ev_price_unit_cents,ev_doc_item_amount"
+  },
+  {
+    "id": "map_net_revenue",
+    "term_id": "term_net_revenue",
+    "database_source": "shop_v2",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "semantic_filter": "僅計入有效訂單；期間依訂單成立時間（台北時間）",
+    "aggregation_semantics": "有效訂單商品金額總和（TWD）減去這些訂單對應的退款金額；退款歸屬原訂單而非退款發生期間",
+    "grain": "期間彙總（訂單成立時間歸屬）",
+    "validation": "ev_doc_net_revenue,ev_refund_attribution_gap,ev_refund_only_valid_orders,ev_price_unit_cents"
+  },
+  {
+    "id": "map_net_revenue_refund",
+    "term_id": "term_net_revenue",
+    "database_source": "shop_v2",
+    "table": "refunds",
+    "column": "refund_amount_twd",
+    "semantic_filter": "退款依其所屬原訂單的成立時間歸屬期間",
+    "aggregation_semantics": "作為淨營收的扣減項，單位 TWD",
+    "grain": "每筆明細退款一列",
+    "validation": "ev_doc_net_revenue,ev_refund_attribution_gap,ev_refund_item_level"
+  },
+  {
+    "id": "map_aov",
+    "term_id": "term_avg_order_value",
+    "database_source": "shop_v2",
+    "table": "order_items",
+    "column": "unit_price_cents",
+    "semantic_filter": "僅計入有效訂單；期間依訂單成立時間（台北時間）",
+    "aggregation_semantics": "有效訂單商品金額總和（不扣退款，TWD）除以不重複有效訂單張數",
+    "grain": "期間彙總",
+    "validation": "ev_multi_item_orders,ev_price_unit_cents,ev_doc_item_amount"
+  },
+  {
+    "id": "map_repeat_customer",
+    "term_id": "term_repeat_customer",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "customer_id",
+    "semantic_filter": "僅計有效訂單；年度依台北時間訂單成立時間",
+    "aggregation_semantics": "依客戶計算年度有效訂單張數，張數達 2 張以上者計為回購客戶，以不重複客戶計數",
+    "grain": "每位客戶每年度",
+    "validation": "ev_doc_repeat_customer,ev_repeat_customers"
+  },
+  {
+    "id": "map_customer_id",
+    "term_id": "term_customer",
+    "database_source": "shop_v2",
+    "table": "customers",
+    "column": "customer_id",
+    "aggregation_semantics": "不重複客戶計數；訂單經 orders.customer_id 連到客戶",
+    "grain": "每位客戶一列",
+    "validation": "ev_dim_region_tier,ev_repeat_customers"
+  },
+  {
+    "id": "map_region",
+    "term_id": "term_region",
+    "database_source": "shop_v2",
+    "table": "customers",
+    "column": "region_code",
+    "aggregation_semantics": "依下單客戶的地區歸類訂單",
+    "grain": "每位客戶一列",
+    "validation": "ev_dim_region_tier"
+  },
+  {
+    "id": "map_tier",
+    "term_id": "term_member_tier",
+    "database_source": "shop_v2",
+    "table": "customers",
+    "column": "tier",
+    "aggregation_semantics": "依下單客戶的會員等級歸類訂單",
+    "grain": "每位客戶一列",
+    "validation": "ev_dim_region_tier"
+  },
+  {
+    "id": "map_channel",
+    "term_id": "term_channel",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "channel",
+    "grain": "每張訂單一列",
+    "validation": "ev_channel_values"
+  },
+  {
+    "id": "map_channel_share",
+    "term_id": "term_channel_share",
+    "database_source": "shop_v2",
+    "table": "orders",
+    "column": "channel",
+    "semantic_filter": "分子與分母皆限定有效訂單與同一台北時間期間",
+    "aggregation_semantics": "指定通路有效訂單張數占有效訂單總張數的百分比",
+    "grain": "期間彙總",
+    "validation": "ev_channel_values,ev_status_codes"
+  },
+  {
+    "id": "map_payment_id",
+    "term_id": "term_payment",
+    "database_source": "shop_v2",
+    "table": "payments",
+    "column": "payment_id",
+    "aggregation_semantics": "一張訂單可有多筆付款紀錄（含失敗重試）",
+    "grain": "每筆付款嘗試一列",
+    "validation": "ev_payment_single_ok,ev_failed_payment_orders"
+  },
+  {
+    "id": "map_payment_status",
+    "term_id": "term_payment_status",
+    "database_source": "shop_v2",
+    "table": "payments",
+    "column": "payment_status",
+    "grain": "每筆付款嘗試一列",
+    "validation": "ev_payment_single_ok,ev_failed_payment_orders"
+  },
+  {
+    "id": "map_payment_method",
+    "term_id": "term_payment_method",
+    "database_source": "shop_v2",
+    "table": "payments",
+    "column": "method",
+    "grain": "每筆付款嘗試一列",
+    "validation": "ev_payment_method_amount"
+  },
+  {
+    "id": "map_received_amount",
+    "term_id": "term_received_amount",
+    "database_source": "shop_v2",
+    "table": "payments",
+    "column": "amount_twd",
+    "semantic_filter": "僅付款成功（ok）的付款紀錄；期間依付款成功時間（台北時間）",
+    "aggregation_semantics": "付款成功金額總和，單位 TWD",
+    "grain": "每筆付款嘗試一列",
+    "validation": "ev_payment_single_ok,ev_payment_time_shift,ev_payment_reconcile_items"
+  },
+  {
+    "id": "map_paid_time",
+    "term_id": "term_paid_time",
+    "database_source": "shop_v2",
+    "table": "payments",
+    "column": "paid_ts",
+    "semantic_filter": "時間為 UTC，期間須換算為台北時間",
+    "grain": "秒級時間戳記",
+    "validation": "ev_doc_utc,ev_payment_time_shift"
+  },
+  {
+    "id": "map_refund_id",
+    "term_id": "term_refund",
+    "database_source": "shop_v2",
+    "table": "refunds",
+    "column": "refund_id",
+    "aggregation_semantics": "退款以明細為單位，每筆明細至多一筆退款",
+    "grain": "每筆明細退款一列",
+    "validation": "ev_refund_item_level,ev_refund_only_valid_orders"
+  },
+  {
+    "id": "map_refund_amount",
+    "term_id": "term_refund_amount",
+    "database_source": "shop_v2",
+    "table": "refunds",
+    "column": "refund_amount_twd",
+    "semantic_filter": "退款報表依退款發生時間（台北時間）歸屬期間",
+    "aggregation_semantics": "退款金額總和，單位 TWD",
+    "grain": "每筆明細退款一列",
+    "validation": "ev_refund_item_level,ev_refund_attribution_gap,ev_refund_by_year"
+  },
+  {
+    "id": "map_refund_time",
+    "term_id": "term_refund_time",
+    "database_source": "shop_v2",
+    "table": "refunds",
+    "column": "refund_ts",
+    "semantic_filter": "時間為 UTC，期間須換算為台北時間；資料含 2026 年 1 月的退款",
+    "grain": "秒級時間戳記",
+    "validation": "ev_doc_utc,ev_refund_by_year,ev_refund_attribution_gap"
+  },
+  {
+    "id": "map_refund_reason",
+    "term_id": "term_refund_reason",
+    "database_source": "shop_v2",
+    "table": "refunds",
+    "column": "reason_code",
+    "grain": "每筆明細退款一列",
+    "validation": "ev_reason_codes"
+  },
+  {
+    "id": "map_product_id",
+    "term_id": "term_product",
+    "database_source": "shop_v2",
+    "table": "products",
+    "column": "product_id",
+    "aggregation_semantics": "明細經 order_items.product_id 連到商品",
+    "grain": "每項商品一列",
+    "validation": "ev_product_active,ev_refund_category"
+  },
+  {
+    "id": "map_product_name",
+    "term_id": "term_product",
+    "database_source": "shop_v2",
+    "table": "products",
+    "column": "product_name",
+    "grain": "每項商品一列",
+    "validation": "ev_product_active"
+  },
+  {
+    "id": "map_product_category",
+    "term_id": "term_product_category",
+    "database_source": "shop_v2",
+    "table": "products",
+    "column": "category",
+    "aggregation_semantics": "退款與銷售須經明細的商品歸入類別",
+    "grain": "每項商品一列",
+    "validation": "ev_refund_category"
+  },
+  {
+    "id": "map_product_active",
+    "term_id": "term_product_active",
+    "database_source": "shop_v2",
+    "table": "products",
+    "column": "is_active",
+    "semantic_filter": "is_active 為 1 代表目前在售",
+    "grain": "每項商品一列",
+    "validation": "ev_product_active"
+  },
+  {
+    "id": "map_sales_quantity",
+    "term_id": "term_sales_quantity",
+    "database_source": "shop_v2",
+    "table": "order_items",
+    "column": "quantity",
+    "semantic_filter": "僅計入有效訂單；期間依訂單成立時間（台北時間）",
+    "aggregation_semantics": "明細數量總和，依商品歸類",
+    "grain": "每筆明細一列",
+    "validation": "ev_product_active,ev_status_codes"
+  },
+  {
+    "id": "map_region_ranking",
+    "term_id": "term_region_ranking",
+    "database_source": "shop_v2",
+    "table": "customers",
+    "column": "region_code",
+    "semantic_filter": "僅計入有效訂單；期間依訂單成立時間（台北時間）",
+    "aggregation_semantics": "各地區的淨營收，比較其高低",
+    "grain": "地區彙總",
+    "validation": "ev_dim_region_tier,ev_doc_net_revenue"
+  },
+  {
+    "id": "map_cancellation_rate_status",
+    "term_id": "term_cancellation_rate",
+    "database_source": "lumo.db",
+    "table": "orders",
+    "column": "status",
+    "grain": "order",
+    "semantic_filter": "分子為狀態 9（已取消）；分母為狀態 1、2、3、9，不含狀態 0（待付款）",
+    "aggregation_semantics": "以不重複訂單編號計數後相除"
+  },
+  {
+    "id": "map_shipment_order",
+    "term_id": "term_shipment",
+    "database_source": "lumo.db",
+    "table": "shipments",
+    "column": "order_id",
+    "grain": "shipment",
+    "aggregation_semantics": "透過 order_id 連到訂單，期間取自訂單成立時間"
+  },
+  {
+    "id": "map_carrier",
+    "term_id": "term_carrier",
+    "database_source": "lumo.db",
+    "table": "shipments",
+    "column": "carrier",
+    "grain": "shipment"
+  },
+  {
+    "id": "map_delivery_days_delivered_ts",
+    "term_id": "term_delivery_days",
+    "database_source": "lumo.db",
+    "table": "shipments",
+    "column": "delivered_ts",
+    "grain": "shipment",
+    "semantic_filter": "只計 delivered_ts 不為空的已送達出貨",
+    "aggregation_semantics": "送達時間減出貨時間（shipped_ts），以天計，可含小數"
+  },
+  {
+    "id": "map_delivery_days_shipped_ts",
+    "term_id": "term_delivery_days",
+    "database_source": "lumo.db",
+    "table": "shipments",
+    "column": "shipped_ts",
+    "grain": "shipment",
+    "aggregation_semantics": "作為配送天數的起點；不用於歸屬報表期間"
+  },
+  {
+    "id": "map_on_time_rate_delivered_ts",
+    "term_id": "term_on_time_rate",
+    "database_source": "lumo.db",
+    "table": "shipments",
+    "column": "delivered_ts",
+    "grain": "shipment",
+    "semantic_filter": "分母為已送達出貨；分子為配送天數 ≤ 3 天",
+    "aggregation_semantics": "準時出貨筆數除以已送達出貨筆數"
+  }
+]

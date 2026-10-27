@@ -1,0 +1,68 @@
+{
+ "hypothesis": "con_tz_order_time（UTC+8 期間劃分，block 級）已存在，但 Tool Layer 的 trigger_keyword_constraints=false 且沒有 pin 任何約束，加上該約束的 trigger_keywords 沒有涵蓋「11月」「第二季」「Q1」「上半年」等常見的期間說法，所以涉及月、季、年的問題拿不到時區提醒，agent 直接以 UTC 的 order_ts 切期間，邊界月份的精確計數與金額因此靜默出錯。若假說成立，啟用關鍵字觸發、補齊期間詞並 pin 該約束後，resolve／manifest 對月、季、年問題會帶出 con_tz_order_time，agent 會改用台北時間切期間，期間邊界類題目的結果隨之修正。若約束已被帶出但 agent 仍用 UTC 切期間，或修正後邊界月份的數字沒有改變，則假說被推翻。",
+ "dimension": "content+tool",
+ "operations": [
+  {
+   "op": "set_tool_config",
+   "section": "resolve",
+   "key": "trigger_keyword_constraints",
+   "value": true
+  },
+  {
+   "op": "set_tool_config",
+   "section": "manifest",
+   "key": "pinned_constraint_ids",
+   "value": [
+    "con_tz_order_time"
+   ]
+  },
+  {
+   "op": "update_field",
+   "family": "constraints",
+   "id": "con_tz_order_time",
+   "field": "trigger_keywords",
+   "value": [
+    "2024年",
+    "2025年",
+    "2025 年",
+    "2026年",
+    "年度",
+    "全年",
+    "上半年",
+    "下半年",
+    "月份",
+    "每月",
+    "當月",
+    "本月",
+    "1月",
+    "2月",
+    "3月",
+    "4月",
+    "5月",
+    "6月",
+    "7月",
+    "8月",
+    "9月",
+    "10月",
+    "11月",
+    "12月",
+    "第一季",
+    "第二季",
+    "第三季",
+    "第四季",
+    "季",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "order_ts",
+    "下單時間",
+    "訂單成立時間",
+    "期間",
+    "跨年"
+   ]
+  }
+ ],
+ "expected_effect": "含月、季、年、上半年、下半年等期間詞的題目（有效訂單張數、淨營收、客單價、回購客戶、通路占比、銷售數量等依訂單成立時間歸屬者）會看到 UTC+8 規則並改用台北時間切期間，邊界月份與跨年的數字應隨之修正；不含時間詞的題目，只多出被 pin 的這條時區約束，預期不改變結果。",
+ "rollback": "把 resolve.trigger_keyword_constraints 設回 false，把 manifest.pinned_constraint_ids 設回 []，並將 con_tz_order_time 的 trigger_keywords 還原為 Parent 的 ['2025年','2025 年','年度','月份','8月','3月','6月','9月','12月','第一季']；或直接丟棄 Candidate，保留 Parent。"
+}

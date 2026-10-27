@@ -1,0 +1,54 @@
+08:32:37 trigger: {"evolution_due": true, "new_trajectories": 40, "days_since_checkpoint": 0.004, "reason": "40 new trajectories >= 30", "thresholds": {"min_new_trajectories": 30, "min_days": 7}}
+08:32:37 frozen batch: 40 tasks, 40 near-dup groups -> pool 28 / reserve 12
+08:32:37 === round 1 (parent ontology_v0) ===
+08:33:33 diagnosis: 7 problems
+08:34:24 attribution: primary=H1; [('H1', 'content'), ('H2', 'tool'), ('H3', 'tool'), ('H4', 'content'), ('H5', 'schema')]
+08:35:03 patch attempt 1 rejected by code checks: ["relation rel_shipment_belongs_to_order: relation_type must be one of ['association', 'composition', 'derivation', 'equivalence', 'hierarchy']", "relation rel_cancellation_rate_uses_valid_order: relation_type must be one of ['association', 'composition', 'derivation', 'equivalence', 'hierarchy']", "relation rel_on_time_depends_on_delivery_days: relation_type must be one of ['association', 'composition', 'derivation', 'equivalence', 'hierarchy']"]
+08:36:06 mechanism check attempt 2: {'tested': 6, 'activation_rate': 1.0, 'answer_changed_rate': 0.8333333333333334}
+08:37:28 gate rep1: cand_wins=5 parent_wins=1 ties=6 cand_critical=0 -> ACCEPT
+08:38:46 gate rep2: cand_wins=2 parent_wins=4 ties=6 cand_critical=0 -> reject
+08:38:46 rejected (round 1)
+08:38:46 === round 2 (parent ontology_v0) ===
+08:39:49 mechanism check attempt 1: {'tested': 6, 'activation_rate': 1.0, 'answer_changed_rate': 0.6666666666666666}
+08:41:04 gate rep1: cand_wins=4 parent_wins=1 ties=7 cand_critical=0 -> ACCEPT
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/cli.py", line 86, in <module>
+    main()
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/cli.py", line 82, in main
+    args.fn(args)
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/cli.py", line 49, in cmd_evolve
+    report = EvolveRun(max_rounds=args.max_rounds).run()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/evolve.py", line 382, in run
+    result = gate_repetition(self.ws, run_dir, rnd, rep, parent, candidate_name, reserve, self.agent, self.judge, seed)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/evolve.py", line 272, in gate_repetition
+    verdicts = dict(ex.map(one, questions))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/Users/johnnyhwu/.local/share/uv/python/cpython-3.12.14-macos-aarch64-none/lib/python3.12/concurrent/futures/thread.py", line 59, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/evolve.py", line 269, in one
+    return q["id"], judge_pair(judge, question=q["question"], parent_run=parent_runs[q["id"]], candidate_run=cand_runs[q["id"]],
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/judge.py", line 42, in judge_pair
+    raw = judge.chat(stage=stage, system=render("judge.md"), messages=[{"role": "user", "content": prompt}])
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/llm.py", line 244, in chat
+    ledger().check(config.BUDGET_USD)
+  File "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/evopipe/llm.py", line 78, in check
+    raise BudgetExceeded("LLM budget cap reached: $%.4f >= $%.2f" % (self._total, cap))
+evopipe.llm.BudgetExceeded: LLM budget cap reached: $5.0117 >= $5.00

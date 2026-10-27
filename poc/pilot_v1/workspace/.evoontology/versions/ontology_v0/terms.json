@@ -1,0 +1,414 @@
+[
+  {
+    "id": "term_customer",
+    "name": "Customer",
+    "type": "entity",
+    "definition": "A registered buyer of Lumo Outdoors; one row per customer in customers.",
+    "scope": "All order, tier and region analysis",
+    "aliases": [
+      "客戶",
+      "會員",
+      "顧客"
+    ],
+    "evidence": [
+      "ev_fk_integrity",
+      "ev_customer_snapshot"
+    ]
+  },
+  {
+    "id": "term_order",
+    "name": "Order",
+    "type": "entity",
+    "definition": "A purchase transaction placed by a customer; one row per order in orders, with one or more order items.",
+    "scope": "All order counting; includes pending and cancelled orders",
+    "aliases": [
+      "訂單"
+    ],
+    "evidence": [
+      "ev_status_enum",
+      "ev_payment_grain"
+    ]
+  },
+  {
+    "id": "term_valid_order",
+    "name": "Valid Order",
+    "type": "concept",
+    "definition": "An order whose status is paid, shipped or delivered (status 1, 2, 3). Pending-payment (0) and cancelled (9) orders are not valid orders.",
+    "scope": "Basis for order counts, revenue, average order value, repeat customers and channel share",
+    "aliases": [
+      "有效訂單",
+      "effective order"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_valid_order_payment",
+      "ev_status_enum"
+    ]
+  },
+  {
+    "id": "term_order_status",
+    "name": "Order Status",
+    "type": "dimension",
+    "definition": "Lifecycle state of an order, stored as integer code (0 pending payment, 1 paid, 2 shipped, 3 delivered, 9 cancelled).",
+    "scope": "orders.status",
+    "aliases": [
+      "訂單狀態"
+    ],
+    "evidence": [
+      "ev_status_enum"
+    ]
+  },
+  {
+    "id": "term_order_time",
+    "name": "Order Time",
+    "type": "dimension",
+    "definition": "Time an order was placed; stored in UTC and reported in Taipei time (UTC+8) for day, month, quarter and year.",
+    "scope": "Period attribution of orders, order counts, revenue and average order value",
+    "aliases": [
+      "訂單成立時間",
+      "下單時間",
+      "order date"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_timezone_impact"
+    ]
+  },
+  {
+    "id": "term_sales_channel",
+    "name": "Sales Channel",
+    "type": "dimension",
+    "definition": "Channel through which an order was placed: web (官網), app (行動 App) or store (實體門市).",
+    "scope": "orders.channel",
+    "aliases": [
+      "下單管道",
+      "通路",
+      "channel"
+    ],
+    "evidence": [
+      "ev_channel_enum"
+    ]
+  },
+  {
+    "id": "term_app_channel",
+    "name": "Mobile App Channel",
+    "type": "category",
+    "definition": "Orders placed through the mobile app (channel value app).",
+    "scope": "Channel-share analysis",
+    "aliases": [
+      "行動 App",
+      "App 下單"
+    ],
+    "evidence": [
+      "ev_channel_enum"
+    ]
+  },
+  {
+    "id": "term_customer_tier",
+    "name": "Customer Tier",
+    "type": "dimension",
+    "definition": "Membership level of a customer: B (一般會員), S (銀級會員), G (黃金會員); current value per customer.",
+    "scope": "customers.tier",
+    "aliases": [
+      "會員等級",
+      "membership tier"
+    ],
+    "evidence": [
+      "ev_tier_enum",
+      "ev_customer_snapshot"
+    ]
+  },
+  {
+    "id": "term_gold_tier",
+    "name": "Gold Member",
+    "type": "category",
+    "definition": "Customers whose tier is G (黃金會員).",
+    "scope": "Tier-based segment analysis",
+    "aliases": [
+      "黃金會員",
+      "gold tier"
+    ],
+    "evidence": [
+      "ev_tier_enum"
+    ]
+  },
+  {
+    "id": "term_customer_region",
+    "name": "Customer Region",
+    "type": "dimension",
+    "definition": "Region or country code of a customer: TW-N 北部, TW-C 中部, TW-S 南部, JP 日本, SG 新加坡; current value per customer.",
+    "scope": "customers.region_code",
+    "aliases": [
+      "地區",
+      "客戶區域",
+      "region"
+    ],
+    "evidence": [
+      "ev_region_enum",
+      "ev_customer_snapshot"
+    ]
+  },
+  {
+    "id": "term_north_region",
+    "name": "Northern Taiwan Region",
+    "type": "category",
+    "definition": "Customers whose region_code is TW-N (北部).",
+    "scope": "Regional segment analysis",
+    "aliases": [
+      "北部",
+      "北部客戶"
+    ],
+    "evidence": [
+      "ev_region_enum"
+    ]
+  },
+  {
+    "id": "term_product",
+    "name": "Product",
+    "type": "entity",
+    "definition": "A sellable item in the catalog; one row per product in products.",
+    "scope": "Product-level sales and category analysis",
+    "aliases": [
+      "商品",
+      "產品"
+    ],
+    "evidence": [
+      "ev_product_enum",
+      "ev_fk_integrity"
+    ]
+  },
+  {
+    "id": "term_active_product",
+    "name": "Active (On-sale) Product",
+    "type": "category",
+    "definition": "Products currently on sale (is_active = 1); is_active = 0 means delisted. A current-state flag, not time-versioned.",
+    "scope": "Questions about products currently on sale",
+    "aliases": [
+      "在售商品",
+      "目前仍在售",
+      "上架中"
+    ],
+    "evidence": [
+      "ev_product_enum"
+    ]
+  },
+  {
+    "id": "term_product_category",
+    "name": "Product Category",
+    "type": "dimension",
+    "definition": "Merchandise category of a product: backpack 登山背包, tent 帳篷, shoes 登山鞋, apparel 機能服飾, accessory 配件.",
+    "scope": "products.category",
+    "aliases": [
+      "商品類別",
+      "品類",
+      "category"
+    ],
+    "evidence": [
+      "ev_product_enum",
+      "ev_refund_category_path"
+    ]
+  },
+  {
+    "id": "term_order_item",
+    "name": "Order Item",
+    "type": "entity",
+    "definition": "A product line within an order (quantity at a transaction unit price); one row per order_items record.",
+    "scope": "Item-level amounts and quantities",
+    "aliases": [
+      "訂單明細",
+      "order line"
+    ],
+    "evidence": [
+      "ev_payment_grain",
+      "ev_fk_integrity"
+    ]
+  },
+  {
+    "id": "term_payment",
+    "name": "Payment Record",
+    "type": "entity",
+    "definition": "An attempt to pay an order; one row per payments record. An order can have several records (failed attempts plus at most one successful).",
+    "scope": "Payment-method and received-money analysis",
+    "aliases": [
+      "付款紀錄"
+    ],
+    "evidence": [
+      "ev_payment_grain",
+      "ev_valid_order_payment"
+    ]
+  },
+  {
+    "id": "term_payment_method",
+    "name": "Payment Method",
+    "type": "dimension",
+    "definition": "How a payment was made: credit_card 信用卡, line_pay LINE Pay, atm ATM 轉帳, cod 貨到付款.",
+    "scope": "payments.method",
+    "aliases": [
+      "付款方式"
+    ],
+    "evidence": [
+      "ev_payment_enum"
+    ]
+  },
+  {
+    "id": "term_refund",
+    "name": "Refund",
+    "type": "entity",
+    "definition": "A refund granted against one item of an order; one row per refunds record, referencing the item and its order.",
+    "scope": "Refund analysis",
+    "aliases": [
+      "退款",
+      "退貨退款"
+    ],
+    "evidence": [
+      "ev_refund_link"
+    ]
+  },
+  {
+    "id": "term_refund_time",
+    "name": "Refund Time",
+    "type": "dimension",
+    "definition": "Time a refund occurred; stored in UTC and reported in Taipei time (UTC+8).",
+    "scope": "Period attribution of the refund report",
+    "aliases": [
+      "退款發生時間"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_timezone_impact"
+    ]
+  },
+  {
+    "id": "term_item_amount",
+    "name": "Item Amount",
+    "type": "metric",
+    "definition": "Merchandise value of an order item: quantity times the transaction unit price (actual price paid, discount already included, not the catalog list price), expressed in TWD.",
+    "scope": "Basis of revenue and average order value",
+    "aliases": [
+      "商品金額"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_amount_unit"
+    ]
+  },
+  {
+    "id": "term_order_attributed_refund",
+    "name": "Refund Amount Attributed to Original Order",
+    "type": "metric",
+    "definition": "Refund amount deducted from the original order's revenue, assigned to the period of the order's creation time regardless of when the refund occurred.",
+    "scope": "Used only inside net revenue",
+    "aliases": [
+      "訂單歸屬退款"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_refund_attribution"
+    ]
+  },
+  {
+    "id": "term_net_revenue",
+    "name": "Net Revenue",
+    "type": "metric",
+    "definition": "Sum of item amounts of valid orders in the period (by order time) minus refund amounts of those orders.",
+    "scope": "Revenue reporting by period, tier, region, channel",
+    "aliases": [
+      "淨營收",
+      "net sales"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_refund_attribution",
+      "ev_amount_unit"
+    ]
+  },
+  {
+    "id": "term_avg_order_value",
+    "name": "Average Order Value",
+    "type": "metric",
+    "definition": "Sum of item amounts of valid orders in the period (refunds not deducted) divided by the number of valid orders in the period.",
+    "scope": "Period-based order value reporting",
+    "aliases": [
+      "客單價",
+      "AOV"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_amount_unit"
+    ]
+  },
+  {
+    "id": "term_repeat_customer",
+    "name": "Repeat Customer",
+    "type": "concept",
+    "definition": "A customer with at least 2 valid orders within one (Taipei) calendar year.",
+    "scope": "Customer retention counting per year",
+    "aliases": [
+      "回購客戶",
+      "repeat buyer"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_repeat_dist"
+    ]
+  },
+  {
+    "id": "term_app_order_share",
+    "name": "App Order Share",
+    "type": "metric",
+    "definition": "Share of valid orders in a period that were placed through the mobile app, as a percentage of valid order count.",
+    "scope": "Channel mix reporting",
+    "aliases": [
+      "App 下單占比"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_channel_enum"
+    ]
+  },
+  {
+    "id": "term_received_amount",
+    "name": "Received Amount",
+    "type": "metric",
+    "definition": "Total amount of successful payment records (payment_status ok); failed attempts are excluded.",
+    "scope": "Money actually received, by payment method",
+    "aliases": [
+      "實收金額"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_payment_enum",
+      "ev_valid_order_payment"
+    ]
+  },
+  {
+    "id": "term_refund_amount",
+    "name": "Refund Amount (Refund Report)",
+    "type": "metric",
+    "definition": "Total refund amount attributed to the period in which the refund occurred (refund time), as used by the refund report.",
+    "scope": "Refund reporting by period or product category",
+    "aliases": [
+      "退款金額",
+      "refund amount"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_refund_attribution",
+      "ev_refund_category_path"
+    ]
+  },
+  {
+    "id": "term_sales_quantity",
+    "name": "Sales Quantity",
+    "type": "metric",
+    "definition": "Number of units sold of a product, summed over order item quantities.",
+    "scope": "Product ranking by units sold",
+    "aliases": [
+      "銷售數量",
+      "銷量"
+    ],
+    "evidence": [
+      "ev_sales_qty_sensitivity"
+    ]
+  }
+]

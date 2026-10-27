@@ -1,0 +1,2 @@
+recorded 40 trajectories (37 completed)
+{"evolution_due": true, "new_trajectories": 40, "days_since_checkpoint": 0.003, "reason": "40 new trajectories >= 30", "thresholds": {"min_new_trajectories": 30, "min_days": 7}}

@@ -1,0 +1,312 @@
+{
+ "task_id": "task_a98c228d9a0a",
+ "question": "新竹物流在 2025 年的平均配送天數是多少？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "新竹物流",
+     "平均配送天數",
+     "2025 年"
+    ],
+    "context": "新竹物流在 2025 年的平均配送天數是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "新竹物流",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '新竹物流'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "平均配送天數",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '平均配送天數'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "2025 年",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '2025 年'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 3,
+    "processed_count": 3,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT carrier, COUNT(*) n, MIN(shipped_ts) min_s, MAX(shipped_ts) max_s, SUM(delivered_ts IS NULL) null_deliv, SUM(shipped_ts IS NULL) null_ship FROM shipments GROUP BY carrier",
+     "SELECT * FROM shipments LIMIT 5",
+     "SELECT status, COUNT(*) FROM orders GROUP BY status",
+     "SELECT order_id, COUNT(*) c FROM shipments GROUP BY order_id HAVING c>1 LIMIT 5"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT carrier, COUNT(*) n, MIN(shipped_ts) min_s, MAX(shipped_ts) max_s, SUM(delivered_ts IS NULL) null_deliv, SUM(shipped_ts IS NULL) null_ship FROM shipments GROUP BY carrier",
+     "columns": [
+      "carrier",
+      "n",
+      "min_s",
+      "max_s",
+      "null_deliv",
+      "null_ship"
+     ],
+     "rows": [
+      [
+       "blackcat",
+       19911,
+       "2024-12-31 05:07:42",
+       "2026-01-04 15:04:46",
+       2134,
+       0
+      ],
+      [
+       "hct",
+       11092,
+       "2024-12-31 10:14:46",
+       "2026-01-04 17:53:02",
+       1233,
+       0
+      ],
+      [
+       "post",
+       6635,
+       "2024-12-31 04:11:32",
+       "2026-01-04 00:08:37",
+       768,
+       0
+      ],
+      [
+       "sf",
+       6806,
+       "2024-12-31 08:50:28",
+       "2026-01-04 09:29:21",
+       735,
+       0
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT * FROM shipments LIMIT 5",
+     "columns": [
+      "shipment_id",
+      "order_id",
+      "carrier",
+      "shipped_ts",
+      "delivered_ts"
+     ],
+     "rows": [
+      [
+       1,
+       1,
+       "post",
+       "2025-05-29 05:32:55",
+       "2025-06-03 18:32:55"
+      ],
+      [
+       2,
+       2,
+       "blackcat",
+       "2025-06-03 17:04:51",
+       "2025-06-06 13:04:51"
+      ],
+      [
+       3,
+       3,
+       "hct",
+       "2025-09-28 09:46:07",
+       "2025-09-29 19:46:07"
+      ],
+      [
+       4,
+       4,
+       "blackcat",
+       "2025-04-12 17:13:13",
+       "2025-04-14 18:13:13"
+      ],
+      [
+       5,
+       6,
+       "blackcat",
+       "2025-05-15 04:04:09",
+       "2025-05-16 09:04:09"
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT status, COUNT(*) FROM orders GROUP BY status",
+     "columns": [
+      "status",
+      "COUNT(*)"
+     ],
+     "rows": [
+      [
+       0,
+       3003
+      ],
+      [
+       1,
+       3549
+      ],
+      [
+       2,
+       4870
+      ],
+      [
+       3,
+       39574
+      ],
+      [
+       9,
+       9004
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT order_id, COUNT(*) c FROM shipments GROUP BY order_id HAVING c>1 LIMIT 5",
+     "columns": [
+      "order_id",
+      "c"
+     ],
+     "rows": [],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT carrier, COUNT(*) n, MIN(shipped_ts) min_s, MAX(shipped_ts) max_s, SUM(delivered_ts IS NULL) null_deliv, SUM(shipped_ts IS NULL) null_ship FROM shipments GROUP BY carrier', 'columns': ['carrier', 'n', 'min_s', 'max_s', 'null_deliv', 'null_ship'], 'rows': [['blackcat', 19911, '2024-12-31 05:07:42', '2026-01-04 15:04:46', 2134, 0], ['hct', 11092, '2024-12-31 10:14:46', '2026-01-04 17:53:02', 1233, 0], ['post', 6635, '2024-12-31 04:11:32', '2026-01-04 00:08:37', 768, 0], ['sf', 6806, '2024-12-31 08:50:28', '2026-01-04 09:29:21', 735, 0]], 'truncated': False}, {'query': 'SELECT * FROM shipments LIMIT 5', 'columns': ['shipment_id', 'order_id', 'carrier', 'shipped_ts', 'delivered_ts'], 'rows': [[1, 1, 'post', '2025-05-29 05:32:55', '2025-06-03 18:32:55'], [2, 2, 'blackcat', '2025-06-03 17:04:51', '2025-06-06 13:04:51'], [3, 3, 'hct', '2025-09-28 09:46:07', '2025-09-29 19:46:07'], [4, 4, 'blackcat', '2025-04-12 17:13:13', '2025-04-14 18:13:13'], [5, 6, 'blackcat', '2025-05-15 04:04:09', '2025-05-16 09:04:09']], 'truncated': False}, {'query': 'SELECT status, COUNT(*) FROM orders GROUP BY status', 'columns': ['status', 'COUNT(*)'], 'rows': [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]], 'truncated': False}, {'query': 'SELECT order_id, COUNT(*) c FROM shipments GROUP BY order_id HAVING c>1 LIMIT 5', 'columns': ['order_id', 'c'], 'rows': [], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT COUNT(*) n, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.carrier='hct' AND s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours')>='2025-01-01' AND datetime(o.order_ts,'+8 hours')<'2026-01-01'",
+     "SELECT COUNT(*) n, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s WHERE s.carrier='hct' AND s.delivered_ts IS NOT NULL AND datetime(s.shipped_ts,'+8 hours')>='2025-01-01' AND datetime(s.shipped_ts,'+8 hours')<'2026-01-01'",
+     "SELECT o.status, COUNT(*) n, SUM(s.delivered_ts IS NULL) null_deliv, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.carrier='hct' GROUP BY o.status",
+     "SELECT MIN(julianday(delivered_ts)-julianday(shipped_ts)) mn, MAX(julianday(delivered_ts)-julianday(shipped_ts)) mx FROM shipments WHERE carrier='hct'"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT COUNT(*) n, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.carrier='hct' AND s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours')>='2025-01-01' AND datetime(o.order_ts,'+8 hours')<'2026-01-01'",
+     "columns": [
+      "n",
+      "avg_days"
+     ],
+     "rows": [
+      [
+       9795,
+       3.3369448698337334
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT COUNT(*) n, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s WHERE s.carrier='hct' AND s.delivered_ts IS NOT NULL AND datetime(s.shipped_ts,'+8 hours')>='2025-01-01' AND datetime(s.shipped_ts,'+8 hours')<'2026-01-01'",
+     "columns": [
+      "n",
+      "avg_days"
+     ],
+     "rows": [
+      [
+       9774,
+       3.3367863720091293
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT o.status, COUNT(*) n, SUM(s.delivered_ts IS NULL) null_deliv, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.carrier='hct' GROUP BY o.status",
+     "columns": [
+      "status",
+      "n",
+      "null_deliv",
+      "avg_days"
+     ],
+     "rows": [
+      [
+       2,
+       1233,
+       1233,
+       null
+      ],
+      [
+       3,
+       9859,
+       0,
+       3.3375595902240685
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT MIN(julianday(delivered_ts)-julianday(shipped_ts)) mn, MAX(julianday(delivered_ts)-julianday(shipped_ts)) mx FROM shipments WHERE carrier='hct'",
+     "columns": [
+      "mn",
+      "mx"
+     ],
+     "rows": [
+      [
+       1.25,
+       5.4166666669771075
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT COUNT(*) n, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.carrier='hct' AND s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours')>='2025-01-01' AND datetime(o.order_ts,'+8 hours')<'2026-01-01'\", 'columns': ['n', 'avg_days'], 'rows': [[9795, 3.3369448698337334]], 'truncated': False}, {'query': \"SELECT COUNT(*) n, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s WHERE s.carrier='hct' AND s.delivered_ts IS NOT NULL AND datetime(s.shipped_ts,'+8 hours')>='2025-01-01' AND datetime(s.shipped_ts,'+8 hours')<'2026-01-01'\", 'columns': ['n', 'avg_days'], 'rows': [[9774, 3.3367863720091293]], 'truncated': False}, {'query': \"SELECT o.status, COUNT(*) n, SUM(s.delivered_ts IS NULL) null_deliv, AVG(julianday(s.delivered_ts)-julianday(s.shipped_ts)) avg_days FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.carrier='hct' GROUP BY o.status\", 'columns': ['status', 'n', 'null_deliv', 'avg_days'], 'rows': [[2, 1233, 1233, None], [3, 9859, 0, 3.3375595902240685]], 'truncated': False}, {'query': \"SELECT MIN(julianday(delivered_ts)-julianday(shipped_ts)) mn, MAX(julianday(delivered_ts)-julianday(shipped_ts)) mx FROM shipments WHERE carrier='hct'\", 'columns': ['mn', 'mx'], 'rows': [[1.25, 5.4166666669771075]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "3.34",
+  "basis": "新竹物流對應 shipments.carrier='hct'；配送天數 = delivered_ts − shipped_ts（天），僅計已送達（delivered_ts 非空）的出貨。訂單以 order_ts 加 8 小時換算台北時間後歸屬 2025 年（排除 2024 與 2026 兩端），共 9,795 筆，平均 3.3369 天。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "T09",
+ "arm": "ontology",
+ "steps": 5,
+ "ended_by": "final"
+}

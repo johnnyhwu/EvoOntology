@@ -1,0 +1,805 @@
+[
+  {
+    "id": "con_valid_order_definition",
+    "target": "term_valid_order",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "有效訂單",
+      "有效訂單數",
+      "訂單張數",
+      "幾張訂單",
+      "多少張訂單",
+      "訂單數",
+      "valid order",
+      "valid orders",
+      "待付款不算",
+      "已取消不算",
+      "淨營收",
+      "客單價",
+      "回購",
+      "占比"
+    ],
+    "severity": "block",
+    "scope": "所有營收、客單價、訂單張數、回購與通路占比類分析",
+    "confidence": "high",
+    "description": "有效訂單指訂單狀態碼為 1（已付款）、2（已出貨）、3（已送達）的訂單。狀態 0（待付款）與 9（已取消）不是有效訂單。資料中待付款與已取消訂單沒有任何付款成功紀錄，與此定義互相佐證。",
+    "evidence": [
+      "ev_status_codes",
+      "ev_doc_valid_order",
+      "ev_status_payment_consistency"
+    ]
+  },
+  {
+    "id": "con_order_status_codes",
+    "target": "map_order_status",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "訂單狀態",
+      "待付款",
+      "已付款",
+      "已出貨",
+      "已送達",
+      "已取消",
+      "status",
+      "pending",
+      "cancelled",
+      "canceled",
+      "取消訂單",
+      "待出貨"
+    ],
+    "severity": "block",
+    "scope": "orders.status 的任何篩選或分類",
+    "confidence": "high",
+    "description": "orders.status 代碼意義：0 待付款、1 已付款、2 已出貨、3 已送達、9 已取消。資料中只出現這五個代碼，沒有文件未記載的狀態碼。",
+    "evidence": [
+      "ev_status_codes"
+    ]
+  },
+  {
+    "id": "con_pending_current_state",
+    "target": "map_pending_order",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "目前有多少張待付款",
+      "目前待付款",
+      "現在待付款",
+      "待付款的訂單",
+      "待付款訂單數",
+      "還沒付款",
+      "未付款訂單",
+      "pending orders"
+    ],
+    "severity": "block",
+    "scope": "詢問目前狀態的待付款訂單數量時",
+    "confidence": "medium",
+    "description": "待付款是訂單目前的狀態，詢問「目前」的數量時不限定任何期間。待付款訂單不是有效訂單，也沒有付款成功紀錄；失敗付款紀錄的存在不能代表訂單已付款。",
+    "evidence": [
+      "ev_status_codes",
+      "ev_status_payment_consistency",
+      "ev_failed_payment_orders"
+    ]
+  },
+  {
+    "id": "con_cancelled_order_period",
+    "target": "map_cancelled_order",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "已取消的訂單",
+      "取消訂單",
+      "取消了多少",
+      "多少張已取消",
+      "第四季已取消",
+      "cancelled orders",
+      "取消單"
+    ],
+    "severity": "block",
+    "scope": "計算特定期間的已取消訂單張數時",
+    "confidence": "high",
+    "description": "已取消訂單指狀態碼 9，不屬於有效訂單。期間依訂單成立時間並以台北時間（UTC+8）劃分，而非取消發生時間。",
+    "evidence": [
+      "ev_status_codes",
+      "ev_status_payment_consistency",
+      "ev_utc_shift_orders"
+    ]
+  },
+  {
+    "id": "con_tz_order_time",
+    "target": "map_order_time",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "2025年",
+      "2025 年",
+      "年度",
+      "月份",
+      "8月",
+      "3月",
+      "6月",
+      "9月",
+      "12月",
+      "第一季",
+      "第二季",
+      "第三季",
+      "第四季",
+      "季",
+      "台北時間",
+      "UTC",
+      "時區",
+      "期間",
+      "今年"
+    ],
+    "severity": "block",
+    "scope": "所有依訂單成立時間歸屬期間的分析（淨營收、客單價、訂單數、回購、通路占比、取消、銷量）",
+    "confidence": "high",
+    "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+    "evidence": [
+      "ev_doc_utc",
+      "ev_utc_shift_orders",
+      "ev_year_boundary"
+    ]
+  },
+  {
+    "id": "con_tz_paid_time",
+    "target": "map_paid_time",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "實收金額",
+      "付款時間",
+      "付款成功時間",
+      "收款",
+      "哪個月收",
+      "信用卡在2025年",
+      "2025年的實收",
+      "paid_ts",
+      "付款期間"
+    ],
+    "severity": "block",
+    "scope": "實收金額的期間歸屬",
+    "confidence": "high",
+    "description": "payments.paid_ts 以 UTC 儲存，實收金額的期間依付款成功時間換算為台北時間後歸屬，且付款成功時間的月份不一定與訂單成立時間的月份相同。",
+    "evidence": [
+      "ev_doc_utc",
+      "ev_payment_time_shift"
+    ]
+  },
+  {
+    "id": "con_tz_refund_time",
+    "target": "map_refund_time",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "退款金額",
+      "退款總計",
+      "退款時間",
+      "9月的退款",
+      "第二季的退款",
+      "12月的退款",
+      "退了多少",
+      "退款發生",
+      "refund_ts"
+    ],
+    "severity": "block",
+    "scope": "退款報表的期間歸屬",
+    "confidence": "high",
+    "description": "refunds.refund_ts 以 UTC 儲存，退款報表依退款發生時間換算為台北時間後歸屬期間。退款資料延伸到 2026 年 1 月，依退款時間不屬於 2025 年。",
+    "evidence": [
+      "ev_doc_utc",
+      "ev_refund_by_year",
+      "ev_refund_attribution_gap"
+    ]
+  },
+  {
+    "id": "con_refund_history_scope",
+    "target": "term_refund_time",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "歷史上",
+      "歷史",
+      "全期間",
+      "所有時間",
+      "有史以來",
+      "累計",
+      "哪個商品類別的退款金額最高"
+    ],
+    "severity": "warning",
+    "scope": "詢問「歷史上」或不限期間的退款統計時",
+    "confidence": "medium",
+    "description": "資料中的退款涵蓋 2025 年與 2026 年 1 月；「歷史上」若不限定期間，則包含 2026 年的退款。是否納入 2026 年需依問題語意明確判斷。",
+    "evidence": [
+      "ev_refund_by_year"
+    ]
+  },
+  {
+    "id": "con_amount_unit_cents",
+    "target": "map_item_amount_price",
+    "constraint_type": "unit",
+    "trigger_keywords": [
+      "金額",
+      "商品金額",
+      "營收",
+      "淨營收",
+      "客單價",
+      "單價",
+      "成交單價",
+      "unit_price_cents",
+      "分",
+      "TWD",
+      "新台幣",
+      "元"
+    ],
+    "severity": "block",
+    "scope": "order_items.unit_price_cents 與 TWD 欄位混合運算時",
+    "confidence": "high",
+    "description": "order_items.unit_price_cents 的單位是分（新台幣乘以 100），換算成 TWD 須除以 100。payments.amount_twd 與 refunds.refund_amount_twd 已是 TWD。與退款或實收金額相加減前必須先統一單位。每筆付款成功金額與該訂單明細金額換算後完全相符，可作為單位換算正確的對帳依據。",
+    "evidence": [
+      "ev_price_unit_cents",
+      "ev_payment_reconcile_items"
+    ]
+  },
+  {
+    "id": "con_price_already_discounted",
+    "target": "term_item_amount",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "優惠碼",
+      "折扣",
+      "九折",
+      "85折",
+      "WELCOME10",
+      "SUMMER15",
+      "標價",
+      "目錄價",
+      "list_price",
+      "成交單價",
+      "登山鞋",
+      "實際付的價格"
+    ],
+    "severity": "block",
+    "scope": "商品金額與營收類指標",
+    "confidence": "high",
+    "description": "商品金額為數量乘以成交單價。成交單價是客人實際支付的價格，已含折扣與優惠碼，不是商品目錄標價；不得再次套用優惠碼折扣，也不應使用 products.list_price_twd 代替。",
+    "evidence": [
+      "ev_coupon_discount",
+      "ev_doc_item_amount",
+      "ev_price_unit_cents"
+    ]
+  },
+  {
+    "id": "con_net_revenue_definition",
+    "target": "term_net_revenue",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "淨營收",
+      "淨收入",
+      "net revenue",
+      "營收",
+      "扣掉退款",
+      "扣除退款",
+      "淨銷售額",
+      "北部客戶淨營收",
+      "黃金會員淨營收",
+      "日本客戶淨營收",
+      "登山鞋淨營收"
+    ],
+    "severity": "block",
+    "scope": "所有淨營收問題",
+    "confidence": "high",
+    "description": "淨營收為期間內有效訂單的商品金額總和，扣除這些訂單對應的退款金額。期間依訂單成立時間（台北時間）歸屬，退款扣回其所屬原訂單，不看退款發生在哪個月。所有退款都屬於已送達的有效訂單，扣退款時不需額外排除非有效訂單。商品類別條件需經由明細連到商品。",
+    "evidence": [
+      "ev_doc_net_revenue",
+      "ev_refund_attribution_gap",
+      "ev_refund_only_valid_orders",
+      "ev_price_unit_cents"
+    ]
+  },
+  {
+    "id": "con_refund_report_attribution",
+    "target": "term_refund_amount",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "退款金額",
+      "退款總計",
+      "退款總額",
+      "退款",
+      "退了多少",
+      "refund amount",
+      "退款報表",
+      "因改變心意而退款"
+    ],
+    "severity": "block",
+    "scope": "退款報表類問題",
+    "confidence": "high",
+    "description": "退款報表的期間依退款發生時間（台北時間）歸屬，與淨營收依原訂單成立時間歸屬不同。退款發生月份與原訂單月份經常不同（含跨年），兩個指標不可混用。",
+    "evidence": [
+      "ev_refund_attribution_gap",
+      "ev_refund_by_year",
+      "ev_refund_item_level"
+    ]
+  },
+  {
+    "id": "con_aov_definition",
+    "target": "term_avg_order_value",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "客單價",
+      "AOV",
+      "平均訂單金額",
+      "平均客單價",
+      "客單",
+      "average order value",
+      "官網通路客單價",
+      "一般會員客單價",
+      "黃金會員客單價"
+    ],
+    "severity": "block",
+    "scope": "所有客單價問題",
+    "confidence": "high",
+    "description": "客單價為期間內有效訂單的商品金額總和（不扣退款）除以有效訂單張數。期間依訂單成立時間（台北時間）歸屬。訂單與明細為一對多，分母是不重複的訂單張數，而不是明細列數。",
+    "evidence": [
+      "ev_multi_item_orders",
+      "ev_price_unit_cents",
+      "ev_doc_item_amount"
+    ]
+  },
+  {
+    "id": "con_order_count_unit",
+    "target": "map_order_id",
+    "constraint_type": "data_quality",
+    "trigger_keywords": [
+      "多少張",
+      "有效訂單",
+      "訂單張數",
+      "訂單數",
+      "幾張",
+      "張數",
+      "共有多少張",
+      "orders count"
+    ],
+    "severity": "block",
+    "scope": "訂單張數計算",
+    "confidence": "high",
+    "description": "訂單與訂單明細是一對多關係，多明細訂單佔相當比例。訂單張數必須以不重複的訂單編號為單位，明細列數會高估訂單數。所有訂單至少有一筆明細。",
+    "evidence": [
+      "ev_multi_item_orders"
+    ]
+  },
+  {
+    "id": "con_repeat_customer_definition",
+    "target": "term_repeat_customer",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "回購客戶",
+      "回購",
+      "回頭客",
+      "回購客戶數",
+      "幾位回購",
+      "repeat customer",
+      "repeat buyers",
+      "回購率",
+      "北部客戶回購"
+    ],
+    "severity": "block",
+    "scope": "所有回購客戶問題",
+    "confidence": "high",
+    "description": "回購客戶指某一年度（台北時間）內有效訂單達 2 張（含）以上的客戶，是客戶層級指標，以不重複客戶計數，不能用訂單張數代替。回購客戶占比的分母為該年度有下過有效訂單的客戶。依地區篩選時，地區取自客戶資料。",
+    "evidence": [
+      "ev_doc_repeat_customer",
+      "ev_repeat_customers",
+      "ev_dim_region_tier"
+    ]
+  },
+  {
+    "id": "con_region_codes",
+    "target": "map_region",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "北部",
+      "中部",
+      "南部",
+      "日本",
+      "新加坡",
+      "北部客戶",
+      "日本客戶",
+      "地區",
+      "region",
+      "TW-N",
+      "TW-C",
+      "TW-S",
+      "JP",
+      "SG"
+    ],
+    "severity": "block",
+    "scope": "依客戶地區篩選或分類",
+    "confidence": "high",
+    "description": "customers.region_code 代碼意義：TW-N 北部、TW-C 中部、TW-S 南部、JP 日本、SG 新加坡。地區屬於客戶，訂單須經客戶編號連到客戶才能依地區歸類。",
+    "evidence": [
+      "ev_dim_region_tier"
+    ]
+  },
+  {
+    "id": "con_tier_codes",
+    "target": "map_tier",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "一般會員",
+      "銀級會員",
+      "黃金會員",
+      "會員等級",
+      "tier",
+      "B",
+      "S",
+      "G",
+      "黃金",
+      "銀級",
+      "VIP"
+    ],
+    "severity": "block",
+    "scope": "依客戶會員等級篩選或分類",
+    "confidence": "high",
+    "description": "customers.tier 代碼意義：B 一般會員、S 銀級會員、G 黃金會員。會員等級屬於客戶，訂單須經客戶編號連到客戶才能依等級歸類。",
+    "evidence": [
+      "ev_dim_region_tier"
+    ]
+  },
+  {
+    "id": "con_channel_codes",
+    "target": "map_channel",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "官網",
+      "行動 App",
+      "行動App",
+      "App",
+      "實體門市",
+      "門市",
+      "通路",
+      "channel",
+      "web",
+      "app",
+      "store",
+      "下單通路"
+    ],
+    "severity": "block",
+    "scope": "依下單通路篩選或分類",
+    "confidence": "high",
+    "description": "orders.channel 代碼意義：web 官網、app 行動 App、store 實體門市。資料中只有這三個值。",
+    "evidence": [
+      "ev_channel_values"
+    ]
+  },
+  {
+    "id": "con_channel_share_definition",
+    "target": "term_channel_share",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "占比",
+      "佔比",
+      "比例",
+      "百分比",
+      "%",
+      "透過行動 App 下單的占比",
+      "實體門市的占比",
+      "channel share",
+      "下單占比"
+    ],
+    "severity": "block",
+    "scope": "通路占比類問題",
+    "confidence": "high",
+    "description": "通路占比的分子是指定通路的有效訂單張數，分母是同一台北時間期間的有效訂單總張數，不是全部訂單，也不是金額占比。",
+    "evidence": [
+      "ev_channel_values",
+      "ev_status_codes"
+    ]
+  },
+  {
+    "id": "con_payment_ok_only",
+    "target": "map_received_amount",
+    "constraint_type": "data_quality",
+    "trigger_keywords": [
+      "實收金額",
+      "實收",
+      "收款金額",
+      "付款成功",
+      "付款失敗",
+      "重試",
+      "amount_twd",
+      "哪一種付款方式",
+      "信用卡的實收"
+    ],
+    "severity": "block",
+    "scope": "實收金額與付款方式的加總",
+    "confidence": "high",
+    "description": "付款紀錄包含失敗重試產生的額外列，失敗紀錄會出現在待付款、已取消，也可能出現在後來付款成功的訂單上。實收金額只計付款狀態為 ok 的紀錄，每張訂單至多一筆成功紀錄；不能以「有付款紀錄」判斷訂單已付款或金額已收到。",
+    "evidence": [
+      "ev_payment_single_ok",
+      "ev_failed_payment_orders"
+    ]
+  },
+  {
+    "id": "con_received_amount_attribution",
+    "target": "term_received_amount",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "實收金額",
+      "實收",
+      "付款方式",
+      "信用卡",
+      "LINE Pay",
+      "ATM",
+      "貨到付款",
+      "收款",
+      "paid amount"
+    ],
+    "severity": "block",
+    "scope": "實收金額類問題",
+    "confidence": "high",
+    "description": "實收金額的期間依付款成功時間（台北時間）歸屬，而非訂單成立時間，因此與以訂單時間歸屬的營收是不同指標，且不扣退款。付款金額已是 TWD。",
+    "evidence": [
+      "ev_payment_time_shift",
+      "ev_payment_reconcile_items",
+      "ev_payment_single_ok"
+    ]
+  },
+  {
+    "id": "con_payment_method_codes",
+    "target": "map_payment_method",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "付款方式",
+      "信用卡",
+      "LINE Pay",
+      "ATM 轉帳",
+      "ATM",
+      "貨到付款",
+      "credit_card",
+      "line_pay",
+      "atm",
+      "cod",
+      "method"
+    ],
+    "severity": "block",
+    "scope": "依付款方式篩選或分類",
+    "confidence": "high",
+    "description": "payments.method 代碼意義：credit_card 信用卡、line_pay LINE Pay、atm ATM 轉帳、cod 貨到付款。資料中只有這四個值。",
+    "evidence": [
+      "ev_payment_method_amount"
+    ]
+  },
+  {
+    "id": "con_refund_reason_codes",
+    "target": "map_refund_reason",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "退款原因",
+      "改變心意",
+      "商品瑕疵",
+      "寄錯商品",
+      "配送延遲",
+      "因改變心意而退款",
+      "reason_code",
+      "R1",
+      "R2",
+      "R3",
+      "R4"
+    ],
+    "severity": "block",
+    "scope": "依退款原因篩選或分類",
+    "confidence": "high",
+    "description": "refunds.reason_code 代碼意義：R1 商品瑕疵、R2 改變心意、R3 寄錯商品、R4 配送延遲。資料中只有這四個值。",
+    "evidence": [
+      "ev_reason_codes"
+    ]
+  },
+  {
+    "id": "con_category_via_item",
+    "target": "term_product_category",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "商品類別",
+      "類別",
+      "哪個商品類別",
+      "登山鞋",
+      "登山背包",
+      "帳篷",
+      "機能服飾",
+      "配件",
+      "backpack",
+      "tent",
+      "shoes",
+      "apparel",
+      "accessory",
+      "category"
+    ],
+    "severity": "block",
+    "scope": "依商品類別歸類銷售、營收或退款",
+    "confidence": "high",
+    "description": "商品類別只存在於商品資料。退款以明細為單位，須透過退款對應的明細所屬商品才能歸入類別；銷售與營收同樣以明細的商品歸類。類別代碼：backpack 登山背包、tent 帳篷、shoes 登山鞋、apparel 機能服飾、accessory 配件。",
+    "evidence": [
+      "ev_refund_category",
+      "ev_refund_item_level"
+    ]
+  },
+  {
+    "id": "con_product_active_current",
+    "target": "map_product_active",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "在售",
+      "仍在售",
+      "目前仍在售",
+      "目前在售",
+      "在售商品",
+      "已下架",
+      "下架",
+      "上架",
+      "is_active"
+    ],
+    "severity": "block",
+    "scope": "詢問在售商品的銷售排名時",
+    "confidence": "high",
+    "description": "products.is_active 為 1 表示目前在售，0 表示已下架。此欄位反映目前狀態而非銷售當時狀態；已下架商品在歷史有效訂單中仍有大量銷量，詢問在售商品的銷量時必須依此欄位限定商品範圍。",
+    "evidence": [
+      "ev_product_active"
+    ]
+  },
+  {
+    "id": "con_sales_quantity_definition",
+    "target": "term_sales_quantity",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "銷售數量",
+      "銷量",
+      "銷售量",
+      "賣最多",
+      "銷售數量最多",
+      "件數",
+      "quantity",
+      "第四季銷售數量"
+    ],
+    "severity": "block",
+    "scope": "商品銷量排名",
+    "confidence": "high",
+    "description": "銷售數量為有效訂單明細的數量總和，不含待付款與已取消訂單，期間依訂單成立時間（台北時間）歸屬，依商品歸類。",
+    "evidence": [
+      "ev_product_active",
+      "ev_status_codes",
+      "ev_utc_shift_orders"
+    ]
+  },
+  {
+    "id": "con_region_ranking_definition",
+    "target": "term_region_ranking",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "淨營收最高的地區",
+      "哪個地區",
+      "最高的地區",
+      "各地區淨營收",
+      "地區營收",
+      "地區排名",
+      "region revenue"
+    ],
+    "severity": "block",
+    "scope": "地區間淨營收比較",
+    "confidence": "medium",
+    "description": "地區比較使用淨營收的定義（有效訂單商品金額扣除原訂單退款，依訂單成立時間的台北時間歸屬），地區取自下單客戶的地區代碼。",
+    "evidence": [
+      "ev_dim_region_tier",
+      "ev_doc_net_revenue",
+      "ev_refund_attribution_gap"
+    ]
+  },
+  {
+    "id": "con_refund_only_delivered",
+    "target": "term_refund",
+    "constraint_type": "data_quality",
+    "trigger_keywords": [
+      "退款",
+      "退貨",
+      "refund",
+      "退款訂單",
+      "已送達退款"
+    ],
+    "severity": "info",
+    "scope": "退款與訂單狀態的關係",
+    "confidence": "high",
+    "description": "資料中所有退款都對應狀態為已送達的訂單，沒有出現在待付款或已取消訂單上。退款金額不超過所屬明細金額，單位為 TWD。",
+    "evidence": [
+      "ev_refund_only_valid_orders",
+      "ev_refund_item_level"
+    ]
+  },
+  {
+    "id": "con_cancellation_rate_definition",
+    "target": "term_cancellation_rate",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "取消率",
+      "取消比例",
+      "取消比率",
+      "取消占比",
+      "cancellation rate",
+      "cancel rate",
+      "取消的比例"
+    ],
+    "severity": "block",
+    "scope": "期間依訂單成立時間（台北時間）",
+    "confidence": "high",
+    "description": "取消率 = 已取消訂單 ÷（有效訂單 + 已取消訂單）。分母不含待付款訂單，也不是全部訂單。期間依訂單成立時間（台北時間）歸屬，不依取消發生時間。",
+    "evidence": [
+      "ev_doc_cancel_rate"
+    ]
+  },
+  {
+    "id": "con_delivery_days_definition",
+    "target": "term_delivery_days",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "配送天數",
+      "送達天數",
+      "平均配送",
+      "配送時間",
+      "運送天數",
+      "出貨到送達",
+      "delivery days"
+    ],
+    "severity": "block",
+    "scope": "已送達的出貨紀錄；期間依訂單成立時間（台北時間）",
+    "confidence": "high",
+    "description": "配送天數 = 送達時間減出貨時間，以天計，可含小數。只計算已送達的出貨紀錄。期間依所屬訂單的成立時間（台北時間）歸屬，不依出貨或送達時間。資料可計算，不應回答無法計算。",
+    "evidence": [
+      "ev_doc_delivery_days",
+      "ev_delivery_days",
+      "ev_shipment_coverage"
+    ]
+  },
+  {
+    "id": "con_on_time_rate_definition",
+    "target": "term_on_time_rate",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "準時送達",
+      "準時送達率",
+      "準時率",
+      "準時到貨",
+      "3天內",
+      "三天內",
+      "72小時",
+      "on-time",
+      "on time"
+    ],
+    "severity": "block",
+    "scope": "已送達的出貨紀錄；期間依訂單成立時間（台北時間）",
+    "confidence": "high",
+    "description": "準時送達指配送天數在 3 天（72 小時）以內，邊界含 3 天。準時送達率 = 準時送達的出貨 ÷ 已送達的出貨；分母只含已送達出貨。期間依所屬訂單的成立時間（台北時間）歸屬。",
+    "evidence": [
+      "ev_doc_on_time",
+      "ev_doc_delivery_days"
+    ]
+  },
+  {
+    "id": "con_carrier_codes",
+    "target": "map_carrier",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "物流",
+      "物流商",
+      "物流公司",
+      "carrier",
+      "黑貓",
+      "黑貓宅急便",
+      "新竹物流",
+      "順豐",
+      "中華郵政",
+      "blackcat",
+      "hct",
+      "sf",
+      "post"
+    ],
+    "severity": "block",
+    "scope": "shipments.carrier",
+    "confidence": "high",
+    "description": "shipments.carrier 代碼意義：blackcat 黑貓宅急便、hct 新竹物流、sf 順豐、post 中華郵政。",
+    "evidence": [
+      "ev_doc_carrier_codes"
+    ]
+  }
+]

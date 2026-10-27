@@ -1,0 +1,349 @@
+{
+ "task_id": "task_f0d701a7e35f",
+ "question": "黑貓宅急便 2025 年第一季的準時送達率是多少？",
+ "ontology_version": "v0-c1",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "準時送達率",
+     "黑貓宅急便"
+    ],
+    "context": "黑貓宅急便 2025 年第一季的準時送達率是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "準時送達率",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '準時送達率'",
+      "term": {
+       "id": "term_on_time_rate",
+       "type": "metric",
+       "name": "準時送達率",
+       "aliases": [
+        "準時送達率",
+        "準時送達",
+        "準時率",
+        "on-time rate",
+        "on time delivery",
+        "3天內送達",
+        "三天內送達",
+        "準時到貨"
+       ],
+       "definition": "準時送達的出貨 ÷ 已送達的出貨；準時指配送天數在 3 天（72 小時）以內（含 3 天）。",
+       "scope": "只含已送達的出貨紀錄；期間依訂單成立時間（台北時間）歸屬。",
+       "evidence_refs": [
+        "ev_doc_on_time"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_on_time_rate_delivered_ts",
+        "term_id": "term_on_time_rate",
+        "table": "shipments",
+        "column": "delivered_ts",
+        "semantic_filter": "分母為已送達出貨；分子為配送天數 ≤ 3 天",
+        "aggregation_semantics": "準時出貨筆數除以已送達出貨筆數",
+        "grain": "shipment",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_on_time_from_delivery_days",
+        "relation_type": "derivation",
+        "source": "term_on_time_rate",
+        "target": "term_delivery_days",
+        "connection_condition": "",
+        "evidence_refs": [
+         "ev_doc_on_time"
+        ]
+       }
+      ],
+      "constraints": [
+       {
+        "id": "con_on_time_rate_definition",
+        "severity": "block",
+        "description": "準時送達指配送天數在 3 天（72 小時）以內，邊界含 3 天。準時送達率 = 準時送達的出貨 ÷ 已送達的出貨；分母只含已送達出貨。期間依所屬訂單的成立時間（台北時間）歸屬。",
+        "evidence_refs": [
+         "ev_doc_on_time",
+         "ev_doc_delivery_days"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_doc_on_time",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "配送天數在 3 天（72 小時）以內。準時送達率 = 準時送達的出貨 ÷ 已送達的出貨。 | 解讀: 文件明確定義準時送達的門檻（含 3 天）與準時送達率的分子分母。",
+        "validation_method": "document_quote",
+        "timestamp": "2026-10-27T00:35:38Z"
+       },
+       {
+        "id": "ev_doc_delivery_days",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "送達時間 − 出貨時間，以天計，可含小數。只計算已送達的出貨紀錄。期間依訂單成立時間歸屬。 | 解讀: 文件明確定義配送天數的計算方式、適用範圍與期間歸屬。",
+        "validation_method": "document_quote",
+        "timestamp": "2026-10-27T00:35:38Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "黑貓宅急便",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact alias match: term '物流商'",
+      "term": {
+       "id": "term_carrier",
+       "type": "dimension",
+       "name": "物流商",
+       "aliases": [
+        "carrier",
+        "物流商",
+        "物流公司",
+        "黑貓",
+        "黑貓宅急便",
+        "新竹物流",
+        "順豐",
+        "中華郵政",
+        "blackcat",
+        "hct",
+        "sf",
+        "post"
+       ],
+       "definition": "shipments.carrier 的代碼：blackcat 黑貓宅急便、hct 新竹物流、sf 順豐、post 中華郵政。",
+       "scope": "出貨紀錄層級的維度。",
+       "evidence_refs": [
+        "ev_doc_carrier_codes"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_carrier",
+        "term_id": "term_carrier",
+        "table": "shipments",
+        "column": "carrier",
+        "semantic_filter": "",
+        "aggregation_semantics": "",
+        "grain": "shipment",
+        "evidence_refs": []
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_doc_carrier_codes",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "shipments.carrier | blackcat | 黑貓宅急便 | 解讀: 文件的代碼對照表列出 shipments.carrier 的代碼與中文名稱。",
+        "validation_method": "document_quote",
+        "timestamp": "2026-10-27T00:35:38Z"
+       }
+      ],
+      "coverage_status": "supported"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "v0-c1",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT s.shipment_id, s.carrier, s.shipped_ts, s.delivered_ts, o.order_ts, o.status FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' LIMIT 10",
+     "SELECT carrier, COUNT(*) AS n, SUM(CASE WHEN delivered_ts IS NULL THEN 1 ELSE 0 END) AS undelivered FROM shipments GROUP BY carrier"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT s.shipment_id, s.carrier, s.shipped_ts, s.delivered_ts, o.order_ts, o.status FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' LIMIT 10",
+     "columns": [
+      "shipment_id",
+      "carrier",
+      "shipped_ts",
+      "delivered_ts",
+      "order_ts",
+      "status"
+     ],
+     "rows": [
+      [
+       2,
+       "blackcat",
+       "2025-06-03 17:04:51",
+       "2025-06-06 13:04:51",
+       "2025-06-01 06:04:51",
+       3
+      ],
+      [
+       4,
+       "blackcat",
+       "2025-04-12 17:13:13",
+       "2025-04-14 18:13:13",
+       "2025-04-09 20:13:13",
+       3
+      ],
+      [
+       5,
+       "blackcat",
+       "2025-05-15 04:04:09",
+       "2025-05-16 09:04:09",
+       "2025-05-11 07:04:09",
+       3
+      ],
+      [
+       11,
+       "blackcat",
+       "2025-09-20 03:28:04",
+       "2025-09-22 00:28:04",
+       "2025-09-16 08:28:04",
+       3
+      ],
+      [
+       12,
+       "blackcat",
+       "2025-05-30 22:49:46",
+       "2025-06-01 07:49:46",
+       "2025-05-28 22:49:46",
+       3
+      ],
+      [
+       14,
+       "blackcat",
+       "2025-12-01 22:26:16",
+       null,
+       "2025-11-29 18:26:16",
+       2
+      ],
+      [
+       16,
+       "blackcat",
+       "2025-08-29 14:14:59",
+       null,
+       "2025-08-25 23:14:59",
+       2
+      ],
+      [
+       18,
+       "blackcat",
+       "2025-03-26 21:44:58",
+       "2025-03-30 02:44:58",
+       "2025-03-24 10:44:58",
+       3
+      ],
+      [
+       19,
+       "blackcat",
+       "2025-05-14 00:01:00",
+       "2025-05-15 18:01:00",
+       "2025-05-11 19:01:00",
+       3
+      ],
+      [
+       21,
+       "blackcat",
+       "2025-06-14 17:22:11",
+       "2025-06-16 20:22:11",
+       "2025-06-12 10:22:11",
+       3
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT carrier, COUNT(*) AS n, SUM(CASE WHEN delivered_ts IS NULL THEN 1 ELSE 0 END) AS undelivered FROM shipments GROUP BY carrier",
+     "columns": [
+      "carrier",
+      "n",
+      "undelivered"
+     ],
+     "rows": [
+      [
+       "blackcat",
+       19911,
+       2134
+      ],
+      [
+       "hct",
+       11092,
+       1233
+      ],
+      [
+       "post",
+       6635,
+       768
+      ],
+      [
+       "sf",
+       6806,
+       735
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT s.shipment_id, s.carrier, s.shipped_ts, s.delivered_ts, o.order_ts, o.status FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' LIMIT 10\", 'columns': ['shipment_id', 'carrier', 'shipped_ts', 'delivered_ts', 'order_ts', 'status'], 'rows': [[2, 'blackcat', '2025-06-03 17:04:51', '2025-06-06 13:04:51', '2025-06-01 06:04:51', 3], [4, 'blackcat', '2025-04-12 17:13:13', '2025-04-14 18:13:13', '2025-04-09 20:13:13', 3], [5, 'blackcat', '2025-05-15 04:04:09', '2025-05-16 09:04:09', '2025-05-11 07:04:09', 3], [11, 'blackcat', '2025-09-20 03:28:04', '2025-09-22 00:28:04', '2025-09-16 08:28:04', 3], [12, 'blackcat', '2025-05-30 22:49:46', '2025-06-01 07:49:46', '2025-05-28 22:49:46', 3], [14, 'blackcat', '2025-12-01 22:26:16', None, '2025-11-29 18:26:16', 2], [16, 'blackcat', '2025-08-29 14:14:59', None, '2025-08-25 23:14:59', 2], [18, 'blackcat', '2025-03-26 21:44:58', '2025-03-30 02:44:58', '2025-03-24 10:44:58', 3], [19, 'blackcat', '2025-05-14 00:01:00', '2025-05-15 18:01:00', '2025-05-11 19:01:00', 3], [21, 'blackcat', '2025-06-14 17:22:11', '2025-06-16 20:22:11', '2025-06-12 10:22:11', 3]], 'truncated': False}, {'query': 'SELECT carrier, COUNT(*) AS n, SUM(CASE WHEN delivered_ts IS NULL THEN 1 ELSE 0 END) AS undelivered FROM shipments GROUP BY carrier', 'columns': ['carrier', 'n', 'undelivered'], 'rows': [['blackcat', 19911, 2134], ['hct', 11092, 1233], ['post', 6635, 768], ['sf', 6806, 735]], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT COUNT(*) AS delivered_n, SUM(CASE WHEN julianday(s.delivered_ts) - julianday(s.shipped_ts) <= 3.0 THEN 1 ELSE 0 END) AS on_time_n, ROUND(100.0 * SUM(CASE WHEN julianday(s.delivered_ts) - julianday(s.shipped_ts) <= 3.0 THEN 1 ELSE 0 END) / COUNT(*), 2) AS on_time_rate, SUM(CASE WHEN julianday(s.delivered_ts) < julianday(s.shipped_ts) THEN 1 ELSE 0 END) AS negative_days_n, MIN(o.order_ts) AS min_order_ts, MAX(o.order_ts) AS max_order_ts FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' AND s.delivered_ts IS NOT NULL AND o.order_ts >= '2025-01-01' AND o.order_ts < '2025-04-01'"
+   },
+   "result": {
+    "columns": [
+     "delivered_n",
+     "on_time_n",
+     "on_time_rate",
+     "negative_days_n",
+     "min_order_ts",
+     "max_order_ts"
+    ],
+    "rows": [
+     [
+      4491,
+      3015,
+      67.13,
+      0,
+      "2025-01-01 00:44:10",
+      "2025-03-31 23:35:26"
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['delivered_n', 'on_time_n', 'on_time_rate', 'negative_days_n', 'min_order_ts', 'max_order_ts'], 'rows': [[4491, 3015, 67.13, 0, '2025-01-01 00:44:10', '2025-03-31 23:35:26']], 'truncated': False}"
+  }
+ ],
+ "final_answer": {
+  "answer": "67.13",
+  "basis": "依語意層定義，準時送達率 = 配送天數（送達−出貨，含小數）≤ 3 天的出貨筆數 ÷ 已送達出貨筆數，分母只含已送達紀錄，期間依訂單成立時間歸屬。篩選 shipments.carrier = 'blackcat'（黑貓宅急便）且 orders.order_ts 落在 2025-01-01 至 2025-03-31，得到 3015 / 4491 = 67.13%，且無送達早於出貨的異常資料。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S31",
+ "arm": "ontology",
+ "steps": 5,
+ "ended_by": "final"
+}

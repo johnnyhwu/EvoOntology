@@ -1,0 +1,165 @@
+[
+ {
+  "round": 1,
+  "rep": 1,
+  "original": {
+   "accept": true,
+   "candidate_wins": 5,
+   "parent_wins": 1,
+   "ties": 6,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "rejudged": {
+   "accept": true,
+   "candidate_wins": 6,
+   "parent_wins": 1,
+   "ties": 5,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "changed": [
+   {
+    "case": "rep1:S34",
+    "from": "tie",
+    "to": "tie",
+    "critical_error": false
+   },
+   {
+    "case": "rep1:S36",
+    "from": "tie",
+    "to": "candidate",
+    "critical_error": false
+   }
+  ]
+ },
+ {
+  "round": 1,
+  "rep": 2,
+  "original": {
+   "accept": false,
+   "candidate_wins": 2,
+   "parent_wins": 4,
+   "ties": 6,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "rejudged": {
+   "accept": false,
+   "candidate_wins": 3,
+   "parent_wins": 4,
+   "ties": 5,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "changed": [
+   {
+    "case": "rep2:S31",
+    "from": "tie",
+    "to": "candidate",
+    "critical_error": false
+   },
+   {
+    "case": "rep2:S39",
+    "from": "tie",
+    "to": "tie",
+    "critical_error": false
+   }
+  ]
+ },
+ {
+  "round": 1,
+  "pooled_rejudged": {
+   "accept": true,
+   "candidate_wins": 9,
+   "parent_wins": 5,
+   "ties": 10,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "regression_rule_triggers": true,
+  "pooled_original": {
+   "accept": true,
+   "candidate_wins": 7,
+   "parent_wins": 5,
+   "ties": 12,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  }
+ },
+ {
+  "round": 2,
+  "rep": 1,
+  "original": {
+   "accept": true,
+   "candidate_wins": 4,
+   "parent_wins": 1,
+   "ties": 7,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "rejudged": {
+   "accept": true,
+   "candidate_wins": 4,
+   "parent_wins": 1,
+   "ties": 7,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "changed": [
+   {
+    "case": "rep1:S36",
+    "from": "tie",
+    "to": "tie",
+    "critical_error": false
+   },
+   {
+    "case": "rep1:S40",
+    "from": "tie",
+    "to": "tie",
+    "critical_error": false
+   }
+  ]
+ },
+ {
+  "round": 2,
+  "rep": 2,
+  "original": {
+   "accept": true,
+   "candidate_wins": 7,
+   "parent_wins": 4,
+   "ties": 1,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "rejudged": {
+   "accept": true,
+   "candidate_wins": 7,
+   "parent_wins": 4,
+   "ties": 1,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "changed": []
+ },
+ {
+  "round": 2,
+  "pooled_rejudged": {
+   "accept": true,
+   "candidate_wins": 11,
+   "parent_wins": 5,
+   "ties": 8,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  },
+  "regression_rule_triggers": true,
+  "pooled_original": {
+   "accept": true,
+   "candidate_wins": 11,
+   "parent_wins": 5,
+   "ties": 8,
+   "candidate_critical_errors": 0,
+   "protocol": "llm_judge"
+  }
+ }
+]

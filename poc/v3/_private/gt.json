@@ -1,0 +1,450 @@
+{
+ "S01": {
+  "family": "aov",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 9592.54,
+  "sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-10-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE tier='G')) SELECT ROUND(SUM(oi.quantity*oi.unit_price_cents)/100.0/COUNT(DISTINCT vo.order_id),2) FROM vo JOIN order_items oi ON oi.order_id=vo.order_id",
+  "question": "黃金會員在 2025 年第四季的客單價是多少？"
+ },
+ "S02": {
+  "family": "ontime",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 42.6,
+  "sql": "SELECT ROUND(100.0*SUM((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))<=259200)/COUNT(*),1) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND s.carrier='hct'",
+  "question": "新竹物流 2025 年的準時送達率是多少？"
+ },
+ "S03": {
+  "family": "ontime",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 25.5,
+  "sql": "SELECT ROUND(100.0*SUM((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))<=259200)/COUNT(*),1) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND s.carrier='post'",
+  "question": "中華郵政在 2025 年的準時送達率是多少？"
+ },
+ "S04": {
+  "family": "cancel_rate",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 16.8,
+  "sql": "SELECT ROUND(100.0*SUM(o.status=9)/SUM(o.status IN (1,2,3,9)),1) FROM orders o WHERE datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-04-01' AND o.channel='web'",
+  "question": "官網通路在 2025 年第一季的取消率是多少？"
+ },
+ "S05": {
+  "family": "cancel_rate",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 18.0,
+  "sql": "SELECT ROUND(100.0*SUM(o.status=9)/SUM(o.status IN (1,2,3,9)),1) FROM orders o WHERE datetime(o.order_ts,'+8 hours') >= '2025-08-01' AND datetime(o.order_ts,'+8 hours') < '2025-09-01' AND o.channel='store'",
+  "question": "2025 年 8 月門市通路的取消率？"
+ },
+ "S06": {
+  "family": "ship_days",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 1.98,
+  "sql": "SELECT ROUND(AVG((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))/86400.0),2) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' AND s.carrier='sf'",
+  "question": "順豐在 2025 年上半年的平均配送天數是多少？"
+ },
+ "S07": {
+  "family": "ship_days",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 2.49,
+  "sql": "SELECT ROUND(AVG((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))/86400.0),2) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND s.carrier='blackcat'",
+  "question": "黑貓宅急便在 2025 年的平均配送天數是多少？"
+ },
+ "S08": {
+  "family": "ship_days",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 2.92,
+  "sql": "SELECT ROUND(AVG((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))/86400.0),2) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-10-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'",
+  "question": "2025 年第四季的平均配送天數是多少？"
+ },
+ "S09": {
+  "family": "new_customers",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 638,
+  "sql": "SELECT COUNT(*) FROM customers WHERE signup_date >= '2025-01-01' AND signup_date < '2026-01-01' AND region_code='TW-N'",
+  "question": "北部客戶在 2025 年新註冊的有幾位？"
+ },
+ "S10": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 1991,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-11-01' AND datetime(o.order_ts,'+8 hours') < '2025-12-01' AND o.channel='web'",
+  "question": "2025 年 11 月官網下單的有效訂單數？"
+ },
+ "S11": {
+  "family": "coupon",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 625,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND o.coupon_code='SUMMER15' AND datetime(o.order_ts,'+8 hours') >= '2025-07-01' AND datetime(o.order_ts,'+8 hours') < '2025-08-01'",
+  "question": "2025 年 7 月使用 SUMMER15 的有效訂單數？"
+ },
+ "S12": {
+  "family": "net_revenue",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 20989808.0,
+  "sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-04-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE region_code='TW-S')) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)",
+  "question": "南部客戶在 2025 年第二季的淨營收是多少？"
+ },
+ "S13": {
+  "family": "new_customers",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 176,
+  "sql": "SELECT COUNT(*) FROM customers WHERE signup_date >= '2025-01-01' AND signup_date < '2026-01-01' AND region_code='JP'",
+  "question": "日本地區 2025 年新註冊客戶數是多少？"
+ },
+ "S14": {
+  "family": "ontime",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 57.6,
+  "sql": "SELECT ROUND(100.0*SUM((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))<=259200)/COUNT(*),1) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-07-01' AND datetime(o.order_ts,'+8 hours') < '2025-10-01'",
+  "question": "2025 年第三季整體準時送達率？"
+ },
+ "S15": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 11823,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-07-01' AND datetime(o.order_ts,'+8 hours') < '2025-10-01' ",
+  "question": "2025 年第三季（依成立日期）有效訂單共幾筆？"
+ },
+ "S16": {
+  "family": "pending_ship",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 3549,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status=1 ",
+  "question": "目前待出貨的訂單有幾張？"
+ },
+ "S17": {
+  "family": "cancel_rate",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 16.2,
+  "sql": "SELECT ROUND(100.0*SUM(o.status=9)/SUM(o.status IN (1,2,3,9)),1) FROM orders o WHERE datetime(o.order_ts,'+8 hours') >= '2025-10-01' AND datetime(o.order_ts,'+8 hours') < '2025-11-01' AND o.channel='app'",
+  "question": "App 通路 2025 年 10 月的訂單取消率？"
+ },
+ "S18": {
+  "family": "coupon",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 7004,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND o.coupon_code='WELCOME10' AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'",
+  "question": "2025 年使用 WELCOME10 優惠碼的有效訂單有幾張？"
+ },
+ "S19": {
+  "family": "cancel_rate",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 15.7,
+  "sql": "SELECT ROUND(100.0*SUM(o.status=9)/SUM(o.status IN (1,2,3,9)),1) FROM orders o WHERE datetime(o.order_ts,'+8 hours') >= '2025-06-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' ",
+  "question": "2025 年 6 月的取消率是多少？"
+ },
+ "S20": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 3936,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-07-01' AND datetime(o.order_ts,'+8 hours') < '2025-08-01' ",
+  "question": "2025 年 7 月下單的有效訂單有幾張？"
+ },
+ "S21": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 3914,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-09-01' AND datetime(o.order_ts,'+8 hours') < '2025-10-01' ",
+  "question": "訂單日期落在 2025 年 9 月的有效訂單數是多少？"
+ },
+ "S22": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 653,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-06-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' AND o.channel='store'",
+  "question": "門市 2025 年 6 月成立的有效訂單有幾張？"
+ },
+ "S23": {
+  "family": "new_customers",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 409,
+  "sql": "SELECT COUNT(*) FROM customers WHERE signup_date >= '2025-04-01' AND signup_date < '2025-07-01' ",
+  "question": "2025 年第二季新註冊的客戶有多少位？"
+ },
+ "S24": {
+  "family": "coupon",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 653,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND o.coupon_code='WELCOME10' AND datetime(o.order_ts,'+8 hours') >= '2025-12-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'",
+  "question": "2025 年 12 月使用 WELCOME10 的有效訂單有幾張？"
+ },
+ "S25": {
+  "family": "repeat",
+  "kind": "combo",
+  "tolerance": "count",
+  "gt": 777,
+  "sql": "SELECT COUNT(*) FROM (SELECT o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE region_code='TW-S') GROUP BY o.customer_id HAVING COUNT(*)>=2)",
+  "question": "2025 年南部客戶的回購客戶有幾位？"
+ },
+ "S26": {
+  "family": "net_revenue",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 43168760.0,
+  "sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE tier='S')) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)",
+  "question": "銀級會員 2025 年上半年的淨營收是多少？"
+ },
+ "S27": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 1997,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-04-01' AND datetime(o.order_ts,'+8 hours') < '2025-05-01' AND o.channel='web'",
+  "question": "網站通路 2025 年 4 月的有效訂單有多少張？"
+ },
+ "S28": {
+  "family": "net_revenue",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 42595230.0,
+  "sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-07-01' AND datetime(o.order_ts,'+8 hours') < '2025-10-01' ) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1 AND p.category='tent')-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1 AND p.category='tent'),2)",
+  "question": "帳篷類別在 2025 年第三季的淨營收是多少？"
+ },
+ "S29": {
+  "family": "net_revenue",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 13423113.0,
+  "sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-11-01' AND datetime(o.order_ts,'+8 hours') < '2025-12-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE region_code='TW-N')) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)",
+  "question": "北部客戶 2025 年 11 月的淨營收是多少？"
+ },
+ "S30": {
+  "family": "aov",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 9409.82,
+  "sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.channel='web') SELECT ROUND(SUM(oi.quantity*oi.unit_price_cents)/100.0/COUNT(DISTINCT vo.order_id),2) FROM vo JOIN order_items oi ON oi.order_id=vo.order_id",
+  "question": "網站通路 2025 年全年的客單價是多少？"
+ },
+ "S31": {
+  "family": "ontime",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 67.1,
+  "sql": "SELECT ROUND(100.0*SUM((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))<=259200)/COUNT(*),1) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-04-01' AND s.carrier='blackcat'",
+  "question": "黑貓宅急便 2025 年第一季的準時送達率是多少？"
+ },
+ "S32": {
+  "family": "new_customers",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 150,
+  "sql": "SELECT COUNT(*) FROM customers WHERE signup_date >= '2025-03-01' AND signup_date < '2025-04-01' ",
+  "question": "2025 年 3 月新註冊的客戶有幾位？"
+ },
+ "S33": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 3674,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-02-01' AND datetime(o.order_ts,'+8 hours') < '2025-03-01' ",
+  "question": "請問 2025 年 2 月成立的有效訂單有多少筆？"
+ },
+ "S34": {
+  "family": "coupon",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 14.4,
+  "sql": "SELECT ROUND(100.0*SUM(o.coupon_code='WELCOME10')/COUNT(*),1) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-04-01'",
+  "question": "2025 年第一季有效訂單中，使用 WELCOME10 的占比是多少？"
+ },
+ "S35": {
+  "family": "cancel_rate",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 15.3,
+  "sql": "SELECT ROUND(100.0*SUM(o.status=9)/SUM(o.status IN (1,2,3,9)),1) FROM orders o WHERE datetime(o.order_ts,'+8 hours') >= '2025-11-01' AND datetime(o.order_ts,'+8 hours') < '2025-12-01' ",
+  "question": "2025 年 11 月整體取消率是多少？"
+ },
+ "S36": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 1446,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-12-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.channel='app'",
+  "question": "App 通路在 2025 年 12 月的有效訂單數？"
+ },
+ "S37": {
+  "family": "ship_days",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 2.91,
+  "sql": "SELECT ROUND(AVG((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))/86400.0),2) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-04-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01'",
+  "question": "2025 年第二季所有物流商合計的平均配送天數？"
+ },
+ "S38": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 4098,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-02-01' ",
+  "question": "2025 年 1 月份的有效訂單總數為多少？"
+ },
+ "S39": {
+  "family": "refund",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 1557639,
+  "sql": "SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r WHERE datetime(r.refund_ts,'+8 hours') >= '2025-08-01' AND datetime(r.refund_ts,'+8 hours') < '2025-09-01' ",
+  "question": "2025 年 8 月的退款金額（退款報表）是多少？"
+ },
+ "S40": {
+  "family": "collected",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 7449980,
+  "sql": "SELECT COALESCE(SUM(amount_twd),0) FROM payments WHERE payment_status='ok' AND method='line_pay' AND datetime(paid_ts,'+8 hours') >= '2025-05-01' AND datetime(paid_ts,'+8 hours') < '2025-06-01'",
+  "question": "2025 年 5 月 LINE Pay 的實收金額是多少？"
+ },
+ "T01": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 4128,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-03-01' AND datetime(o.order_ts,'+8 hours') < '2025-04-01' ",
+  "question": "2025 年 3 月下單的有效訂單有幾張？"
+ },
+ "T02": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 4040,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-10-01' AND datetime(o.order_ts,'+8 hours') < '2025-11-01' ",
+  "question": "訂單日期在 2025 年 10 月的有效訂單總數？"
+ },
+ "T03": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 1842,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-04-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' AND o.channel='store'",
+  "question": "2025 年第二季（依成立日期）門市有效訂單共幾筆？"
+ },
+ "T04": {
+  "family": "valid_orders",
+  "kind": "seen_reworded",
+  "tolerance": "count",
+  "gt": 2055,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-05-01' AND datetime(o.order_ts,'+8 hours') < '2025-06-01' AND o.channel='web'",
+  "question": "2025 年 5 月官網的有效訂單有多少張？"
+ },
+ "T05": {
+  "family": "net_revenue",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 28722773.0,
+  "sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-10-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE region_code='TW-C')) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)",
+  "question": "中部客戶 2025 年第四季的淨營收是多少？"
+ },
+ "T06": {
+  "family": "aov",
+  "kind": "combo",
+  "tolerance": "money",
+  "gt": 9268.7,
+  "sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' AND o.channel='app') SELECT ROUND(SUM(oi.quantity*oi.unit_price_cents)/100.0/COUNT(DISTINCT vo.order_id),2) FROM vo JOIN order_items oi ON oi.order_id=vo.order_id",
+  "question": "App 通路 2025 年上半年的客單價是多少？"
+ },
+ "T07": {
+  "family": "cancel_rate",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 16.3,
+  "sql": "SELECT ROUND(100.0*SUM(o.status=9)/SUM(o.status IN (1,2,3,9)),1) FROM orders o WHERE datetime(o.order_ts,'+8 hours') >= '2025-09-01' AND datetime(o.order_ts,'+8 hours') < '2025-10-01' ",
+  "question": "2025 年 9 月的取消率是多少？"
+ },
+ "T08": {
+  "family": "cancel_rate",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 15.6,
+  "sql": "SELECT ROUND(100.0*SUM(o.status=9)/SUM(o.status IN (1,2,3,9)),1) FROM orders o WHERE datetime(o.order_ts,'+8 hours') >= '2025-04-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' AND o.channel='web'",
+  "question": "官網 2025 年第二季的訂單取消率？"
+ },
+ "T09": {
+  "family": "ship_days",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 3.34,
+  "sql": "SELECT ROUND(AVG((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))/86400.0),2) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND s.carrier='hct'",
+  "question": "新竹物流在 2025 年的平均配送天數是多少？"
+ },
+ "T10": {
+  "family": "ontime",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 88.0,
+  "sql": "SELECT ROUND(100.0*SUM((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))<=259200)/COUNT(*),1) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND s.carrier='sf'",
+  "question": "順豐 2025 年的準時送達率是多少？"
+ },
+ "T11": {
+  "family": "ontime",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 57.0,
+  "sql": "SELECT ROUND(100.0*SUM((strftime('%s',s.delivered_ts)-strftime('%s',s.shipped_ts))<=259200)/COUNT(*),1) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.delivered_ts IS NOT NULL AND datetime(o.order_ts,'+8 hours') >= '2025-04-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01'",
+  "question": "2025 年第二季整體準時送達率？"
+ },
+ "T12": {
+  "family": "new_customers",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 123,
+  "sql": "SELECT COUNT(*) FROM customers WHERE signup_date >= '2025-09-01' AND signup_date < '2025-10-01' ",
+  "question": "2025 年 9 月新註冊的客戶有幾位？"
+ },
+ "T13": {
+  "family": "new_customers",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 77,
+  "sql": "SELECT COUNT(*) FROM customers WHERE signup_date >= '2025-01-01' AND signup_date < '2026-01-01' AND region_code='SG'",
+  "question": "新加坡 2025 年新註冊客戶數？"
+ },
+ "T14": {
+  "family": "coupon",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 7296,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND o.coupon_code='SUMMER15' AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'",
+  "question": "2025 年使用 SUMMER15 的有效訂單有幾張？"
+ },
+ "T15": {
+  "family": "coupon",
+  "kind": "unseen",
+  "tolerance": "ratio",
+  "gt": 15.6,
+  "sql": "SELECT ROUND(100.0*SUM(o.coupon_code='SUMMER15')/COUNT(*),1) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-07-01' AND datetime(o.order_ts,'+8 hours') < '2025-10-01'",
+  "question": "2025 年第三季有效訂單中，使用 SUMMER15 的占比是多少？"
+ },
+ "T16": {
+  "family": "pending_ship",
+  "kind": "unseen",
+  "tolerance": "count",
+  "gt": 1773,
+  "sql": "SELECT COUNT(*) FROM orders o WHERE o.status=1 AND o.channel='web'",
+  "question": "官網通路目前待出貨的訂單有幾張？"
+ }
+}

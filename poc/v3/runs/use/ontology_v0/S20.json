@@ -1,0 +1,510 @@
+{
+ "task_id": "task_26256bdc9208",
+ "question": "2025 年 7 月下單的有效訂單有幾張？",
+ "ontology_version": "ontology_v0",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "有效訂單",
+     "下單日期"
+    ],
+    "context": "2025 年 7 月下單的有效訂單有幾張？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "有效訂單",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '有效訂單'",
+      "term": {
+       "id": "term_valid_order",
+       "type": "concept",
+       "name": "有效訂單",
+       "aliases": [
+        "valid order",
+        "有效訂單數",
+        "訂單張數",
+        "訂單數",
+        "valid orders",
+        "orders.status",
+        "狀態1/2/3"
+       ],
+       "definition": "訂單狀態為已付款、已出貨、已送達的訂單；待付款與已取消不算有效訂單。",
+       "scope": "所有營收、客單價、訂單張數、回購與通路占比類分析",
+       "evidence_refs": [
+        "ev_status_codes",
+        "ev_doc_valid_order",
+        "ev_status_payment_consistency"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_valid_order_status",
+        "term_id": "term_valid_order",
+        "table": "orders",
+        "column": "status",
+        "semantic_filter": "狀態碼為 1（已付款）、2（已出貨）、3（已送達）",
+        "aggregation_semantics": "以不重複訂單編號計張數",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_order_valid",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_valid_order",
+        "connection_condition": "有效訂單是訂單狀態為已付款、已出貨、已送達的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_doc_valid_order"
+        ]
+       },
+       {
+        "id": "rel_aov_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_avg_order_value",
+        "connection_condition": "客單價的分母為期間內有效訂單張數。",
+        "evidence_refs": [
+         "ev_multi_item_orders",
+         "ev_status_codes"
+        ]
+       },
+       {
+        "id": "rel_repeat_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_repeat_customer",
+        "connection_condition": "每位客戶在同一年度的有效訂單張數達兩張以上，即為回購客戶。",
+        "evidence_refs": [
+         "ev_doc_repeat_customer",
+         "ev_repeat_customers"
+        ]
+       },
+       {
+        "id": "rel_channel_share_from_valid_order",
+        "relation_type": "derivation",
+        "source": "term_valid_order",
+        "target": "term_channel_share",
+        "connection_condition": "通路占比的分子與分母皆為同一期間的有效訂單張數。",
+        "evidence_refs": [
+         "ev_channel_values",
+         "ev_status_codes"
+        ]
+       }
+      ],
+      "constraints": [
+       {
+        "id": "con_valid_order_definition",
+        "severity": "block",
+        "description": "有效訂單指訂單狀態碼為 1（已付款）、2（已出貨）、3（已送達）的訂單。狀態 0（待付款）與 9（已取消）不是有效訂單。資料中待付款與已取消訂單沒有任何付款成功紀錄，與此定義互相佐證。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_doc_valid_order",
+         "ev_status_payment_consistency"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_valid_order",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "待付款與已取消的訂單不算有效訂單。 | 解讀: 有效訂單 = 狀態 1/2/3。",
+        "validation_method": "文件原文引用；搭配 ev_status_payment_consistency 驗證",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_payment_consistency",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(DISTINCT o.order_id) orders, COUNT(DISTINCT CASE WHEN p.payment_status='ok' THEN o.order_id END) paid_ok FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"orders\", \"paid_ok\"], \"rows\": [[0, 3003, 0], [1, 3549, 3549], [2, 4870, 4870], [3, 39574, 39574], [9, 9004, 0]]} | 解讀: 狀態 1/2/3 的訂單全數有付款成功；0 與 9 為 0，與有效訂單定義互相佐證。",
+        "validation_method": "訂單狀態與付款成功狀態對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_multi_item_orders",
+        "source": "shop_v2",
+        "query": "SELECT items_per_order, COUNT(*) orders FROM (SELECT order_id, COUNT(*) items_per_order FROM order_items GROUP BY order_id) GROUP BY items_per_order ORDER BY items_per_order",
+        "result": "{\"columns\": [\"items_per_order\", \"orders\"], \"rows\": [[1, 29911], [2, 18155], [3, 8991], [4, 2943]]} | 解讀: 多明細訂單佔相當比例，join order_items 後直接 COUNT(*) 會高估訂單數；所有訂單都至少有一筆明細（無孤兒訂單）。",
+        "validation_method": "每張訂單的明細數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_repeat_customer",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "某一年度內有效訂單達 2 張（含）以上的客戶。 | 解讀: 定義可用 orders 依 customer_id 分組實作。",
+        "validation_method": "文件原文引用；以資料計算客戶層級分布佐證可實作",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_repeat_customers",
+        "source": "shop_v2",
+        "query": "SELECT COUNT(*) customers_valid, SUM(CASE WHEN c>=2 THEN 1 ELSE 0 END) repeat_customers FROM (SELECT customer_id, COUNT(*) c FROM orders WHERE status IN (1,2,3) AND strftime('%Y', datetime(order_ts,'+8 hours'))='2025' GROUP BY customer_id)",
+        "result": "{\"columns\": [\"customers_valid\", \"repeat_customers\"], \"rows\": [[4526, 3990]]} | 解讀: 回購比例極高；回購客戶是客戶層級指標，不能用訂單張數替代。",
+        "validation_method": "客戶層級有效訂單數分布",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_channel_values",
+        "source": "shop_v2",
+        "query": "SELECT channel, COUNT(*) valid_orders, ROUND(100.0*COUNT(*)/SUM(COUNT(*)) OVER (),2) pct FROM orders WHERE status IN (1,2,3) AND strftime('%Y',datetime(order_ts,'+8 hours'))='2025' GROUP BY channel ORDER BY 2 DESC",
+        "result": "{\"columns\": [\"channel\", \"valid_orders\", \"pct\"], \"rows\": [[\"web\", 23899, 50.1], [\"app\", 16679, 34.97], [\"store\", 7121, 14.93]]} | 解讀: 通路代碼與文件一致；占比分母需先限定為台北時間 2025 的有效訂單。",
+        "validation_method": "distinct 值與占比計算",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "下單日期",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '下單日期'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "ontology_v0",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "下單日期 時區 order_ts",
+    "kind": "constraint",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [
+     {
+      "id": "con_tz_order_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "所有依訂單成立時間歸屬期間的分析（淨營收、客單價、訂單數、回購、通路占比、取消、銷量）",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "order",
+        "ts",
+        "時區"
+       ]
+      }
+     },
+     {
+      "id": "con_amount_unit_cents",
+      "name": "unit",
+      "type": "constraint",
+      "scope": "order_items.unit_price_cents 與 TWD 欄位混合運算時",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "order"
+       ]
+      }
+     },
+     {
+      "id": "con_aov_definition",
+      "name": "business_rule",
+      "type": "constraint",
+      "scope": "所有客單價問題",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "order"
+       ]
+      }
+     },
+     {
+      "id": "con_cancelled_order_period",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "計算特定期間的已取消訂單張數時",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "order"
+       ]
+      }
+     },
+     {
+      "id": "con_channel_codes",
+      "name": "enum_semantics",
+      "type": "constraint",
+      "scope": "依下單通路篩選或分類",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "order"
+       ]
+      }
+     },
+     {
+      "id": "con_order_count_unit",
+      "name": "data_quality",
+      "type": "constraint",
+      "scope": "訂單張數計算",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "order"
+       ]
+      }
+     }
+    ],
+    "matched_total": 11,
+    "catalog_total": 28,
+    "version": "ontology_v0",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "下單時間",
+     "時區"
+    ],
+    "context": "2025 年 7 月下單的有效訂單有幾張？需確認 orders.order_ts 的時區與期間歸屬規則。"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "下單時間",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact alias match: term '訂單成立時間'",
+      "term": {
+       "id": "term_order_time",
+       "type": "dimension",
+       "name": "訂單成立時間",
+       "aliases": [
+        "order_ts",
+        "下單時間",
+        "訂單時間",
+        "order time",
+        "年度",
+        "月份",
+        "季",
+        "第一季",
+        "第二季",
+        "第四季",
+        "2025年"
+       ],
+       "definition": "訂單成立的時間戳記，以 UTC 儲存；營運報表須以台北時間（UTC+8）劃分日、月、季、年。",
+       "scope": "淨營收、客單價、訂單數、回購、取消率、配送天數的期間歸屬",
+       "evidence_refs": [
+        "ev_doc_utc",
+        "ev_utc_shift_orders",
+        "ev_year_boundary"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_order_time",
+        "term_id": "term_order_time",
+        "table": "orders",
+        "column": "order_ts",
+        "semantic_filter": "時間為 UTC，期間須以台北時間（UTC+8）判斷；2025 年需排除台北時間落在 2024 與 2026 的訂單",
+        "aggregation_semantics": "",
+        "grain": "秒級時間戳記",
+        "evidence_refs": []
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_doc_utc",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "所有時間戳記（訂單、付款、退款、出貨、送達）都是 | 解讀: 文件主張時區規則；資料本身無時區標記，只能由換月影響量化其重要性。",
+        "validation_method": "文件原文引用；以資料實測換算後換月筆數佐證（見 ev_utc_shift_orders）",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_utc_shift_orders",
+        "source": "shop_v2",
+        "query": "SELECT strftime('%Y-%m', order_ts) utc_m, strftime('%Y-%m', datetime(order_ts,'+8 hours')) tpe_m, COUNT(*) n FROM orders WHERE strftime('%Y-%m', order_ts) <> strftime('%Y-%m', datetime(order_ts,'+8 hours')) GROUP BY 1,2 ORDER BY 1",
+        "result": "{\"columns\": [\"utc_m\", \"tpe_m\", \"n\"], \"rows\": [[\"2024-12\", \"2025-01\", 51], [\"2025-01\", \"2025-02\", 44], [\"2025-02\", \"2025-03\", 33], [\"2025-03\", \"2025-04\", 53], [\"2025-04\", \"2025-05\", 56], [\"2025-05\", \"2025-06\", 56], [\"2025-06\", \"2025-07\", 54], [\"2025-07\", \"2025-08\", 55], [\"2025-08\", \"2025-09\", 59], [\"2025-09\", \"2025-10\", 41], [\"2025-10\", \"2025-11\", 44], [\"2025-11\", \"2025-12\", 53], [\"2025-12\", \"2026-01\", 56]]} | 解讀: 月初最後幾小時（UTC 16:00 後）的訂單在台北時間屬於次月；2024-12 有 51 筆改歸 2025-01，2025-12 有 56 筆改歸 2026-01。所有期間類指標都必須先轉台北時間。",
+        "validation_method": "比較 UTC 與 UTC+8 的月份差異並計數",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_year_boundary",
+        "source": "shop_v2",
+        "query": "SELECT strftime('%Y', datetime(order_ts,'+8 hours')) y, COUNT(*) n FROM orders WHERE status IN (1,2,3) GROUP BY 1",
+        "result": "{\"columns\": [\"y\", \"n\"], \"rows\": [[\"2024\", 250], [\"2025\", 47699], [\"2026\", 44]]} | 解讀: 資料範圍含 2024-12-30 起與 2025-12-31 UTC 之後換算成 2026 的訂單，查詢 2025 年必須排除這兩端。",
+        "validation_method": "依 UTC+8 年度分組統計有效訂單",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "時區",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '時區'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "ontology_v0",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT order_ts, status FROM orders ORDER BY order_ts LIMIT 5",
+     "SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_07 FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-07-01' AND order_ts < '2025-08-01'"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT order_ts, status FROM orders ORDER BY order_ts LIMIT 5",
+     "columns": [
+      "order_ts",
+      "status"
+     ],
+     "rows": [
+      [
+       "2024-12-30 00:03:20",
+       3
+      ],
+      [
+       "2024-12-30 00:13:54",
+       3
+      ],
+      [
+       "2024-12-30 00:17:31",
+       3
+      ],
+      [
+       "2024-12-30 00:25:59",
+       3
+      ],
+      [
+       "2024-12-30 00:28:46",
+       3
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_07 FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-07-01' AND order_ts < '2025-08-01'",
+     "columns": [
+      "valid_orders_2025_07"
+     ],
+     "rows": [
+      [
+       3942
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT order_ts, status FROM orders ORDER BY order_ts LIMIT 5', 'columns': ['order_ts', 'status'], 'rows': [['2024-12-30 00:03:20', 3], ['2024-12-30 00:13:54', 3], ['2024-12-30 00:17:31', 3], ['2024-12-30 00:25:59', 3], ['2024-12-30 00:28:46', 3]], 'truncated': False}, {'query': \"SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_07 FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-07-01' AND order_ts < '2025-08-01'\", 'columns': ['valid_orders_2025_07'], 'rows': [[3942]], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_07_tpe FROM orders WHERE status IN (1,2,3) AND strftime('%Y-%m', datetime(order_ts, '+8 hours')) = '2025-07'",
+     "SELECT strftime('%Y-%m', datetime(order_ts, '+8 hours')) AS tpe_month, COUNT(DISTINCT order_id) AS valid_orders FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-06-30' AND order_ts < '2025-08-02' GROUP BY 1 ORDER BY 1"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_07_tpe FROM orders WHERE status IN (1,2,3) AND strftime('%Y-%m', datetime(order_ts, '+8 hours')) = '2025-07'",
+     "columns": [
+      "valid_orders_2025_07_tpe"
+     ],
+     "rows": [
+      [
+       3936
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT strftime('%Y-%m', datetime(order_ts, '+8 hours')) AS tpe_month, COUNT(DISTINCT order_id) AS valid_orders FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-06-30' AND order_ts < '2025-08-02' GROUP BY 1 ORDER BY 1",
+     "columns": [
+      "tpe_month",
+      "valid_orders"
+     ],
+     "rows": [
+      [
+       "2025-06",
+       82
+      ],
+      [
+       "2025-07",
+       3936
+      ],
+      [
+       "2025-08",
+       168
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT COUNT(DISTINCT order_id) AS valid_orders_2025_07_tpe FROM orders WHERE status IN (1,2,3) AND strftime('%Y-%m', datetime(order_ts, '+8 hours')) = '2025-07'\", 'columns': ['valid_orders_2025_07_tpe'], 'rows': [[3936]], 'truncated': False}, {'query': \"SELECT strftime('%Y-%m', datetime(order_ts, '+8 hours')) AS tpe_month, COUNT(DISTINCT order_id) AS valid_orders FROM orders WHERE status IN (1,2,3) AND order_ts >= '2025-06-30' AND order_ts < '2025-08-02' GROUP BY 1 ORDER BY 1\", 'columns': ['tpe_month', 'valid_orders'], 'rows': [['2025-06', 82], ['2025-07', 3936], ['2025-08', 168]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "3936",
+  "basis": "有效訂單定義為 orders.status 為 1（已付款）、2（已出貨）、3（已送達），以不重複 order_id 計張數。依語意層規定，order_ts 為 UTC，期間歸屬需以台北時間（UTC+8）劃分，因此用 datetime(order_ts,'+8 hours') 判斷月份為 2025-07。直接用 UTC 切月的結果為 3942，差異來自 UTC 月底最後幾小時的訂單，不採用。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S20",
+ "arm": "ontology",
+ "steps": 7,
+ "ended_by": "final"
+}

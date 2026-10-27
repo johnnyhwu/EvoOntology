@@ -1,0 +1,168 @@
+{
+ "parent": "ontology_v0",
+ "rule": "chronological 70%/30% split after near-duplicate grouping",
+ "pool": [
+  {
+   "task_id": "task_0e8e8307a455",
+   "question_id": "S01"
+  },
+  {
+   "task_id": "task_7b4f32c5fef8",
+   "question_id": "S02"
+  },
+  {
+   "task_id": "task_aa8d15ee5308",
+   "question_id": "S03"
+  },
+  {
+   "task_id": "task_6718362c059e",
+   "question_id": "S04"
+  },
+  {
+   "task_id": "task_64d4085e3ff1",
+   "question_id": "S05"
+  },
+  {
+   "task_id": "task_926ee0d9fa62",
+   "question_id": "S06"
+  },
+  {
+   "task_id": "task_0a234bc9bf44",
+   "question_id": "S07"
+  },
+  {
+   "task_id": "task_52bb318b2056",
+   "question_id": "S08"
+  },
+  {
+   "task_id": "task_e924ff80bca0",
+   "question_id": "S09"
+  },
+  {
+   "task_id": "task_fcb65aad3ce4",
+   "question_id": "S10"
+  },
+  {
+   "task_id": "task_62ab5c020849",
+   "question_id": "S11"
+  },
+  {
+   "task_id": "task_b8965829475d",
+   "question_id": "S12"
+  },
+  {
+   "task_id": "task_a796b58c3ffa",
+   "question_id": "S13"
+  },
+  {
+   "task_id": "task_805cc3440e1f",
+   "question_id": "S14"
+  },
+  {
+   "task_id": "task_873f8fcbc2ed",
+   "question_id": "S15"
+  },
+  {
+   "task_id": "task_739fad1acd78",
+   "question_id": "S16"
+  },
+  {
+   "task_id": "task_f34677f3ecb2",
+   "question_id": "S17"
+  },
+  {
+   "task_id": "task_d12b9b61b788",
+   "question_id": "S18"
+  },
+  {
+   "task_id": "task_8eaed176d09f",
+   "question_id": "S19"
+  },
+  {
+   "task_id": "task_26256bdc9208",
+   "question_id": "S20"
+  },
+  {
+   "task_id": "task_72a431935c9e",
+   "question_id": "S21"
+  },
+  {
+   "task_id": "task_b55e4be2ce42",
+   "question_id": "S22"
+  },
+  {
+   "task_id": "task_a01cdb664e92",
+   "question_id": "S23"
+  },
+  {
+   "task_id": "task_4038bd40e8d5",
+   "question_id": "S24"
+  },
+  {
+   "task_id": "task_974d28eecdb5",
+   "question_id": "S25"
+  },
+  {
+   "task_id": "task_bf3189168edf",
+   "question_id": "S26"
+  },
+  {
+   "task_id": "task_0144178f5004",
+   "question_id": "S27"
+  },
+  {
+   "task_id": "task_789caf856779",
+   "question_id": "S28"
+  }
+ ],
+ "validation_reserve": [
+  {
+   "task_id": "task_2595813b08c6",
+   "question_id": "S29"
+  },
+  {
+   "task_id": "task_8f529daa6108",
+   "question_id": "S30"
+  },
+  {
+   "task_id": "task_8afa1fe00d82",
+   "question_id": "S31"
+  },
+  {
+   "task_id": "task_c959ff99449c",
+   "question_id": "S32"
+  },
+  {
+   "task_id": "task_fcda43a5eee3",
+   "question_id": "S33"
+  },
+  {
+   "task_id": "task_be9eebc46ad7",
+   "question_id": "S34"
+  },
+  {
+   "task_id": "task_9181c55eea9f",
+   "question_id": "S35"
+  },
+  {
+   "task_id": "task_099e7b1e6dda",
+   "question_id": "S36"
+  },
+  {
+   "task_id": "task_4cf014910139",
+   "question_id": "S37"
+  },
+  {
+   "task_id": "task_a885f7d3d112",
+   "question_id": "S38"
+  },
+  {
+   "task_id": "task_189ba5892452",
+   "question_id": "S39"
+  },
+  {
+   "task_id": "task_935466fa8276",
+   "question_id": "S40"
+  }
+ ]
+}

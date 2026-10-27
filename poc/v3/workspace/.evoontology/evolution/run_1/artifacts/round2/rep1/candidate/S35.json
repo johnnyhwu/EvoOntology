@@ -1,0 +1,518 @@
+{
+ "task_id": "task_89919685a4da",
+ "question": "2025 年 11 月整體取消率是多少？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "取消率",
+     "訂單日期"
+    ],
+    "context": "2025 年 11 月整體取消率是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "取消率",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '取消率'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "訂單日期",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '訂單日期'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "訂單狀態 取消 status",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [
+     {
+      "id": "con_order_status_codes",
+      "name": "enum_semantics",
+      "type": "constraint",
+      "scope": "orders.status 的任何篩選或分類",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "status",
+        "訂單狀態"
+       ]
+      }
+     },
+     {
+      "id": "term_cancelled_order",
+      "name": "已取消訂單",
+      "type": "category",
+      "scope": "取消訂單數量與取消率分析",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "status",
+        "取消"
+       ]
+      }
+     },
+     {
+      "id": "term_order_status",
+      "name": "訂單狀態",
+      "type": "dimension",
+      "scope": "訂單狀態篩選與分類",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "status",
+        "訂單狀態"
+       ]
+      }
+     },
+     {
+      "id": "map_cancelled_order",
+      "name": "term_cancelled_order -> orders",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "status"
+       ]
+      }
+     },
+     {
+      "id": "map_order_status",
+      "name": "term_order_status -> orders",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "status"
+       ]
+      }
+     },
+     {
+      "id": "map_payment_status",
+      "name": "term_payment_status -> payments",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "status"
+       ]
+      }
+     }
+    ],
+    "matched_total": 11,
+    "catalog_total": 116,
+    "version": "v0-c2",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "已取消訂單",
+     "訂單狀態"
+    ],
+    "context": "2025 年 11 月整體取消率是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "已取消訂單",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '已取消訂單'",
+      "term": {
+       "id": "term_cancelled_order",
+       "type": "category",
+       "name": "已取消訂單",
+       "aliases": [
+        "已取消",
+        "取消訂單",
+        "cancelled order",
+        "canceled",
+        "status 9",
+        "取消"
+       ],
+       "definition": "訂單狀態為 9（已取消）的訂單，不屬於有效訂單。",
+       "scope": "取消訂單數量與取消率分析",
+       "evidence_refs": [
+        "ev_status_codes",
+        "ev_status_payment_consistency"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_cancelled_order",
+        "term_id": "term_cancelled_order",
+        "table": "orders",
+        "column": "status",
+        "semantic_filter": "狀態碼為 9（已取消）",
+        "aggregation_semantics": "不重複訂單張數；期間依訂單成立時間（台北時間）",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "relations": [
+       {
+        "id": "rel_order_cancelled",
+        "relation_type": "hierarchy",
+        "source": "term_order",
+        "target": "term_cancelled_order",
+        "connection_condition": "已取消訂單是訂單狀態為已取消的訂單子集合。",
+        "evidence_refs": [
+         "ev_status_codes",
+         "ev_status_payment_consistency"
+        ]
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_status_payment_consistency",
+        "source": "shop_v2",
+        "query": "SELECT o.status, COUNT(DISTINCT o.order_id) orders, COUNT(DISTINCT CASE WHEN p.payment_status='ok' THEN o.order_id END) paid_ok FROM orders o LEFT JOIN payments p ON p.order_id=o.order_id GROUP BY o.status",
+        "result": "{\"columns\": [\"status\", \"orders\", \"paid_ok\"], \"rows\": [[0, 3003, 0], [1, 3549, 3549], [2, 4870, 4870], [3, 39574, 39574], [9, 9004, 0]]} | 解讀: 狀態 1/2/3 的訂單全數有付款成功；0 與 9 為 0，與有效訂單定義互相佐證。",
+        "validation_method": "訂單狀態與付款成功狀態對帳",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     },
+     {
+      "query": "訂單狀態",
+      "query_type": "mention",
+      "status": "resolved",
+      "match_rationale": "exact name match: '訂單狀態'",
+      "term": {
+       "id": "term_order_status",
+       "type": "dimension",
+       "name": "訂單狀態",
+       "aliases": [
+        "status",
+        "order status",
+        "訂單狀態",
+        "待付款",
+        "已取消",
+        "已付款",
+        "已出貨",
+        "已送達",
+        "pending",
+        "cancelled"
+       ],
+       "definition": "訂單處理階段：0 待付款、1 已付款、2 已出貨、3 已送達、9 已取消。",
+       "scope": "訂單狀態篩選與分類",
+       "evidence_refs": [
+        "ev_status_codes",
+        "ev_doc_valid_order"
+       ]
+      },
+      "mappings": [
+       {
+        "id": "map_order_status",
+        "term_id": "term_order_status",
+        "table": "orders",
+        "column": "status",
+        "semantic_filter": "",
+        "aggregation_semantics": "",
+        "grain": "每張訂單一列",
+        "evidence_refs": []
+       }
+      ],
+      "evidence": [
+       {
+        "id": "ev_status_codes",
+        "source": "shop_v2",
+        "query": "SELECT status, COUNT(*) n FROM orders GROUP BY status ORDER BY status",
+        "result": "{\"columns\": [\"status\", \"n\"], \"rows\": [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]]} | 解讀: 五個代碼均與文件一致，有效訂單 = status IN (1,2,3)，無文件未記載的狀態碼。",
+        "validation_method": "distinct 值檢查",
+        "timestamp": "2026-10-27T00:20:50Z"
+       },
+       {
+        "id": "ev_doc_valid_order",
+        "source": "domain_knowledge.md",
+        "query": "(document excerpt)",
+        "result": "待付款與已取消的訂單不算有效訂單。 | 解讀: 有效訂單 = 狀態 1/2/3。",
+        "validation_method": "文件原文引用；搭配 ev_status_payment_consistency 驗證",
+        "timestamp": "2026-10-27T00:20:50Z"
+       }
+      ],
+      "coverage_status": "supported"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_order_status_codes",
+      "target": "map_order_status",
+      "severity": "block",
+      "description": "orders.status 代碼意義：0 待付款、1 已付款、2 已出貨、3 已送達、9 已取消。資料中只出現這五個代碼，沒有文件未記載的狀態碼。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_cancelled_order_period",
+      "target": "map_cancelled_order",
+      "severity": "block",
+      "description": "已取消訂單指狀態碼 9，不屬於有效訂單。期間依訂單成立時間並以台北時間（UTC+8）劃分，而非取消發生時間。",
+      "matched_by": "trigger_keywords"
+     },
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT status, COUNT(*) AS n FROM orders GROUP BY status ORDER BY status",
+     "SELECT order_id, order_ts, status, channel FROM orders ORDER BY order_id LIMIT 10"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT status, COUNT(*) AS n FROM orders GROUP BY status ORDER BY status",
+     "columns": [
+      "status",
+      "n"
+     ],
+     "rows": [
+      [
+       0,
+       3003
+      ],
+      [
+       1,
+       3549
+      ],
+      [
+       2,
+       4870
+      ],
+      [
+       3,
+       39574
+      ],
+      [
+       9,
+       9004
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT order_id, order_ts, status, channel FROM orders ORDER BY order_id LIMIT 10",
+     "columns": [
+      "order_id",
+      "order_ts",
+      "status",
+      "channel"
+     ],
+     "rows": [
+      [
+       1,
+       "2025-05-27 02:32:55",
+       3,
+       "app"
+      ],
+      [
+       2,
+       "2025-06-01 06:04:51",
+       3,
+       "web"
+      ],
+      [
+       3,
+       "2025-09-27 08:46:07",
+       3,
+       "store"
+      ],
+      [
+       4,
+       "2025-04-09 20:13:13",
+       3,
+       "web"
+      ],
+      [
+       5,
+       "2025-12-31 14:44:12",
+       0,
+       "web"
+      ],
+      [
+       6,
+       "2025-05-11 07:04:09",
+       3,
+       "web"
+      ],
+      [
+       7,
+       "2025-02-17 22:22:55",
+       3,
+       "web"
+      ],
+      [
+       8,
+       "2025-05-27 18:23:24",
+       3,
+       "web"
+      ],
+      [
+       9,
+       "2025-07-29 05:17:18",
+       3,
+       "web"
+      ],
+      [
+       10,
+       "2025-09-01 02:19:10",
+       9,
+       "app"
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT status, COUNT(*) AS n FROM orders GROUP BY status ORDER BY status', 'columns': ['status', 'n'], 'rows': [[0, 3003], [1, 3549], [2, 4870], [3, 39574], [9, 9004]], 'truncated': False}, {'query': 'SELECT order_id, order_ts, status, channel FROM orders ORDER BY order_id LIMIT 10', 'columns': ['order_id', 'order_ts', 'status', 'channel'], 'rows': [[1, '2025-05-27 02:32:55', 3, 'app'], [2, '2025-06-01 06:04:51', 3, 'web'], [3, '2025-09-27 08:46:07', 3, 'store'], [4, '2025-04-09 20:13:13', 3, 'web'], [5, '2025-12-31 14:44:12', 0, 'web'], [6, '2025-05-11 07:04:09', 3, 'web'], [7, '2025-02-17 22:22:55', 3, 'web'], [8, '2025-05-27 18:23:24', 3, 'web'], [9, '2025-07-29 05:17:18', 3, 'web'], [10, '2025-09-01 02:19:10', 9, 'app']], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT status, COUNT(*) AS n FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-11-01 00:00:00' AND datetime(order_ts, '+8 hours') < '2025-12-01 00:00:00' GROUP BY status ORDER BY status",
+     "SELECT COUNT(*) AS total_orders, SUM(CASE WHEN status = 9 THEN 1 ELSE 0 END) AS cancelled_orders, ROUND(100.0 * SUM(CASE WHEN status = 9 THEN 1 ELSE 0 END) / COUNT(*), 2) AS cancel_rate_pct FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-11-01 00:00:00' AND datetime(order_ts, '+8 hours') < '2025-12-01 00:00:00'"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT status, COUNT(*) AS n FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-11-01 00:00:00' AND datetime(order_ts, '+8 hours') < '2025-12-01 00:00:00' GROUP BY status ORDER BY status",
+     "columns": [
+      "status",
+      "n"
+     ],
+     "rows": [
+      [
+       0,
+       223
+      ],
+      [
+       1,
+       278
+      ],
+      [
+       2,
+       434
+      ],
+      [
+       3,
+       3138
+      ],
+      [
+       9,
+       695
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT COUNT(*) AS total_orders, SUM(CASE WHEN status = 9 THEN 1 ELSE 0 END) AS cancelled_orders, ROUND(100.0 * SUM(CASE WHEN status = 9 THEN 1 ELSE 0 END) / COUNT(*), 2) AS cancel_rate_pct FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-11-01 00:00:00' AND datetime(order_ts, '+8 hours') < '2025-12-01 00:00:00'",
+     "columns": [
+      "total_orders",
+      "cancelled_orders",
+      "cancel_rate_pct"
+     ],
+     "rows": [
+      [
+       4768,
+       695,
+       14.58
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT status, COUNT(*) AS n FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-11-01 00:00:00' AND datetime(order_ts, '+8 hours') < '2025-12-01 00:00:00' GROUP BY status ORDER BY status\", 'columns': ['status', 'n'], 'rows': [[0, 223], [1, 278], [2, 434], [3, 3138], [9, 695]], 'truncated': False}, {'query': \"SELECT COUNT(*) AS total_orders, SUM(CASE WHEN status = 9 THEN 1 ELSE 0 END) AS cancelled_orders, ROUND(100.0 * SUM(CASE WHEN status = 9 THEN 1 ELSE 0 END) / COUNT(*), 2) AS cancel_rate_pct FROM orders WHERE datetime(order_ts, '+8 hours') >= '2025-11-01 00:00:00' AND datetime(order_ts, '+8 hours') < '2025-12-01 00:00:00'\", 'columns': ['total_orders', 'cancelled_orders', 'cancel_rate_pct'], 'rows': [[4768, 695, 14.58]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "14.58",
+  "basis": "取消率 = 訂單狀態為 9（已取消）的訂單數 ÷ 全部訂單數，期間依 orders.order_ts 換算台北時間（UTC+8）後落在 2025-11-01 至 2025-11-30 的訂單。結果為 695 / 4768 × 100 = 14.58。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S35",
+ "arm": "ontology",
+ "steps": 7,
+ "ended_by": "final"
+}

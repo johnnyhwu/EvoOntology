@@ -1,0 +1,856 @@
+{
+ "database": "shop_v2",
+ "tables": {
+  "customers": {
+   "rows": 5000,
+   "columns": {
+    "customer_id": {
+     "type": "INTEGER",
+     "pk": true,
+     "distinct": 5000,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": true,
+     "min": 1,
+     "max": 5000
+    },
+    "name": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 380,
+     "nulls": 0,
+     "sample": [
+      "謝志明",
+      "賴冠宇",
+      "張欣怡"
+     ],
+     "unique": false,
+     "min": "劉佩珊",
+     "max": "黃雅婷"
+    },
+    "email": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 5000,
+     "nulls": 0,
+     "sample": [
+      "u00001@example.com",
+      "u00002@example.com",
+      "u00003@example.com"
+     ],
+     "unique": true,
+     "min": "u00001@example.com",
+     "max": "u05000@example.com"
+    },
+    "region_code": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 5,
+     "nulls": 0,
+     "sample": [
+      "JP",
+      "TW-S",
+      "TW-N"
+     ],
+     "unique": false,
+     "values": [
+      [
+       "TW-N",
+       1985
+      ],
+      [
+       "TW-C",
+       1289
+      ],
+      [
+       "TW-S",
+       987
+      ],
+      [
+       "JP",
+       501
+      ],
+      [
+       "SG",
+       238
+      ]
+     ]
+    },
+    "signup_date": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 1087,
+     "nulls": 0,
+     "sample": [
+      "2025-10-04",
+      "2023-06-30",
+      "2025-02-05"
+     ],
+     "unique": false,
+     "min": "2023-01-01",
+     "max": "2025-12-31"
+    },
+    "tier": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 3,
+     "nulls": 0,
+     "sample": [
+      "B",
+      "S",
+      "B"
+     ],
+     "unique": false,
+     "values": [
+      [
+       "B",
+       3539
+      ],
+      [
+       "S",
+       970
+      ],
+      [
+       "G",
+       491
+      ]
+     ]
+    }
+   }
+  },
+  "order_items": {
+   "rows": 104966,
+   "columns": {
+    "item_id": {
+     "type": "INTEGER",
+     "pk": true,
+     "distinct": 104966,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": true,
+     "min": 1,
+     "max": 104966
+    },
+    "order_id": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 60000,
+     "nulls": 0,
+     "sample": [
+      1,
+      1,
+      1
+     ],
+     "unique": false,
+     "min": 1,
+     "max": 60000
+    },
+    "product_id": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 200,
+     "nulls": 0,
+     "sample": [
+      40,
+      149,
+      175
+     ],
+     "unique": false,
+     "min": 1,
+     "max": 200
+    },
+    "quantity": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 3,
+     "nulls": 0,
+     "sample": [
+      1,
+      1,
+      1
+     ],
+     "unique": false,
+     "values": [
+      [
+       1,
+       73448
+      ],
+      [
+       2,
+       20997
+      ],
+      [
+       3,
+       10521
+      ]
+     ]
+    },
+    "unit_price_cents": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 297,
+     "nulls": 0,
+     "sample": [
+      531000,
+      190000,
+      150000
+     ],
+     "unique": false,
+     "min": 16000,
+     "max": 1490000
+    }
+   }
+  },
+  "orders": {
+   "rows": 60000,
+   "columns": {
+    "order_id": {
+     "type": "INTEGER",
+     "pk": true,
+     "distinct": 60000,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": true,
+     "min": 1,
+     "max": 60000
+    },
+    "customer_id": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 4634,
+     "nulls": 0,
+     "sample": [
+      4605,
+      3735,
+      4049
+     ],
+     "unique": false,
+     "min": 1,
+     "max": 5000
+    },
+    "order_ts": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 59943,
+     "nulls": 0,
+     "sample": [
+      "2025-05-27 02:32:55",
+      "2025-06-01 06:04:51",
+      "2025-09-27 08:46:07"
+     ],
+     "unique": false,
+     "min": "2024-12-30 00:03:20",
+     "max": "2025-12-31 23:53:02",
+     "time_column": true,
+     "month_shift_if_utc_plus8": 655
+    },
+    "status": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 5,
+     "nulls": 0,
+     "sample": [
+      3,
+      3,
+      3
+     ],
+     "unique": false,
+     "values": [
+      [
+       3,
+       39574
+      ],
+      [
+       9,
+       9004
+      ],
+      [
+       2,
+       4870
+      ],
+      [
+       1,
+       3549
+      ],
+      [
+       0,
+       3003
+      ]
+     ]
+    },
+    "channel": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 3,
+     "nulls": 0,
+     "sample": [
+      "app",
+      "web",
+      "store"
+     ],
+     "unique": false,
+     "values": [
+      [
+       "web",
+       30071
+      ],
+      [
+       "app",
+       20970
+      ],
+      [
+       "store",
+       8959
+      ]
+     ]
+    },
+    "coupon_code": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 2,
+     "nulls": 41966,
+     "sample": [
+      "WELCOME10",
+      "SUMMER15",
+      "WELCOME10"
+     ],
+     "unique": false,
+     "values": [
+      [
+       null,
+       41966
+      ],
+      [
+       "SUMMER15",
+       9204
+      ],
+      [
+       "WELCOME10",
+       8830
+      ]
+     ]
+    }
+   }
+  },
+  "payments": {
+   "rows": 61319,
+   "columns": {
+    "payment_id": {
+     "type": "INTEGER",
+     "pk": true,
+     "distinct": 61319,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": true,
+     "min": 1,
+     "max": 61319
+    },
+    "order_id": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 53976,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": false,
+     "min": 1,
+     "max": 60000
+    },
+    "method": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 4,
+     "nulls": 0,
+     "sample": [
+      "atm",
+      "credit_card",
+      "credit_card"
+     ],
+     "unique": false,
+     "values": [
+      [
+       "credit_card",
+       33881
+      ],
+      [
+       "line_pay",
+       11973
+      ],
+      [
+       "atm",
+       9320
+      ],
+      [
+       "cod",
+       6145
+      ]
+     ]
+    },
+    "amount_twd": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 5141,
+     "nulls": 0,
+     "sample": [
+      32510,
+      4105,
+      4000
+     ],
+     "unique": false,
+     "min": 160,
+     "max": 87030
+    },
+    "paid_ts": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 61265,
+     "nulls": 0,
+     "sample": [
+      "2025-05-27 02:35:55",
+      "2025-06-01 06:07:51",
+      "2025-09-27 08:49:07"
+     ],
+     "unique": false,
+     "min": "2024-12-30 00:06:20",
+     "max": "2025-12-31 23:56:02",
+     "time_column": true,
+     "month_shift_if_utc_plus8": 699
+    },
+    "payment_status": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 2,
+     "nulls": 0,
+     "sample": [
+      "ok",
+      "ok",
+      "ok"
+     ],
+     "unique": false,
+     "values": [
+      [
+       "ok",
+       47993
+      ],
+      [
+       "failed",
+       13326
+      ]
+     ]
+    }
+   }
+  },
+  "products": {
+   "rows": 200,
+   "columns": {
+    "product_id": {
+     "type": "INTEGER",
+     "pk": true,
+     "distinct": 200,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": true,
+     "min": 1,
+     "max": 200
+    },
+    "sku": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 200,
+     "nulls": 0,
+     "sample": [
+      "LUMO-BP-001",
+      "LUMO-BP-002",
+      "LUMO-BP-003"
+     ],
+     "unique": true,
+     "min": "LUMO-AC-001",
+     "max": "LUMO-TN-040"
+    },
+    "product_name": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 200,
+     "nulls": 0,
+     "sample": [
+      "雪嶺 登山背包1",
+      "雲杉 登山背包1",
+      "岩峰 登山背包1"
+     ],
+     "unique": true,
+     "min": "岩峰 帳篷1",
+     "max": "鷹眼 配件2"
+    },
+    "category": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 5,
+     "nulls": 0,
+     "sample": [
+      "backpack",
+      "backpack",
+      "backpack"
+     ],
+     "unique": false,
+     "values": [
+      [
+       "tent",
+       40
+      ],
+      [
+       "shoes",
+       40
+      ],
+      [
+       "backpack",
+       40
+      ],
+      [
+       "apparel",
+       40
+      ],
+      [
+       "accessory",
+       40
+      ]
+     ]
+    },
+    "list_price_twd": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 84,
+     "nulls": 0,
+     "sample": [
+      4900,
+      5800,
+      2300
+     ],
+     "unique": false,
+     "min": 200,
+     "max": 14900
+    },
+    "is_active": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 2,
+     "nulls": 0,
+     "sample": [
+      1,
+      0,
+      1
+     ],
+     "unique": false,
+     "values": [
+      [
+       1,
+       165
+      ],
+      [
+       0,
+       35
+      ]
+     ]
+    }
+   }
+  },
+  "refunds": {
+   "rows": 4039,
+   "columns": {
+    "refund_id": {
+     "type": "INTEGER",
+     "pk": true,
+     "distinct": 4039,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": true,
+     "min": 1,
+     "max": 4039
+    },
+    "order_id": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 3584,
+     "nulls": 0,
+     "sample": [
+      23,
+      44,
+      61
+     ],
+     "unique": false,
+     "min": 23,
+     "max": 59999
+    },
+    "item_id": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 4039,
+     "nulls": 0,
+     "sample": [
+      41,
+      78,
+      105
+     ],
+     "unique": true,
+     "min": 41,
+     "max": 104964
+    },
+    "refund_amount_twd": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 521,
+     "nulls": 0,
+     "sample": [
+      1710,
+      1200,
+      1500
+     ],
+     "unique": false,
+     "min": 80,
+     "max": 44700
+    },
+    "refund_ts": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 4038,
+     "nulls": 0,
+     "sample": [
+      "2025-05-16 21:01:00",
+      "2025-02-09 21:29:49",
+      "2025-10-31 16:55:04"
+     ],
+     "unique": false,
+     "min": "2025-01-05 19:07:25",
+     "max": "2026-01-23 13:45:30",
+     "time_column": true,
+     "month_shift_if_utc_plus8": 57
+    },
+    "reason_code": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 4,
+     "nulls": 0,
+     "sample": [
+      "R3",
+      "R2",
+      "R1"
+     ],
+     "unique": false,
+     "values": [
+      [
+       "R2",
+       1621
+      ],
+      [
+       "R1",
+       1194
+      ],
+      [
+       "R3",
+       619
+      ],
+      [
+       "R4",
+       605
+      ]
+     ]
+    }
+   }
+  },
+  "shipments": {
+   "rows": 44444,
+   "columns": {
+    "shipment_id": {
+     "type": "INTEGER",
+     "pk": true,
+     "distinct": 44444,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": true,
+     "min": 1,
+     "max": 44444
+    },
+    "order_id": {
+     "type": "INTEGER",
+     "pk": false,
+     "distinct": 44444,
+     "nulls": 0,
+     "sample": [
+      1,
+      2,
+      3
+     ],
+     "unique": true,
+     "min": 1,
+     "max": 60000
+    },
+    "carrier": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 4,
+     "nulls": 0,
+     "sample": [
+      "post",
+      "blackcat",
+      "hct"
+     ],
+     "unique": false,
+     "values": [
+      [
+       "blackcat",
+       19911
+      ],
+      [
+       "hct",
+       11092
+      ],
+      [
+       "sf",
+       6806
+      ],
+      [
+       "post",
+       6635
+      ]
+     ]
+    },
+    "shipped_ts": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 44403,
+     "nulls": 0,
+     "sample": [
+      "2025-05-29 05:32:55",
+      "2025-06-03 17:04:51",
+      "2025-09-28 09:46:07"
+     ],
+     "unique": false,
+     "min": "2024-12-31 04:11:32",
+     "max": "2026-01-04 17:53:02",
+     "time_column": true,
+     "month_shift_if_utc_plus8": 516
+    },
+    "delivered_ts": {
+     "type": "TEXT",
+     "pk": false,
+     "distinct": 39547,
+     "nulls": 4870,
+     "sample": [
+      "2025-06-03 18:32:55",
+      "2025-06-06 13:04:51",
+      "2025-09-29 19:46:07"
+     ],
+     "unique": false,
+     "min": "2025-01-01 06:58:33",
+     "max": "2026-01-10 06:08:37",
+     "time_column": true,
+     "month_shift_if_utc_plus8": 423
+    }
+   }
+  }
+ },
+ "candidate_joins": [
+  {
+   "from": "order_items.item_id",
+   "to": "refunds.item_id",
+   "orphans": 100927,
+   "from_rows": 104966
+  },
+  {
+   "from": "order_items.order_id",
+   "to": "orders.order_id",
+   "orphans": 0,
+   "from_rows": 104966
+  },
+  {
+   "from": "order_items.order_id",
+   "to": "shipments.order_id",
+   "orphans": 27337,
+   "from_rows": 104966
+  },
+  {
+   "from": "order_items.product_id",
+   "to": "products.product_id",
+   "orphans": 0,
+   "from_rows": 104966
+  },
+  {
+   "from": "orders.order_id",
+   "to": "shipments.order_id",
+   "orphans": 15556,
+   "from_rows": 60000
+  },
+  {
+   "from": "orders.customer_id",
+   "to": "customers.customer_id",
+   "orphans": 0,
+   "from_rows": 60000
+  },
+  {
+   "from": "payments.order_id",
+   "to": "orders.order_id",
+   "orphans": 0,
+   "from_rows": 61319
+  },
+  {
+   "from": "payments.order_id",
+   "to": "shipments.order_id",
+   "orphans": 10066,
+   "from_rows": 61319
+  },
+  {
+   "from": "refunds.order_id",
+   "to": "orders.order_id",
+   "orphans": 0,
+   "from_rows": 4039
+  },
+  {
+   "from": "refunds.order_id",
+   "to": "shipments.order_id",
+   "orphans": 0,
+   "from_rows": 4039
+  },
+  {
+   "from": "refunds.item_id",
+   "to": "order_items.item_id",
+   "orphans": 0,
+   "from_rows": 4039
+  },
+  {
+   "from": "shipments.order_id",
+   "to": "orders.order_id",
+   "orphans": 0,
+   "from_rows": 44444
+  }
+ ]
+}

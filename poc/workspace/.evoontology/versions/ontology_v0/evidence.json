@@ -1,0 +1,202 @@
+[
+  {
+    "id": "ev_schema",
+    "source": "shop_v2",
+    "query": "SELECT sql FROM sqlite_master WHERE type='table' ORDER BY name",
+    "result": "7 tables: customers(customer_id,name,email,region_code,signup_date,tier); orders(order_id,customer_id,order_ts,status,channel,coupon_code); order_items(item_id,order_id,product_id,quantity,unit_price_cents); products(product_id,sku,product_name,category,list_price_twd,is_active); payments(payment_id,order_id,method,amount_twd,paid_ts,payment_status); refunds(refund_id,order_id,item_id,refund_amount_twd,refund_ts,reason_code); shipments(shipment_id,order_id,carrier,shipped_ts,delivered_ts). No cancellation-timestamp, status-history, tier-history or order-level region/address column exists. SELECT name FROM sqlite_master WHERE type='index' returns no rows.",
+    "validation_method": "schema inspection",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_fk_integrity",
+    "source": "shop_v2",
+    "query": "SELECT COUNT(*) FROM orders o LEFT JOIN customers c ON c.customer_id=o.customer_id WHERE c.customer_id IS NULL; SELECT COUNT(*) FROM order_items oi LEFT JOIN products p ON p.product_id=oi.product_id WHERE p.product_id IS NULL; SELECT COUNT(*) FROM order_items oi LEFT JOIN orders o ON o.order_id=oi.order_id WHERE o.order_id IS NULL",
+    "result": "0 orphan orders (no customer), 0 orphan order_items (no product), 0 orphan order_items (no order). Table row counts: customers 5000, orders 60000, order_items 104966, products 200, payments 61319, refunds 4039, shipments 44444.",
+    "validation_method": "referential integrity check",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_status_dist",
+    "source": "shop_v2",
+    "query": "SELECT status,COUNT(*) FROM orders GROUP BY 1",
+    "result": "0:3003, 1:3549, 2:4870, 3:39574, 9:9004 (only five distinct status codes)",
+    "validation_method": "distinct value enumeration",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_status_payment",
+    "source": "shop_v2",
+    "query": "SELECT o.status, p.payment_status, COUNT(*), COUNT(DISTINCT p.order_id) FROM payments p JOIN orders o ON o.order_id=p.order_id WHERE p.payment_id<=15000 GROUP BY 1,2 (also run for payment_id>15000 AND <=35000, and payment_id>35000)",
+    "result": "Across all three payment_id ranges: orders with status 0 and 9 only have payment_status='failed' payments; orders with status 1, 2, 3 each have exactly one 'ok' payment (ok rows = distinct ok orders in every range, e.g. status 3 ok 13028/13028 distinct) and may additionally have failed attempts (e.g. status 3 failed 1924 rows for 1531 orders). Failed attempts therefore exist on valid orders as well. paid_ts>=order_ts in all 15000 sampled payments.",
+    "validation_method": "cross-table distribution over three id ranges (full scan exceeds the query budget)",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_status_shipment",
+    "source": "shop_v2",
+    "query": "SELECT o.status, COUNT(*), SUM(s.delivered_ts IS NULL) FROM shipments s JOIN orders o ON o.order_id=s.order_id WHERE s.shipment_id<=15000 GROUP BY 1; SELECT COUNT(*), SUM(delivered_ts IS NULL) FROM shipments",
+    "result": "Sampled shipments belong only to status 2 (1660, all delivered_ts NULL) and status 3 (13340, delivered_ts never NULL). Full table: 44444 shipments, 4870 with NULL delivered_ts = number of status-2 orders (4870); 44444 = 4870 + 39574 (status 2 + status 3). Status 1/0/9 orders have no shipment. One shipment per order (n=1 for all 44444 order_ids).",
+    "validation_method": "cross-table consistency of status with shipment records",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_channel_values",
+    "source": "shop_v2",
+    "query": "SELECT channel,COUNT(*) FROM orders GROUP BY 1",
+    "result": "app:20970, store:8959, web:30071 (three clean values, no NULLs or case variants)",
+    "validation_method": "distinct value enumeration",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_region_values",
+    "source": "shop_v2",
+    "query": "SELECT region_code,COUNT(*) FROM customers GROUP BY 1",
+    "result": "JP:501, SG:238, TW-C:1289, TW-N:1985, TW-S:987 (five clean values)",
+    "validation_method": "distinct value enumeration",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_tier_values",
+    "source": "shop_v2",
+    "query": "SELECT tier,COUNT(*) FROM customers GROUP BY 1",
+    "result": "B:3539, G:491, S:970 (three clean values)",
+    "validation_method": "distinct value enumeration",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_category_active",
+    "source": "shop_v2",
+    "query": "SELECT category,is_active,COUNT(*) FROM products GROUP BY 1,2",
+    "result": "5 categories: accessory(0:8,1:32), apparel(0:6,1:34), backpack(0:6,1:34), shoes(0:6,1:34), tent(0:9,1:31); is_active has only values 0 and 1 (35 inactive, 165 active).",
+    "validation_method": "distinct value enumeration",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_payment_values",
+    "source": "shop_v2",
+    "query": "SELECT payment_status,method,COUNT(*) FROM payments GROUP BY 1,2",
+    "result": "payment_status in {ok, failed}; method in {atm, cod, credit_card, line_pay}; ok: atm 7330, cod 4792, credit_card 26469, line_pay 9402; failed: atm 1990, cod 1353, credit_card 7412, line_pay 2571.",
+    "validation_method": "distinct value enumeration",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_reason_values",
+    "source": "shop_v2",
+    "query": "SELECT reason_code,COUNT(*) FROM refunds GROUP BY 1",
+    "result": "R1:1194, R2:1621, R3:619, R4:605 (four clean values)",
+    "validation_method": "distinct value enumeration",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_unit_price_scale",
+    "source": "shop_v2",
+    "query": "SELECT ROUND(oi.unit_price_cents*1.0/p.list_price_twd,0) r, COUNT(*) FROM order_items oi JOIN products p ON p.product_id=oi.product_id WHERE oi.item_id<=10000 GROUP BY 1 ORDER BY 2 DESC",
+    "result": "unit_price_cents / list_price_twd takes only the values 100 (5988), 90 (2014), 85 (1012), 80 (986): unit_price_cents is 100x the TWD amount (cents), and the deal price equals list price in ~60% of rows and is 80-90% of list price otherwise. quantity is in {1:73448, 2:20997, 3:10521}.",
+    "validation_method": "ratio of deal unit price to catalog price",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_payment_equals_items",
+    "source": "shop_v2",
+    "query": "SELECT COUNT(*), SUM(t.s=p.amount_twd*100) eq FROM (SELECT order_id, SUM(quantity*unit_price_cents) s FROM order_items WHERE item_id<=4000 GROUP BY order_id) t JOIN payments p ON p.order_id=t.order_id AND p.payment_status='ok' WHERE t.order_id<(SELECT MAX(order_id) FROM order_items WHERE item_id<=4000)",
+    "result": "1822 of 1822 compared orders: sum(quantity*unit_price_cents) = payments.amount_twd*100 for the ok payment (the same also holds for 546 of 546 failed attempts). So order item amount = quantity x deal unit price / 100 TWD, and payments.amount_twd is the order's full merchandise amount in TWD for each attempt (not a per-item or partial amount). payments is NOT the source of merchandise amount because it also holds failed attempts and is dated by paid_ts.",
+    "validation_method": "reconciliation of two candidate amount sources",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_ts_format_range",
+    "source": "shop_v2",
+    "query": "SELECT length(order_ts),COUNT(*) FROM orders GROUP BY 1; SELECT MIN(order_ts),MAX(order_ts) FROM orders; SELECT MIN(paid_ts),MAX(paid_ts) FROM payments; SELECT MIN(refund_ts),MAX(refund_ts) FROM refunds",
+    "result": "order_ts is 'YYYY-MM-DD HH:MM:SS' (length 19 for all 60000 rows) with no offset marker; orders 2024-12-30 00:03:20 .. 2025-12-31 23:53:02; payments paid_ts 2024-12-30 00:06:20 .. 2025-12-31 23:56:02; refunds 2025-01-05 19:07:25 .. 2026-01-23 13:45:30. customers.signup_date is a 10-char date (2023-01-01..2025-12-31).",
+    "validation_method": "format and range inspection",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_tz_period_impact",
+    "source": "shop_v2",
+    "query": "SELECT SUM(order_ts<'2024-12-31 16:00:00'), SUM(order_ts>='2024-12-31 16:00:00' AND order_ts<'2025-12-31 16:00:00'), SUM(order_ts>='2025-12-31 16:00:00'), SUM(order_ts LIKE '2025%') FROM orders; SELECT SUM(strftime('%m',order_ts)<>strftime('%m',datetime(order_ts,'+8 hours'))) FROM orders; SELECT SUM(order_ts>='2025-02-28 16:00:00' AND order_ts<'2025-03-31 16:00:00' AND status BETWEEN 1 AND 3), SUM(order_ts LIKE '2025-03%' AND status BETWEEN 1 AND 3) FROM orders; SELECT SUM(refund_ts>='2025-08-31 16:00:00' AND refund_ts<'2025-09-30 16:00:00'), SUM(refund_ts LIKE '2025-09%') FROM refunds; SELECT SUM(refund_ts>='2024-12-31 16:00:00' AND refund_ts<'2025-12-31 16:00:00'), SUM(refund_ts LIKE '2025%'), SUM(refund_ts>='2025-12-31 16:00:00') FROM refunds; SELECT SUM(paid_ts>='2024-12-31 16:00:00' AND paid_ts<'2025-12-31 16:00:00' AND payment_status='ok'), SUM(paid_ts LIKE '2025%' AND payment_status='ok') FROM payments",
+    "result": "Shifting stored timestamps by +8h changes the calendar month of 655 of 60000 orders. Orders by Taipei time: 301 fall in 2024, 59643 in 2025, 56 in 2026 (vs 59648 with UTC year 2025). Valid orders in March 2025: 4128 by Taipei time vs 4144 by raw stored time; valid orders in 2025: 47699 vs 47701. Refund count in Sep 2025: 304 vs 307; refunds in 2025: 3861 vs 3862, and 178 refunds occur after 2025-12-31 16:00 (stored), 177 of them in 2026 by stored date. OK payments in 2025: 47699 vs 47703. Period boundaries therefore differ materially between raw and Taipei time.",
+    "validation_method": "sensitivity of period counts to the UTC+8 conversion stated in the business document",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_hour_distribution",
+    "source": "shop_v2",
+    "query": "SELECT CAST(substr(order_ts,12,2) AS INT) h, COUNT(*) FROM orders GROUP BY 1",
+    "result": "Orders are spread almost uniformly over all 24 stored hours (2382..2596 per hour), so the data itself cannot confirm or refute that stored timestamps are UTC; the UTC statement rests on the business document only.",
+    "validation_method": "negative check: data-based timezone inference not possible",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_refund_linkage",
+    "source": "shop_v2",
+    "query": "SELECT SUM(r.order_id=oi.order_id) same_order, COUNT(*) n, SUM(r.refund_amount_twd*100<=oi.quantity*oi.unit_price_cents) le_item, SUM(r.refund_amount_twd*100=oi.quantity*oi.unit_price_cents) eq_item FROM refunds r JOIN order_items oi ON oi.item_id=r.item_id; SELECT COUNT(*), SUM(r.refund_amount_twd*100<oi.quantity*oi.unit_price_cents) partial FROM refunds r JOIN order_items oi ON oi.item_id=r.item_id; SELECT o.status, COUNT(*) FROM refunds r JOIN orders o ON o.order_id=r.order_id GROUP BY 1; SELECT SUM(r.refund_ts<o.order_ts) FROM refunds r JOIN orders o ON o.order_id=r.order_id",
+    "result": "All 4039 refunds reference an existing order item and refunds.order_id always equals that item's order_id (4039/4039). Refund amount never exceeds the item amount (4039/4039); it equals the full item amount in 2798 and is a partial amount in 1241. All refunds belong to status-3 (delivered) orders (4039). No refund precedes its order. Each refund has a distinct item_id (4039 distinct); 455 orders have 2 refunds, 3129 have 1.",
+    "validation_method": "referential and amount consistency of refunds",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_customer_name_dup",
+    "source": "shop_v2",
+    "query": "SELECT COUNT(DISTINCT customer_id), COUNT(DISTINCT email), COUNT(DISTINCT name) FROM customers",
+    "result": "5000 distinct customer_id, 5000 distinct email, but only 380 distinct name: customer names are heavily duplicated, so name cannot identify a customer.",
+    "validation_method": "uniqueness check",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_product_keys_unique",
+    "source": "shop_v2",
+    "query": "SELECT COUNT(DISTINCT sku), COUNT(DISTINCT product_name), COUNT(*) FROM products",
+    "result": "200 distinct sku, 200 distinct product_name, 200 rows: both sku and product_name uniquely identify a product.",
+    "validation_method": "uniqueness check",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_inactive_products_sold",
+    "source": "shop_v2",
+    "query": "SELECT p.is_active, COUNT(*), COUNT(DISTINCT oi.product_id) FROM order_items oi JOIN products p ON p.product_id=oi.product_id WHERE oi.item_id<=30000 GROUP BY 1",
+    "result": "Among the first 30000 order items, inactive products (is_active=0) account for 4799 items over all 35 inactive products and active products for 25201 items over all 165 active products: is_active is a current-state flag on the product master, and discontinued products still appear in historical order items. products has one row per product with no activation history.",
+    "validation_method": "cross-table check of product state vs sales history",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_orders_per_customer",
+    "source": "shop_v2",
+    "query": "SELECT n, COUNT(*) FROM (SELECT customer_id, COUNT(*) n FROM orders WHERE status BETWEEN 1 AND 3 AND order_id<=20000 GROUP BY 1) GROUP BY 1",
+    "result": "Customers have between 1 and 21 valid orders in the sampled order_id<=20000 range (1:855, 2:598, 3:463, ... 21:1), so customers with 2 or more valid orders exist and customer_id is the grouping key on orders.",
+    "validation_method": "distribution check (sample range)",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_doc_time_rules",
+    "source": "domain_knowledge.md (business doc, poc/build_input_v2)",
+    "query": "Section 一 報表時間規則 (document text, no SQL)",
+    "result": "'系統資料表裡的所有時間戳記（訂單、付款、退款、出貨、送達）都是 UTC。所有營運報表一律用台北時間（UTC+8）劃分日期、月份、季與年度。客戶的註冊日期本來就是台北日期。第一季=1~3月，第三季=7~9月，上半年=1~6月。'",
+    "validation_method": "business document statement (unverifiable from data alone, see ev_hour_distribution; impact quantified in ev_tz_period_impact)",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_doc_definitions",
+    "source": "domain_knowledge.md (business doc, poc/build_input_v2)",
+    "query": "Section 二 名詞定義 (document text, no SQL)",
+    "result": "有效訂單=狀態為已付款/已出貨/已送達；商品金額=數量x成交單價(實際付的價格,非目錄標價)；淨營收=期間內有效訂單商品金額總和扣掉這些訂單對應的退款,期間依訂單成立時間歸屬,退款扣回原訂單,不看退款發生月份；客單價=期間內有效訂單商品金額總和(不扣退款)/有效訂單張數；回購客戶=某一年度內有效訂單達2張(含)以上的客戶；實收金額=付款成功的付款紀錄金額總和,依付款成功時間歸屬；退款金額(退款報表)=依退款發生時間歸屬期間,與淨營收歸屬方式不同；取消率與配送天數等其他定義另有說明。",
+    "validation_method": "business document statements, each cross-checked against data in the evidence entries referenced by the object that uses it",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_doc_codes",
+    "source": "domain_knowledge.md (business doc, poc/build_input_v2)",
+    "query": "Section 三 代碼對照 (document text, no SQL)",
+    "result": "orders.status 0待付款/1已付款/2已出貨/3已送達/9已取消; orders.channel web官網/app行動App/store實體門市; customers.tier B一般/S銀級/G黃金; customers.region_code TW-N北部/TW-C中部/TW-S南部/JP日本/SG新加坡; payments.payment_status ok付款成功/failed付款失敗; payments.method credit_card信用卡/line_pay LINE Pay/atm ATM轉帳/cod貨到付款; refunds.reason_code R1商品瑕疵/R2改變心意/R3寄錯商品/R4配送延遲; products.is_active 1在售/0已下架; products.category backpack登山背包/tent帳篷/shoes登山鞋/apparel機能服飾/accessory配件.",
+    "validation_method": "business document code table; the set of codes was verified to equal the distinct values in the data, meanings of tier/region/reason/channel/is_active codes are document-only",
+    "timestamp": "2026-10-22T10:54:00Z"
+  },
+  {
+    "id": "ev_doc_no_units_sold_def",
+    "source": "domain_knowledge.md (business doc, poc/build_input_v2)",
+    "query": "Search of domain_knowledge.md for a definition of 銷售數量 / 商品銷量 / 在售商品銷量 (document text, no SQL)",
+    "result": "The document defines sales amount (商品金額) and valid orders but gives no explicit definition of '銷售數量' (units sold) or whether cancelled/unpaid orders count towards it. 在售 is defined only as products.is_active=1.",
+    "validation_method": "absence check on the business document",
+    "timestamp": "2026-10-22T10:54:00Z"
+  }
+]

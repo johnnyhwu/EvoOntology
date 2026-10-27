@@ -1,0 +1,398 @@
+{
+ "task_id": "task_7b4f32c5fef8",
+ "question": "新竹物流 2025 年的準時送達率是多少？",
+ "ontology_version": "ontology_v0",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "新竹物流",
+     "準時送達率"
+    ],
+    "context": "新竹物流 2025 年的準時送達率是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "新竹物流",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '新竹物流'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "準時送達率",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '準時送達率'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "ontology_v0",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "準時送達 物流 carrier 新竹 hct 送達",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [],
+    "matched_total": 0,
+    "catalog_total": 116,
+    "version": "ontology_v0",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "on-time delivery shipment delivered_ts promised date carrier hct",
+    "kind": "all",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [
+     {
+      "id": "con_tz_order_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "所有依訂單成立時間歸屬期間的分析（淨營收、客單價、訂單數、回購、通路占比、取消、銷量）",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_paid_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "實收金額的期間歸屬",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_refund_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "退款報表的期間歸屬",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "map_order_time",
+      "name": "term_order_time -> orders",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "map_paid_time",
+      "name": "term_paid_time -> payments",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "map_refund_time",
+      "name": "term_refund_time -> refunds",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time",
+        "ts"
+       ]
+      }
+     }
+    ],
+    "matched_total": 10,
+    "catalog_total": 116,
+    "version": "ontology_v0",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "carrier shipments shipped_ts delivered_ts delivery",
+    "kind": "mapping",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [
+     {
+      "id": "map_order_time",
+      "name": "term_order_time -> orders",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "map_paid_time",
+      "name": "term_paid_time -> payments",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "ts"
+       ]
+      }
+     },
+     {
+      "id": "map_refund_time",
+      "name": "term_refund_time -> refunds",
+      "type": "mapping",
+      "scope": "",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "ts"
+       ]
+      }
+     }
+    ],
+    "matched_total": 3,
+    "catalog_total": 33,
+    "version": "ontology_v0",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "時效 SLA 交期 送達天數 lead time delivery days promised",
+    "kind": "constraint",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [
+     {
+      "id": "con_refund_history_scope",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "詢問「歷史上」或不限期間的退款統計時",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_order_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "所有依訂單成立時間歸屬期間的分析（淨營收、客單價、訂單數、回購、通路占比、取消、銷量）",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_paid_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "實收金額的期間歸屬",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     },
+     {
+      "id": "con_tz_refund_time",
+      "name": "scope",
+      "type": "constraint",
+      "scope": "退款報表的期間歸屬",
+      "availability": "active",
+      "match_rationale": {
+       "phrase_match": false,
+       "overlap_tokens": [
+        "time"
+       ]
+      }
+     }
+    ],
+    "matched_total": 4,
+    "catalog_total": 28,
+    "version": "ontology_v0",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  },
+  {
+   "tool": "browse_semantics",
+   "input": {
+    "query": "準時",
+    "kind": "term",
+    "limit": 6
+   },
+   "result": {
+    "status": "ok",
+    "items": [],
+    "matched_total": 0,
+    "catalog_total": 30,
+    "version": "ontology_v0",
+    "note": "Only query-relevant items are returned; this is not an analysis checklist."
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT carrier, COUNT(*) AS n, MIN(shipped_ts) AS min_shipped, MAX(delivered_ts) AS max_delivered, SUM(CASE WHEN delivered_ts IS NULL THEN 1 ELSE 0 END) AS null_delivered FROM shipments GROUP BY carrier ORDER BY n DESC"
+   },
+   "result": {
+    "columns": [
+     "carrier",
+     "n",
+     "min_shipped",
+     "max_delivered",
+     "null_delivered"
+    ],
+    "rows": [
+     [
+      "blackcat",
+      19911,
+      "2024-12-31 05:07:42",
+      "2026-01-08 09:31:43",
+      2134
+     ],
+     [
+      "hct",
+      11092,
+      "2024-12-31 10:14:46",
+      "2026-01-08 23:29:30",
+      1233
+     ],
+     [
+      "sf",
+      6806,
+      "2024-12-31 08:50:28",
+      "2026-01-06 18:52:48",
+      735
+     ],
+     [
+      "post",
+      6635,
+      "2024-12-31 04:11:32",
+      "2026-01-10 06:08:37",
+      768
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['carrier', 'n', 'min_shipped', 'max_delivered', 'null_delivered'], 'rows': [['blackcat', 19911, '2024-12-31 05:07:42', '2026-01-08 09:31:43', 2134], ['hct', 11092, '2024-12-31 10:14:46', '2026-01-08 23:29:30', 1233], ['sf', 6806, '2024-12-31 08:50:28', '2026-01-06 18:52:48', 735], ['post', 6635, '2024-12-31 04:11:32', '2026-01-10 06:08:37', 768]], 'truncated': False}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT COUNT(*) AS n, SUM(CASE WHEN delivered_ts IS NOT NULL THEN 1 ELSE 0 END) AS delivered_n, ROUND(AVG(julianday(delivered_ts) - julianday(shipped_ts)), 2) AS avg_transit_days, MIN(shipped_ts) AS min_shipped, MAX(shipped_ts) AS max_shipped FROM shipments WHERE carrier = 'hct' AND shipped_ts >= '2025-01-01' AND shipped_ts < '2026-01-01'"
+   },
+   "result": {
+    "columns": [
+     "n",
+     "delivered_n",
+     "avg_transit_days",
+     "min_shipped",
+     "max_shipped"
+    ],
+    "rows": [
+     [
+      11005,
+      9778,
+      3.34,
+      "2025-01-01 02:33:40",
+      "2025-12-31 22:18:32"
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['n', 'delivered_n', 'avg_transit_days', 'min_shipped', 'max_shipped'], 'rows': [[11005, 9778, 3.34, '2025-01-01 02:33:40', '2025-12-31 22:18:32']], 'truncated': False}"
+  }
+ ],
+ "final_answer": {
+  "answer": "無法計算",
+  "basis": "語意層無「準時送達」定義，shipments 表缺少承諾送達日（promised date），無法判斷是否準時；carrier 代碼 hct 疑為新竹物流，但語意層未確認對應。2025 年 hct 出貨 11,005 筆、已送達 9,778 筆、平均運輸 3.34 天，僅供參考，不能推算準時送達率。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S02",
+ "arm": "ontology",
+ "steps": 10,
+ "ended_by": "final"
+}

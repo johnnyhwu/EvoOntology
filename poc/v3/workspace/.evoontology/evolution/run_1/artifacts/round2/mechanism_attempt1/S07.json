@@ -1,0 +1,171 @@
+{
+ "task_id": "task_6eb699a0a6d1",
+ "question": "黑貓宅急便在 2025 年的平均配送天數是多少？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "配送天數",
+     "黑貓宅急便",
+     "2025 年"
+    ],
+    "context": "黑貓宅急便在 2025 年的平均配送天數是多少？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "配送天數",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '配送天數'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "黑貓宅急便",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '黑貓宅急便'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "2025 年",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '2025 年'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 3,
+    "processed_count": 3,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT carrier, COUNT(*) AS n, MIN(shipped_ts) AS sample_shipped, MIN(delivered_ts) AS sample_delivered FROM shipments GROUP BY carrier"
+   },
+   "result": {
+    "columns": [
+     "carrier",
+     "n",
+     "sample_shipped",
+     "sample_delivered"
+    ],
+    "rows": [
+     [
+      "blackcat",
+      19911,
+      "2024-12-31 05:07:42",
+      "2025-01-01 06:58:33"
+     ],
+     [
+      "hct",
+      11092,
+      "2024-12-31 10:14:46",
+      "2025-01-02 09:14:46"
+     ],
+     [
+      "post",
+      6635,
+      "2024-12-31 04:11:32",
+      "2025-01-02 08:04:45"
+     ],
+     [
+      "sf",
+      6806,
+      "2024-12-31 08:50:28",
+      "2025-01-01 14:17:31"
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['carrier', 'n', 'sample_shipped', 'sample_delivered'], 'rows': [['blackcat', 19911, '2024-12-31 05:07:42', '2025-01-01 06:58:33'], ['hct', 11092, '2024-12-31 10:14:46', '2025-01-02 09:14:46'], ['post', 6635, '2024-12-31 04:11:32', '2025-01-02 08:04:45'], ['sf', 6806, '2024-12-31 08:50:28', '2025-01-01 14:17:31']], 'truncated': False}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT COUNT(*) AS n, COUNT(s.delivered_ts) AS n_delivered, ROUND(AVG(julianday(s.delivered_ts) - julianday(s.shipped_ts)), 4) AS avg_days FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' AND strftime('%Y', datetime(o.order_ts, '+8 hours')) = '2025'",
+     "SELECT MIN(julianday(s.delivered_ts) - julianday(s.shipped_ts)) AS min_days, MAX(julianday(s.delivered_ts) - julianday(s.shipped_ts)) AS max_days, SUM(CASE WHEN s.delivered_ts < s.shipped_ts THEN 1 ELSE 0 END) AS neg_cnt FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' AND strftime('%Y', datetime(o.order_ts, '+8 hours')) = '2025'"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT COUNT(*) AS n, COUNT(s.delivered_ts) AS n_delivered, ROUND(AVG(julianday(s.delivered_ts) - julianday(s.shipped_ts)), 4) AS avg_days FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' AND strftime('%Y', datetime(o.order_ts, '+8 hours')) = '2025'",
+     "columns": [
+      "n",
+      "n_delivered",
+      "avg_days"
+     ],
+     "rows": [
+      [
+       19803,
+       17678,
+       2.4914
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT MIN(julianday(s.delivered_ts) - julianday(s.shipped_ts)) AS min_days, MAX(julianday(s.delivered_ts) - julianday(s.shipped_ts)) AS max_days, SUM(CASE WHEN s.delivered_ts < s.shipped_ts THEN 1 ELSE 0 END) AS neg_cnt FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' AND strftime('%Y', datetime(o.order_ts, '+8 hours')) = '2025'",
+     "columns": [
+      "min_days",
+      "max_days",
+      "neg_cnt"
+     ],
+     "rows": [
+      [
+       0.8333333330228925,
+       4.1666666669771075,
+       0
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': \"SELECT COUNT(*) AS n, COUNT(s.delivered_ts) AS n_delivered, ROUND(AVG(julianday(s.delivered_ts) - julianday(s.shipped_ts)), 4) AS avg_days FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' AND strftime('%Y', datetime(o.order_ts, '+8 hours')) = '2025'\", 'columns': ['n', 'n_delivered', 'avg_days'], 'rows': [[19803, 17678, 2.4914]], 'truncated': False}, {'query': \"SELECT MIN(julianday(s.delivered_ts) - julianday(s.shipped_ts)) AS min_days, MAX(julianday(s.delivered_ts) - julianday(s.shipped_ts)) AS max_days, SUM(CASE WHEN s.delivered_ts < s.shipped_ts THEN 1 ELSE 0 END) AS neg_cnt FROM shipments s JOIN orders o ON o.order_id = s.order_id WHERE s.carrier = 'blackcat' AND strftime('%Y', datetime(o.order_ts, '+8 hours')) = '2025'\", 'columns': ['min_days', 'max_days', 'neg_cnt'], 'rows': [[0.8333333330228925, 4.1666666669771075, 0]], 'truncated': False}]"
+  }
+ ],
+ "final_answer": {
+  "answer": "2.49",
+  "basis": "依語意層規則，orders.order_ts 為 UTC，先加 8 小時換算成台北時間再篩選 2025 年訂單；承運商為 shipments.carrier = 'blackcat'。配送天數為 delivered_ts 減 shipped_ts（以日計），只計已送達的 17,678 筆，平均 2.4914 天，最小 0.83、最大 4.17，無負值。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S07",
+ "arm": "ontology",
+ "steps": 5,
+ "ended_by": "final"
+}

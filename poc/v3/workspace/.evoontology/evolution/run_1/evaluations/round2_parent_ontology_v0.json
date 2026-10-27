@@ -1,0 +1,16 @@
+{
+  "subject": "ontology_v0",
+  "role": "parent",
+  "round": 2,
+  "metrics": {
+    "note": "baseline for the pairwise comparison"
+  },
+  "cases": [],
+  "artifact_paths": [
+    "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/workspace/.evoontology/evolution/run_1/artifacts/round2/rep1/parent",
+    "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/workspace/.evoontology/evolution/run_1/artifacts/round2/rep2/parent"
+  ],
+  "provenance": "synthetic",
+  "gate_input": null,
+  "recorded_at": "2026-10-27T00:53:55.892292+00:00"
+}

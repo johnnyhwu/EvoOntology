@@ -1,0 +1,9 @@
+{
+  "resolve": {
+    "trigger_keyword_constraints": false,
+    "fuzzy_fallback": false
+  },
+  "manifest": {
+    "pinned_constraint_ids": []
+  }
+}

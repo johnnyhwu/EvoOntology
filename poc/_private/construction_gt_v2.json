@@ -1,0 +1,258 @@
+[
+  {
+    "id": "C01",
+    "question": "2025 年第一季的淨營收是多少？",
+    "kind": "number",
+    "answer": 106879942.0,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2025-04-01' ) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)"
+  },
+  {
+    "id": "C02",
+    "question": "北部客戶在 2025 年的淨營收是多少？",
+    "kind": "number",
+    "answer": 169387349.0,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE region_code='TW-N')) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)"
+  },
+  {
+    "id": "C03",
+    "question": "黃金會員在 2025 年的淨營收是多少？",
+    "kind": "number",
+    "answer": 40290192.0,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE tier='G')) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)"
+  },
+  {
+    "id": "C04",
+    "question": "2025 年 8 月的淨營收是多少？",
+    "kind": "number",
+    "answer": 34938948.0,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-08-01' AND datetime(o.order_ts,'+8 hours') < '2025-09-01' ) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)"
+  },
+  {
+    "id": "C05",
+    "question": "2025 年 6 月的客單價是多少？",
+    "kind": "number",
+    "answer": 9386.67,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-06-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' ) SELECT ROUND(SUM(oi.quantity*oi.unit_price_cents)/100.0/COUNT(DISTINCT vo.order_id),2) FROM vo JOIN order_items oi ON oi.order_id=vo.order_id"
+  },
+  {
+    "id": "C06",
+    "question": "官網通路在 2025 年第二季的客單價是多少？",
+    "kind": "number",
+    "answer": 9373.19,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-04-01' AND datetime(o.order_ts,'+8 hours') < '2025-07-01' AND o.channel='web') SELECT ROUND(SUM(oi.quantity*oi.unit_price_cents)/100.0/COUNT(DISTINCT vo.order_id),2) FROM vo JOIN order_items oi ON oi.order_id=vo.order_id"
+  },
+  {
+    "id": "C07",
+    "question": "一般會員在 2025 年的客單價是多少？",
+    "kind": "number",
+    "answer": 9329.48,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE tier='B')) SELECT ROUND(SUM(oi.quantity*oi.unit_price_cents)/100.0/COUNT(DISTINCT vo.order_id),2) FROM vo JOIN order_items oi ON oi.order_id=vo.order_id"
+  },
+  {
+    "id": "C08",
+    "question": "北部客戶在 2025 年共有多少張有效訂單？",
+    "kind": "number",
+    "answer": 18823,
+    "accept": [],
+    "gt_sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE region_code='TW-N')"
+  },
+  {
+    "id": "C09",
+    "question": "2025 年 3 月有多少張有效訂單？",
+    "kind": "number",
+    "answer": 4128,
+    "accept": [],
+    "gt_sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-03-01' AND datetime(o.order_ts,'+8 hours') < '2025-04-01' "
+  },
+  {
+    "id": "C10",
+    "question": "行動 App 在 2025 年共有多少張有效訂單？",
+    "kind": "number",
+    "answer": 16679,
+    "accept": [],
+    "gt_sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.channel='app'"
+  },
+  {
+    "id": "C11",
+    "question": "2025 年有多少位回購客戶？",
+    "kind": "number",
+    "answer": 3990,
+    "accept": [],
+    "gt_sql": "SELECT COUNT(*) FROM (SELECT o.customer_id, COUNT(*) c FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'  GROUP BY o.customer_id HAVING c>=2)"
+  },
+  {
+    "id": "C12",
+    "question": "北部客戶在 2025 年有多少位回購客戶？",
+    "kind": "number",
+    "answer": 1593,
+    "accept": [],
+    "gt_sql": "SELECT COUNT(*) FROM (SELECT o.customer_id, COUNT(*) c FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE region_code='TW-N') GROUP BY o.customer_id HAVING c>=2)"
+  },
+  {
+    "id": "C13",
+    "question": "2025 年有效訂單中，透過行動 App 下單的占比是多少（%）？",
+    "kind": "number",
+    "answer": 35.0,
+    "accept": [],
+    "gt_sql": "SELECT ROUND(100.0*SUM(o.channel='app')/COUNT(*),1) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'"
+  },
+  {
+    "id": "C14",
+    "question": "2025 年有效訂單中，實體門市的占比是多少（%）？",
+    "kind": "number",
+    "answer": 14.9,
+    "accept": [],
+    "gt_sql": "SELECT ROUND(100.0*SUM(o.channel='store')/COUNT(*),1) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'"
+  },
+  {
+    "id": "C15",
+    "question": "2025 年 9 月的退款金額總計是多少？",
+    "kind": "number",
+    "answer": 1292056,
+    "accept": [],
+    "gt_sql": "SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r  WHERE datetime(r.refund_ts,'+8 hours') >= '2025-09-01' AND datetime(r.refund_ts,'+8 hours') < '2025-10-01'"
+  },
+  {
+    "id": "C16",
+    "question": "2025 年第二季的退款金額總計是多少？",
+    "kind": "number",
+    "answer": 4537216,
+    "accept": [],
+    "gt_sql": "SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r  WHERE datetime(r.refund_ts,'+8 hours') >= '2025-04-01' AND datetime(r.refund_ts,'+8 hours') < '2025-07-01'"
+  },
+  {
+    "id": "C17",
+    "question": "歷史上哪個商品類別的退款金額最高？",
+    "kind": "text",
+    "answer": "tent",
+    "accept": [
+      "tent",
+      "帳篷"
+    ],
+    "gt_sql": "SELECT p.category, SUM(r.refund_amount_twd) v FROM refunds r JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id GROUP BY p.category ORDER BY v DESC LIMIT 2"
+  },
+  {
+    "id": "C18",
+    "question": "因改變心意而退款的金額，哪個商品類別最高？",
+    "kind": "text",
+    "answer": "tent",
+    "accept": [
+      "tent",
+      "帳篷"
+    ],
+    "gt_sql": "SELECT p.category, SUM(r.refund_amount_twd) v FROM refunds r JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE r.reason_code='R2' GROUP BY p.category ORDER BY v DESC LIMIT 2"
+  },
+  {
+    "id": "C19",
+    "question": "哪一種付款方式的實收金額最高？",
+    "kind": "text",
+    "answer": "credit_card",
+    "accept": [
+      "credit_card",
+      "信用卡"
+    ],
+    "gt_sql": "SELECT method, SUM(amount_twd) v FROM payments WHERE payment_status='ok' GROUP BY method ORDER BY v DESC LIMIT 2"
+  },
+  {
+    "id": "C20",
+    "question": "信用卡在 2025 年的實收金額是多少？",
+    "kind": "number",
+    "answer": 245642360,
+    "accept": [],
+    "gt_sql": "SELECT COALESCE(SUM(amount_twd),0) FROM payments WHERE payment_status='ok' AND method='credit_card' AND datetime(paid_ts,'+8 hours') >= '2025-01-01' AND datetime(paid_ts,'+8 hours') < '2026-01-01'"
+  },
+  {
+    "id": "C21",
+    "question": "目前仍在售的商品中，銷售數量最多的是哪一個？",
+    "kind": "text",
+    "answer": "月影 帳篷2",
+    "accept": [
+      "月影 帳篷2"
+    ],
+    "gt_sql": "SELECT p.product_name, SUM(oi.quantity) v FROM order_items oi JOIN orders o ON o.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE o.status IN (1,2,3) AND p.is_active=1 GROUP BY p.product_id ORDER BY v DESC LIMIT 2"
+  },
+  {
+    "id": "C22",
+    "question": "在售商品中，2025 年第四季銷售數量最多的是哪一個？",
+    "kind": "text",
+    "answer": "松濤 登山鞋2",
+    "accept": [
+      "松濤 登山鞋2"
+    ],
+    "gt_sql": "SELECT p.product_name, SUM(oi.quantity) v FROM order_items oi JOIN orders o ON o.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE o.status IN (1,2,3) AND p.is_active=1 AND datetime(o.order_ts,'+8 hours') >= '2025-10-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' GROUP BY p.product_id ORDER BY v DESC LIMIT 2"
+  },
+  {
+    "id": "C23",
+    "question": "登山鞋在 2025 年的淨營收是多少？",
+    "kind": "number",
+    "answer": 115082144.0,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' ) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1 AND p.category='shoes')-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1 AND p.category='shoes'),2)"
+  },
+  {
+    "id": "C24",
+    "question": "2025 年第四季有多少張已取消的訂單？",
+    "kind": "number",
+    "answer": 2186,
+    "accept": [],
+    "gt_sql": "SELECT COUNT(*) FROM orders o WHERE o.status=9 AND datetime(o.order_ts,'+8 hours') >= '2025-10-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01'"
+  },
+  {
+    "id": "C25",
+    "question": "目前有多少張待付款的訂單？",
+    "kind": "number",
+    "answer": 3003,
+    "accept": [],
+    "gt_sql": "SELECT COUNT(*) FROM orders o WHERE o.status=0"
+  },
+  {
+    "id": "C26",
+    "question": "日本客戶在 2025 年的淨營收是多少？",
+    "kind": "number",
+    "answer": 41454219.0,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE region_code='JP')) SELECT ROUND((SELECT COALESCE(SUM(oi.quantity*oi.unit_price_cents),0)/100.0 FROM order_items oi JOIN vo ON vo.order_id=oi.order_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1)-(SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r JOIN vo ON vo.order_id=r.order_id JOIN order_items oi ON oi.item_id=r.item_id JOIN products p ON p.product_id=oi.product_id WHERE 1=1),2)"
+  },
+  {
+    "id": "C27",
+    "question": "黃金會員在 2025 年的客單價是多少？",
+    "kind": "number",
+    "answer": 9227.49,
+    "accept": [],
+    "gt_sql": "WITH vo AS (SELECT o.order_id, o.customer_id FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE tier='G')) SELECT ROUND(SUM(oi.quantity*oi.unit_price_cents)/100.0/COUNT(DISTINCT vo.order_id),2) FROM vo JOIN order_items oi ON oi.order_id=vo.order_id"
+  },
+  {
+    "id": "C28",
+    "question": "2025 年 12 月的退款金額總計是多少？",
+    "kind": "number",
+    "answer": 1630213,
+    "accept": [],
+    "gt_sql": "SELECT COALESCE(SUM(r.refund_amount_twd),0) FROM refunds r  WHERE datetime(r.refund_ts,'+8 hours') >= '2025-12-01' AND datetime(r.refund_ts,'+8 hours') < '2026-01-01'"
+  },
+  {
+    "id": "C29",
+    "question": "銀級會員在 2025 年共有多少張有效訂單？",
+    "kind": "number",
+    "answer": 9494,
+    "accept": [],
+    "gt_sql": "SELECT COUNT(*) FROM orders o WHERE o.status IN (1,2,3) AND datetime(o.order_ts,'+8 hours') >= '2025-01-01' AND datetime(o.order_ts,'+8 hours') < '2026-01-01' AND o.customer_id IN (SELECT customer_id FROM customers WHERE tier='S')"
+  },
+  {
+    "id": "C30",
+    "question": "2025 年淨營收最高的地區是哪一個？",
+    "kind": "text",
+    "answer": "TW-N",
+    "accept": [
+      "TW-N",
+      "北部"
+    ],
+    "gt_sql": "net_rev per region: {'TW-N': 169387349.0, 'TW-C': 113845786.0, 'TW-S': 83613479.0, 'JP': 41454219.0, 'SG': 18824371.0}"
+  }
+]

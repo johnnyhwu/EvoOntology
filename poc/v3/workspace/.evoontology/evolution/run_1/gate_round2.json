@@ -1,0 +1,356 @@
+{
+ "repetitions": [
+  {
+   "verdicts": [
+    {
+     "winner": "tie",
+     "critical_error": false,
+     "reason": "兩者採用相同定義（TW-N、台北時間 2025-11、status IN (1,2,3)、cents/100、退款歸屬原訂單）並得出相同結果 13,423,113；A 額外驗證了單價的分/元單位換算，B 額外驗證了退款與明細的對應及金額上限，兩者的驗證各有側重，整體品質相當。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "tie",
+     "case_id": "rep1:S29"
+    },
+    {
+     "winner": "tie",
+     "critical_error": false,
+     "reason": "兩者採用相同定義（web 通路、status 1/2/3、台北時間 2025 年、商品金額不扣退款、不重複訂單數），時區處理方式等價，得到相同的 9409.82；A 的最終查詢結果完整可見，B 則多檢視了 status 分布，差異不影響結論。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "tie",
+     "case_id": "rep1:S30"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "兩者都正確指出缺少準時判定標準而無法計算；B 另外按台北時間篩出 2025 Q1 黑貓已送達訂單並提供出貨到送達天數分布，業務方決定 SLA 後可直接套用，比 A 只檢視全表更有幫助（但 B 以 order_ts 而非 shipped_ts 界定季度，且未送達筆數交代略含糊）。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "B",
+     "case_id": "rep1:S31"
+    },
+    {
+     "winner": "tie",
+     "critical_error": false,
+     "reason": "兩者都以 customers.signup_date 篩選 2025 年 3 月，得到相同的 150 位，也都檢查了日期格式與空值；B 多做了主鍵去重與最小／最大日期確認，A 則說明時區規則不適用於此欄位，兩者都有效且差異不大。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "tie",
+     "case_id": "rep1:S32"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "B 依語意層將 UTC 的 order_ts 加 8 小時換算為台北時間後再篩選 2 月，邊界處理較正確；A 直接以 UTC 文字比較，忽略時區轉換，月界附近的訂單可能錯算。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "B",
+     "case_id": "rep1:S33"
+    },
+    {
+     "winner": "parent",
+     "critical_error": false,
+     "reason": "兩者採用相同的有效訂單定義與台北時區轉換，最終答案都是 14.41；B 完整呈現了 UTC 與 UTC+8 兩種篩選結果的對照，並以 DISTINCT order_id 計數，可驗證性略高。A 則檢查了優惠碼的變體寫法，但結果片段被截斷，無法直接驗證 1715/11900。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "B",
+     "case_id": "rep1:S34"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "兩者取消率定義相同（status=9 ÷ 全部訂單），差異只在時區處理：A 直接用 order_ts 原值篩選並自承時區假設未驗證，B 明確換算為台北時間（UTC+8）後再篩選，處理較嚴謹；但無法確認原始資料是否為 UTC，兩者皆不構成嚴重錯誤。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "B",
+     "case_id": "rep1:S35"
+    },
+    {
+     "winner": "tie",
+     "critical_error": false,
+     "reason": "unparseable judge output",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "tie",
+     "case_id": "rep1:S36"
+    },
+    {
+     "winner": "tie",
+     "critical_error": false,
+     "reason": "兩者答案同為 2.91 且都排除未送達紀錄：A 以 shipped_ts 篩選第二季，較貼近配送指標的語意，但未處理時區；B 套用語意層的台北時區規則並多做驗證，卻改以訂單時間歸屬季度，兩者各有可議之處、整體相當。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "tie",
+     "case_id": "rep1:S37"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "A 明確指出 order_ts 為 UTC 並換算成台北時間（+8 小時）再篩選 1 月，B 直接以 UTC 字串篩選、未處理時區，月份邊界可能錯置，導致 4089 與 4098 的差異。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "A",
+     "case_id": "rep1:S38"
+    },
+    {
+     "winner": "tie",
+     "critical_error": false,
+     "reason": "兩者採用相同定義（以 refund_ts 換算 UTC+8 歸屬月份、加總 refund_amount_twd），SQL 語意等價，得到相同的 349 筆與 1,557,639 TWD，說明也同樣清楚，無實質差異。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "tie",
+     "case_id": "rep1:S39"
+    },
+    {
+     "winner": "tie",
+     "critical_error": false,
+     "reason": "unparseable judge output",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "tie",
+     "case_id": "rep1:S40"
+    }
+   ],
+   "decision": {
+    "accept": true,
+    "candidate_wins": 4,
+    "parent_wins": 1,
+    "ties": 7,
+    "candidate_critical_errors": 0,
+    "protocol": "llm_judge"
+   },
+   "dir": "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/workspace/.evoontology/evolution/run_1/artifacts/round2/rep1"
+  },
+  {
+   "verdicts": [
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "兩者定義與最終數字相同，但 B 的 SQL 直接計算 quantity×單價÷100，並以 COALESCE 處理無退款的情況，且結果完整可驗證；A 的查詢混入不必要的未加權欄位，單位換算未在 SQL 中完成，結果片段也被截斷，較難驗證。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "B",
+     "case_id": "rep2:S29"
+    },
+    {
+     "winner": "parent",
+     "critical_error": false,
+     "reason": "兩者答案與定義一致（9409.82，台北時間、有效訂單、不扣退款），但 B 額外驗證了通路代碼並對照 UTC 與台北時區篩選的差異，可驗證性略高。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "B",
+     "case_id": "rep2:S30"
+    },
+    {
+     "winner": "parent",
+     "critical_error": false,
+     "reason": "兩者皆正確指出缺乏準時標準而無法計算，但 A 額外查出黑貓 2025Q1 出貨 4979 筆、已送達 4451 筆的可驗證背景數據，B 只做了全表承運商概覽，未聚焦問題期間。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "A",
+     "case_id": "rep2:S31"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "兩者答案同為 150 且定義一致，但 A 先檢查了 signup_date 的格式與空值，再用明確的日期區間查詢並以 COUNT DISTINCT 驗證，直接得出 150；B 只有按月分組的查詢，且結果片段被截斷，看不到 2025-03 的數值，可驗證性較弱。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "A",
+     "case_id": "rep2:S32"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "A 依語意層規則將 order_ts 由 UTC 加 8 小時換算為台北時間後再篩選 2025 年 2 月，並檢查了換算後是否有 NULL；B 直接用 UTC 時間篩選，忽略時區換算，月份邊界的訂單會被錯誤歸屬，導致計數（3668）與正確口徑不符。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "A",
+     "case_id": "rep2:S33"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "B 依規則將 order_ts 從 UTC 加 8 小時換算為台北時間後再切出 2025 Q1，並檢查時間欄位皆可解析（unparsed=0）；A 直接用原始 UTC 時間篩選，雖然檢查了 coupon 拼寫與時間格式，但漏掉時區換算，邊界訂單因此可能歸錯季度（兩者結果 14.44 與 14.41 差距小）。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "B",
+     "case_id": "rep2:S34"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "A 依台北時間篩選 2025 年 11 月訂單，以狀態 9 除以全部訂單算出 14.58%（695/4768，計算正確），並說明了分母的假設；B 雖跑出相同的計數，但因達到 max_steps 而未給出任何答案。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "A",
+     "case_id": "rep2:S35"
+    },
+    {
+     "winner": "parent",
+     "critical_error": false,
+     "reason": "兩者 SQL 與結果完全相同（1446）。差別在 A 聲稱「依不重複訂單編號計數」，但實際用的是 COUNT(*) 而非 COUNT(DISTINCT)，描述與查詢略不一致；B 說明 orders 表每張訂單一列，用 COUNT(*) 計數因此合理，前後一致。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "B",
+     "case_id": "rep2:S36"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "兩者答案同為 2.91，但 B 依語意層規則把 UTC 時間換算為台北時間再界定第二季，並檢查了空值、時間倒置與時間可解析性，驗證較完整；A 直接用未換算時區的 shipped_ts 篩選，排除未送達紀錄的描述也含糊，嚴謹度較低。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "B",
+     "case_id": "rep2:S37"
+    },
+    {
+     "winner": "candidate",
+     "critical_error": false,
+     "reason": "A 依語意層時區規則把 UTC 儲存的 order_ts 換算成台北時間（UTC+8）來界定 1 月範圍，B 直接用 UTC 日期切月份，沒有處理時區，月份邊界因此偏移，導致計數不同（4098 vs 4089）。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "A",
+     "case_id": "rep2:S38"
+    },
+    {
+     "winner": "tie",
+     "critical_error": false,
+     "reason": "兩個回答的最終數字(1557639)、定義(以 refund_ts 換算台北時間歸屬 2025-08)、SQL 邏輯與結果完全一致，只是措辭與 GROUP BY 的寫法略有不同，品質無實質差異。",
+     "A_is": "parent",
+     "B_is": "candidate",
+     "raw_winner": "tie",
+     "case_id": "rep2:S39"
+    },
+    {
+     "winner": "parent",
+     "critical_error": false,
+     "reason": "兩者答案同為 7449980 且查詢邏輯一致，但 B 的查詢乾淨、明確說明不扣退款並以全表分組驗證各付款方式；A 含一次因佔位欄位而失敗的無效查詢，過程較雜亂。",
+     "A_is": "candidate",
+     "B_is": "parent",
+     "raw_winner": "B",
+     "case_id": "rep2:S40"
+    }
+   ],
+   "decision": {
+    "accept": true,
+    "candidate_wins": 7,
+    "parent_wins": 4,
+    "ties": 1,
+    "candidate_critical_errors": 0,
+    "protocol": "llm_judge"
+   },
+   "dir": "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/workspace/.evoontology/evolution/run_1/artifacts/round2/rep2"
+  }
+ ],
+ "pooled": {
+  "accept": true,
+  "candidate_wins": 11,
+  "parent_wins": 5,
+  "ties": 8,
+  "candidate_critical_errors": 0,
+  "protocol": "llm_judge"
+ },
+ "gate_input": {
+  "protocol": "llm_judge",
+  "verdicts": [
+   {
+    "winner": "tie",
+    "critical_error": false
+   },
+   {
+    "winner": "tie",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "tie",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "parent",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "tie",
+    "critical_error": false
+   },
+   {
+    "winner": "tie",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "tie",
+    "critical_error": false
+   },
+   {
+    "winner": "tie",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "parent",
+    "critical_error": false
+   },
+   {
+    "winner": "parent",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "parent",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "candidate",
+    "critical_error": false
+   },
+   {
+    "winner": "tie",
+    "critical_error": false
+   },
+   {
+    "winner": "parent",
+    "critical_error": false
+   }
+  ],
+  "unacceptable_regressions": true
+ }
+}

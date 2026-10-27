@@ -1,0 +1,759 @@
+[
+  {
+    "id": "term_customer",
+    "name": "客戶 Customer",
+    "type": "entity",
+    "definition": "購買商品的會員個體，每位客戶在客戶主檔中有一列，以 customer_id 識別。",
+    "scope": "客戶屬性（地區、會員等級）為客戶主檔上的單一目前值；姓名不唯一，不可用姓名識別客戶。",
+    "aliases": [
+      "customer",
+      "會員",
+      "顧客",
+      "客戶"
+    ],
+    "evidence": [
+      "ev_schema",
+      "ev_customer_name_dup",
+      "ev_tier_values",
+      "ev_region_values"
+    ]
+  },
+  {
+    "id": "term_order",
+    "name": "訂單 Order",
+    "type": "entity",
+    "definition": "客戶成立的一張訂單，含成立時間、狀態、通路與優惠碼；金額在明細層。",
+    "scope": "包含所有狀態（待付款、已付款、已出貨、已送達、已取消）的訂單；是否算營運上的有效訂單取決於狀態。",
+    "aliases": [
+      "order",
+      "訂單",
+      "訂單張數"
+    ],
+    "evidence": [
+      "ev_schema",
+      "ev_status_dist",
+      "ev_fk_integrity"
+    ]
+  },
+  {
+    "id": "term_order_item",
+    "name": "訂單明細 Order Item",
+    "type": "entity",
+    "definition": "訂單中的一個商品列，記錄商品、數量與成交單價。",
+    "scope": "一張訂單有一到多筆明細；金額、銷售數量與商品類別都在明細層與商品主檔上取得。",
+    "aliases": [
+      "order item",
+      "line item",
+      "訂單明細",
+      "明細"
+    ],
+    "evidence": [
+      "ev_schema",
+      "ev_fk_integrity",
+      "ev_unit_price_scale"
+    ]
+  },
+  {
+    "id": "term_product",
+    "name": "商品 Product",
+    "type": "entity",
+    "definition": "商品主檔中的一個商品，以 product_id、sku 或 product_name 識別（三者皆唯一），有類別與是否在售狀態。",
+    "scope": "商品屬性（類別、是否在售）為商品主檔上的目前值，沒有歷史版本。",
+    "aliases": [
+      "product",
+      "商品",
+      "SKU",
+      "品項"
+    ],
+    "evidence": [
+      "ev_schema",
+      "ev_product_keys_unique",
+      "ev_inactive_products_sold"
+    ]
+  },
+  {
+    "id": "term_payment",
+    "name": "付款紀錄 Payment",
+    "type": "entity",
+    "definition": "訂單的一次付款嘗試，含方式、金額、付款時間與成功或失敗狀態。",
+    "scope": "一張訂單可有多筆付款嘗試（含失敗重試）；有效訂單各有一筆付款成功紀錄。",
+    "aliases": [
+      "payment",
+      "付款",
+      "付款紀錄"
+    ],
+    "evidence": [
+      "ev_schema",
+      "ev_status_payment",
+      "ev_payment_values"
+    ]
+  },
+  {
+    "id": "term_refund",
+    "name": "退款 Refund",
+    "type": "entity",
+    "definition": "針對某筆訂單明細的一次退款，記錄退款金額、發生時間與原因。",
+    "scope": "退款粒度是訂單明細；可為整筆或部分金額；只發生在已送達的訂單。",
+    "aliases": [
+      "refund",
+      "退款",
+      "退費"
+    ],
+    "evidence": [
+      "ev_schema",
+      "ev_refund_linkage"
+    ]
+  },
+  {
+    "id": "term_customer_region",
+    "name": "客戶地區 Customer Region",
+    "type": "dimension",
+    "definition": "客戶所屬地區，使用客戶主檔上的 region_code（北部、中部、南部、日本、新加坡）。",
+    "scope": "是客戶屬性，不是訂單出貨地；訂單表沒有任何地區或地址欄位。報表上的「地區」對應此維度。",
+    "aliases": [
+      "region",
+      "地區",
+      "區域",
+      "region_code",
+      "客戶所在地"
+    ],
+    "evidence": [
+      "ev_region_values",
+      "ev_schema",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_member_tier",
+    "name": "會員等級 Member Tier",
+    "type": "dimension",
+    "definition": "客戶的會員等級：一般會員(B)、銀級會員(S)、黃金會員(G)。",
+    "scope": "客戶主檔上的單一目前值，沒有等級歷史。",
+    "aliases": [
+      "tier",
+      "會員等級",
+      "等級",
+      "會員"
+    ],
+    "evidence": [
+      "ev_tier_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_sales_channel",
+    "name": "下單通路 Sales Channel",
+    "type": "dimension",
+    "definition": "訂單成立的通路：官網(web)、行動 App(app)、實體門市(store)。",
+    "scope": "訂單層屬性。",
+    "aliases": [
+      "channel",
+      "通路",
+      "下單通路",
+      "渠道"
+    ],
+    "evidence": [
+      "ev_channel_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_product_category",
+    "name": "商品類別 Product Category",
+    "type": "dimension",
+    "definition": "商品的類別：登山背包(backpack)、帳篷(tent)、登山鞋(shoes)、機能服飾(apparel)、配件(accessory)。",
+    "scope": "商品主檔屬性；訂單明細與退款的類別都透過所屬商品取得。",
+    "aliases": [
+      "category",
+      "商品類別",
+      "品類",
+      "類別"
+    ],
+    "evidence": [
+      "ev_category_active",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_payment_method",
+    "name": "付款方式 Payment Method",
+    "type": "dimension",
+    "definition": "付款紀錄使用的付款方式：信用卡(credit_card)、LINE Pay(line_pay)、ATM 轉帳(atm)、貨到付款(cod)。",
+    "scope": "付款紀錄層屬性。",
+    "aliases": [
+      "payment method",
+      "付款方式",
+      "支付方式"
+    ],
+    "evidence": [
+      "ev_payment_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_refund_reason",
+    "name": "退款原因 Refund Reason",
+    "type": "dimension",
+    "definition": "退款原因代碼：商品瑕疵(R1)、改變心意(R2)、寄錯商品(R3)、配送延遲(R4)。",
+    "scope": "退款紀錄層屬性。",
+    "aliases": [
+      "refund reason",
+      "退款原因",
+      "退貨原因",
+      "reason_code"
+    ],
+    "evidence": [
+      "ev_reason_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_order_status",
+    "name": "訂單狀態 Order Status",
+    "type": "dimension",
+    "definition": "訂單目前所處的流程狀態：待付款(0)、已付款(1)、已出貨(2)、已送達(3)、已取消(9)。",
+    "scope": "訂單層的目前狀態，沒有狀態變更時間；決定訂單是否為有效訂單。",
+    "aliases": [
+      "order status",
+      "訂單狀態",
+      "狀態"
+    ],
+    "evidence": [
+      "ev_status_dist",
+      "ev_status_payment",
+      "ev_status_shipment",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_product_sale_status",
+    "name": "商品在售狀態 Product Sale Status",
+    "type": "dimension",
+    "definition": "商品目前是否在售：在售(1)或已下架(0)。",
+    "scope": "商品主檔上的目前狀態旗標；已下架商品仍有歷史訂單。",
+    "aliases": [
+      "is_active",
+      "在售",
+      "已下架",
+      "仍在售",
+      "上架"
+    ],
+    "evidence": [
+      "ev_category_active",
+      "ev_inactive_products_sold",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_order_time",
+    "name": "訂單成立時間 Order Time",
+    "type": "dimension",
+    "definition": "訂單成立的時間（orders.order_ts），為淨營收、客單價、有效訂單數、取消訂單數、回購客戶等指標的期間歸屬時間。",
+    "scope": "儲存值需先依業務規則換算成台北時間才能劃分日期、月、季、年。",
+    "aliases": [
+      "order_ts",
+      "訂單時間",
+      "下單時間",
+      "訂單成立時間"
+    ],
+    "evidence": [
+      "ev_ts_format_range",
+      "ev_tz_period_impact",
+      "ev_doc_time_rules"
+    ]
+  },
+  {
+    "id": "term_payment_time",
+    "name": "付款成功時間 Payment Time",
+    "type": "dimension",
+    "definition": "付款紀錄的付款時間（payments.paid_ts），為實收金額的期間歸屬時間。",
+    "scope": "儲存值需先換算成台北時間；失敗的付款嘗試不構成實收。",
+    "aliases": [
+      "paid_ts",
+      "付款時間",
+      "付款成功時間"
+    ],
+    "evidence": [
+      "ev_ts_format_range",
+      "ev_tz_period_impact",
+      "ev_doc_time_rules"
+    ]
+  },
+  {
+    "id": "term_refund_time",
+    "name": "退款發生時間 Refund Time",
+    "type": "dimension",
+    "definition": "退款發生的時間（refunds.refund_ts），為退款報表的期間歸屬時間。",
+    "scope": "儲存值需先換算成台北時間；退款可發生在原訂單期間之後（資料中有 2026 年 1 月的退款）。",
+    "aliases": [
+      "refund_ts",
+      "退款時間",
+      "退款發生時間"
+    ],
+    "evidence": [
+      "ev_ts_format_range",
+      "ev_tz_period_impact",
+      "ev_doc_time_rules"
+    ]
+  },
+  {
+    "id": "term_reporting_calendar",
+    "name": "報表曆法 Reporting Calendar",
+    "type": "concept",
+    "definition": "營運報表的期間劃分慣例：以台北時間（UTC+8）劃分日、月、季、年；第一季為 1-3 月、第二季為 4-6 月、第三季為 7-9 月、第四季為 10-12 月，上半年為 1-6 月。",
+    "scope": "適用於所有以時間範圍提問的報表指標；各指標以哪個時間欄位歸屬期間由指標自己的規則決定。",
+    "aliases": [
+      "季",
+      "第一季",
+      "第二季",
+      "第三季",
+      "第四季",
+      "上半年",
+      "年度",
+      "月份",
+      "台北時間",
+      "Q1",
+      "Q2",
+      "Q3",
+      "Q4"
+    ],
+    "evidence": [
+      "ev_doc_time_rules",
+      "ev_tz_period_impact"
+    ]
+  },
+  {
+    "id": "term_deal_unit_price",
+    "name": "成交單價 Deal Unit Price",
+    "type": "metric",
+    "definition": "客人實際付的單價（已含折扣與優惠碼），儲存單位為分（TWD 的 1/100），不是商品目錄標價 list_price_twd。",
+    "scope": "訂單明細層；與目錄標價不同：資料中約四成明細的成交單價低於標價（80%、85%、90%）。",
+    "aliases": [
+      "unit_price_cents",
+      "成交單價",
+      "實付單價",
+      "deal price"
+    ],
+    "evidence": [
+      "ev_unit_price_scale",
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "term_units_sold",
+    "name": "銷售數量 Units Sold",
+    "type": "metric",
+    "definition": "售出的商品件數，為訂單明細數量（每列 1 至 3 件）的加總。",
+    "scope": "業務文件未明確定義銷售數量；本版以有效訂單的明細數量為準（假設），商品層級的排名依商品識別。",
+    "aliases": [
+      "quantity",
+      "銷售數量",
+      "銷量",
+      "件數",
+      "賣出數量"
+    ],
+    "evidence": [
+      "ev_unit_price_scale",
+      "ev_doc_no_units_sold_def"
+    ]
+  },
+  {
+    "id": "term_item_amount",
+    "name": "商品金額 Item Amount",
+    "type": "metric",
+    "definition": "訂單明細的數量 x 成交單價，換算為新台幣元（成交單價儲存單位為分，需除以 100）。",
+    "scope": "不是商品目錄標價；不含退款扣除；在報表上限定在有效訂單與期間內加總。",
+    "aliases": [
+      "商品金額",
+      "銷售金額",
+      "item amount",
+      "GMV",
+      "營業額"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_unit_price_scale",
+      "ev_payment_equals_items"
+    ]
+  },
+  {
+    "id": "term_refund_amount",
+    "name": "退款金額 Refund Amount",
+    "type": "metric",
+    "definition": "退款紀錄的退款金額（新台幣元），可為對應明細的全額或部分金額。",
+    "scope": "作為退款報表時依退款發生時間歸屬期間；作為淨營收的扣除項時依原訂單成立時間歸屬。",
+    "aliases": [
+      "refund amount",
+      "退款金額",
+      "退款總計",
+      "退款額"
+    ],
+    "evidence": [
+      "ev_refund_linkage",
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "term_valid_order",
+    "name": "有效訂單 Valid Order",
+    "type": "concept",
+    "definition": "狀態為已付款、已出貨或已送達的訂單；待付款與已取消的訂單不算有效訂單。",
+    "scope": "營收、客單價、訂單數、通路占比與回購客戶等指標共用的訂單範圍。",
+    "aliases": [
+      "valid order",
+      "有效訂單",
+      "有效單",
+      "成交訂單"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_status_dist",
+      "ev_status_payment",
+      "ev_status_shipment"
+    ]
+  },
+  {
+    "id": "term_valid_order_count",
+    "name": "有效訂單張數 Valid Order Count",
+    "type": "metric",
+    "definition": "期間內有效訂單的張數（以訂單為單位計數，不是明細列數）。",
+    "scope": "期間依訂單成立時間（台北時間）歸屬。",
+    "aliases": [
+      "有效訂單數",
+      "有效訂單張數",
+      "訂單數",
+      "訂單張數",
+      "valid order count",
+      "order count"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_status_dist"
+    ]
+  },
+  {
+    "id": "term_net_revenue",
+    "name": "淨營收 Net Revenue",
+    "type": "metric",
+    "definition": "期間內有效訂單的商品金額總和，扣掉這些訂單對應的退款金額。",
+    "scope": "期間依訂單成立時間（台北時間）歸屬，退款扣回其所屬原訂單，不論退款發生在哪個月份。",
+    "aliases": [
+      "net revenue",
+      "淨營收",
+      "營收",
+      "淨收入"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_refund_linkage",
+      "ev_status_payment",
+      "ev_tz_period_impact"
+    ]
+  },
+  {
+    "id": "term_avg_order_value",
+    "name": "客單價 Average Order Value",
+    "type": "metric",
+    "definition": "期間內有效訂單的商品金額總和（不扣退款）除以有效訂單張數。",
+    "scope": "期間依訂單成立時間（台北時間）歸屬；以訂單為單位，不以客戶或明細為單位。",
+    "aliases": [
+      "AOV",
+      "average order value",
+      "客單價",
+      "平均訂單金額",
+      "每單平均金額"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_payment_equals_items"
+    ]
+  },
+  {
+    "id": "term_repeat_customer",
+    "name": "回購客戶 Repeat Customer",
+    "type": "concept",
+    "definition": "某一年度內有效訂單達 2 張（含）以上的客戶。",
+    "scope": "以年度（台北時間）為計算窗口，以客戶識別碼計算；占比類指標的分母為該年度有下過有效訂單的客戶。",
+    "aliases": [
+      "repeat customer",
+      "回購客戶",
+      "回頭客",
+      "重複購買客戶",
+      "回購"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_orders_per_customer",
+      "ev_customer_name_dup"
+    ]
+  },
+  {
+    "id": "term_channel_order_share",
+    "name": "通路訂單占比 Channel Order Share",
+    "type": "metric",
+    "definition": "某通路的有效訂單張數占同期全部有效訂單張數的百分比。",
+    "scope": "分子與分母都限定同一期間內的有效訂單，分母含所有通路。",
+    "aliases": [
+      "通路占比",
+      "訂單占比",
+      "channel share",
+      "占比"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_channel_values"
+    ]
+  },
+  {
+    "id": "term_collected_amount",
+    "name": "實收金額 Collected Amount",
+    "type": "metric",
+    "definition": "付款成功的付款紀錄的金額總和（新台幣元）。",
+    "scope": "期間依付款成功時間（台北時間）歸屬；付款失敗的嘗試不計；不扣退款。",
+    "aliases": [
+      "實收",
+      "實收金額",
+      "收款金額",
+      "collected amount",
+      "received amount"
+    ],
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_status_payment",
+      "ev_payment_values",
+      "ev_payment_equals_items"
+    ]
+  },
+  {
+    "id": "term_cancelled_order",
+    "name": "已取消訂單 Cancelled Order",
+    "type": "category",
+    "definition": "訂單狀態為已取消（9）的訂單，這類訂單只有付款失敗紀錄且無出貨紀錄。",
+    "scope": "資料沒有取消時間，期間只能依訂單成立時間歸屬。",
+    "aliases": [
+      "cancelled order",
+      "已取消訂單",
+      "取消訂單",
+      "取消"
+    ],
+    "evidence": [
+      "ev_status_dist",
+      "ev_status_payment",
+      "ev_schema",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_pending_payment_order",
+    "name": "待付款訂單 Pending Payment Order",
+    "type": "category",
+    "definition": "訂單狀態為待付款（0）的訂單，這類訂單只有付款失敗紀錄且無出貨紀錄。",
+    "scope": "「目前」的待付款數量是現況快照，不需期間條件；待付款訂單不是有效訂單。",
+    "aliases": [
+      "pending payment order",
+      "待付款訂單",
+      "待付款",
+      "未付款訂單"
+    ],
+    "evidence": [
+      "ev_status_dist",
+      "ev_status_payment",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_active_product",
+    "name": "在售商品 Active Product",
+    "type": "category",
+    "definition": "商品主檔中 is_active=1 的商品（目前仍在售）。",
+    "scope": "是目前狀態的篩選，不隨銷售期間改變；已下架商品的歷史銷售仍存在於訂單明細。",
+    "aliases": [
+      "在售商品",
+      "仍在售",
+      "active product",
+      "目前在售"
+    ],
+    "evidence": [
+      "ev_category_active",
+      "ev_inactive_products_sold",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_region_north",
+    "name": "北部客戶 North Region",
+    "type": "category",
+    "definition": "地區代碼為 TW-N 的客戶。",
+    "scope": "客戶屬性。",
+    "aliases": [
+      "北部",
+      "北部客戶",
+      "TW-N"
+    ],
+    "evidence": [
+      "ev_region_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_region_japan",
+    "name": "日本客戶 Japan Region",
+    "type": "category",
+    "definition": "地區代碼為 JP 的客戶。",
+    "scope": "客戶屬性。",
+    "aliases": [
+      "日本",
+      "日本客戶",
+      "JP"
+    ],
+    "evidence": [
+      "ev_region_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_tier_gold",
+    "name": "黃金會員 Gold Member",
+    "type": "category",
+    "definition": "會員等級代碼為 G 的客戶。",
+    "scope": "客戶屬性的目前值。",
+    "aliases": [
+      "黃金會員",
+      "金級會員",
+      "G",
+      "gold"
+    ],
+    "evidence": [
+      "ev_tier_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_tier_silver",
+    "name": "銀級會員 Silver Member",
+    "type": "category",
+    "definition": "會員等級代碼為 S 的客戶。",
+    "scope": "客戶屬性的目前值。",
+    "aliases": [
+      "銀級會員",
+      "銀會員",
+      "S",
+      "silver"
+    ],
+    "evidence": [
+      "ev_tier_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_tier_basic",
+    "name": "一般會員 Basic Member",
+    "type": "category",
+    "definition": "會員等級代碼為 B 的客戶。",
+    "scope": "客戶屬性的目前值。",
+    "aliases": [
+      "一般會員",
+      "普通會員",
+      "B",
+      "basic"
+    ],
+    "evidence": [
+      "ev_tier_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_channel_web",
+    "name": "官網通路 Web Channel",
+    "type": "category",
+    "definition": "下單通路為 web 的訂單。",
+    "scope": "訂單屬性。",
+    "aliases": [
+      "官網",
+      "官網通路",
+      "web"
+    ],
+    "evidence": [
+      "ev_channel_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_channel_app",
+    "name": "行動 App 通路 App Channel",
+    "type": "category",
+    "definition": "下單通路為 app 的訂單。",
+    "scope": "訂單屬性。",
+    "aliases": [
+      "行動 App",
+      "App",
+      "app",
+      "手機 App"
+    ],
+    "evidence": [
+      "ev_channel_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_channel_store",
+    "name": "實體門市通路 Store Channel",
+    "type": "category",
+    "definition": "下單通路為 store 的訂單。",
+    "scope": "訂單屬性。",
+    "aliases": [
+      "實體門市",
+      "門市",
+      "store"
+    ],
+    "evidence": [
+      "ev_channel_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_category_shoes",
+    "name": "登山鞋 Shoes",
+    "type": "category",
+    "definition": "商品類別為 shoes 的商品。",
+    "scope": "商品屬性。",
+    "aliases": [
+      "登山鞋",
+      "shoes"
+    ],
+    "evidence": [
+      "ev_category_active",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_method_credit_card",
+    "name": "信用卡 Credit Card",
+    "type": "category",
+    "definition": "付款方式為 credit_card 的付款紀錄。",
+    "scope": "付款紀錄屬性。",
+    "aliases": [
+      "信用卡",
+      "credit_card"
+    ],
+    "evidence": [
+      "ev_payment_values",
+      "ev_doc_codes"
+    ]
+  },
+  {
+    "id": "term_reason_change_of_mind",
+    "name": "改變心意 Change of Mind",
+    "type": "category",
+    "definition": "退款原因代碼為 R2 的退款。",
+    "scope": "退款屬性。",
+    "aliases": [
+      "改變心意",
+      "R2"
+    ],
+    "evidence": [
+      "ev_reason_values",
+      "ev_doc_codes"
+    ]
+  }
+]

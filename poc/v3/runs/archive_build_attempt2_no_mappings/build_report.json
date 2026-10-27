@@ -1,0 +1,24 @@
+{
+ "counts": {
+  "terms": 25,
+  "mappings": 0,
+  "relations": 20,
+  "constraints": 27,
+  "evidence": 29
+ },
+ "repairs": 0,
+ "validation": {
+  "passed": true,
+  "root": "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/workspace/.evoontology",
+  "version": "ontology_v0",
+  "errors": []
+ },
+ "evidence_rejected": 0,
+ "questions_linked": 30,
+ "questions_total": 30,
+ "uncovered_questions": [],
+ "published": {
+  "status": "published",
+  "active_version": "ontology_v0"
+ }
+}

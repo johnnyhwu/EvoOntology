@@ -1,0 +1,329 @@
+{
+ "task_id": "task_2752ebcd0fd7",
+ "question": "2025 年第二季所有物流商合計的平均配送天數？",
+ "ontology_version": "v0-c2",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "配送天數",
+     "物流商",
+     "季度"
+    ],
+    "context": "2025 年第二季所有物流商合計的平均配送天數？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "配送天數",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '配送天數'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "物流商",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '物流商'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "季度",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '季度'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 3,
+    "processed_count": 3,
+    "skipped": [],
+    "version": "v0-c2",
+    "note": "Use these mappings only for the current analysis need.",
+    "triggered_constraints": [
+     {
+      "id": "con_tz_order_time",
+      "target": "map_order_time",
+      "severity": "block",
+      "description": "orders.order_ts 以 UTC 儲存，營運報表必須以台北時間（UTC+8）劃分日、月、季、年。換算後每月都有部分訂單改歸屬到下一個月（含跨年），不換算會造成月、季、年度歸屬錯誤。資料範圍含台北時間落在 2024 年與 2026 年的訂單，查詢 2025 年必須排除這兩端。資料本身無時區標記，時區規則來自文件。",
+      "matched_by": "trigger_keywords"
+     }
+    ]
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT shipment_id, order_id, carrier, shipped_ts, delivered_ts FROM shipments LIMIT 10"
+   },
+   "result": {
+    "columns": [
+     "shipment_id",
+     "order_id",
+     "carrier",
+     "shipped_ts",
+     "delivered_ts"
+    ],
+    "rows": [
+     [
+      1,
+      1,
+      "post",
+      "2025-05-29 05:32:55",
+      "2025-06-03 18:32:55"
+     ],
+     [
+      2,
+      2,
+      "blackcat",
+      "2025-06-03 17:04:51",
+      "2025-06-06 13:04:51"
+     ],
+     [
+      3,
+      3,
+      "hct",
+      "2025-09-28 09:46:07",
+      "2025-09-29 19:46:07"
+     ],
+     [
+      4,
+      4,
+      "blackcat",
+      "2025-04-12 17:13:13",
+      "2025-04-14 18:13:13"
+     ],
+     [
+      5,
+      6,
+      "blackcat",
+      "2025-05-15 04:04:09",
+      "2025-05-16 09:04:09"
+     ],
+     [
+      6,
+      7,
+      "hct",
+      "2025-02-19 13:22:55",
+      "2025-02-22 00:22:55"
+     ],
+     [
+      7,
+      8,
+      "post",
+      "2025-05-29 03:23:24",
+      "2025-06-04 13:23:24"
+     ],
+     [
+      8,
+      9,
+      "sf",
+      "2025-07-31 17:17:18",
+      "2025-08-03 23:17:18"
+     ],
+     [
+      9,
+      11,
+      "hct",
+      "2025-05-16 22:01:48",
+      "2025-05-21 19:01:48"
+     ],
+     [
+      10,
+      13,
+      "sf",
+      "2025-06-26 20:47:02",
+      "2025-06-28 14:47:02"
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['shipment_id', 'order_id', 'carrier', 'shipped_ts', 'delivered_ts'], 'rows': [[1, 1, 'post', '2025-05-29 05:32:55', '2025-06-03 18:32:55'], [2, 2, 'blackcat', '2025-06-03 17:04:51', '2025-06-06 13:04:51'], [3, 3, 'hct', '2025-09-28 09:46:07', '2025-09-29 19:46:07'], [4, 4, 'blackcat', '2025-04-12 17:13:13', '2025-04-14 18:13:13'], [5, 6, 'blackcat', '2025-05-15 04:04:09', '2025-05-16 09:04:09'], [6, 7, 'hct', '2025-02-19 13:22:55', '2025-02-22 00:22:55'], [7, 8, 'post', '2025-05-29 03:23:24', '2025-06-04 13:23:24'], [8, 9, 'sf', '2025-07-31 17:17:18', '2025-08-03 23:17:18'], [9, 11, 'hct', '2025-05-16 22:01:48', '2025-05-21 19:01:48'], [10, 13, 'sf', '2025-06-26 20:47:02', '2025-06-28 14:47:02']], 'truncated': False}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "queries": [
+     "SELECT o.order_id, o.order_ts, s.shipped_ts, s.delivered_ts, s.carrier FROM orders o JOIN shipments s ON s.order_id = o.order_id LIMIT 10",
+     "SELECT COUNT(*) AS total, SUM(CASE WHEN shipped_ts IS NULL OR delivered_ts IS NULL THEN 1 ELSE 0 END) AS null_ts, SUM(CASE WHEN delivered_ts < shipped_ts THEN 1 ELSE 0 END) AS reversed, COUNT(DISTINCT order_id) AS distinct_orders FROM shipments"
+    ]
+   },
+   "result": [
+    {
+     "query": "SELECT o.order_id, o.order_ts, s.shipped_ts, s.delivered_ts, s.carrier FROM orders o JOIN shipments s ON s.order_id = o.order_id LIMIT 10",
+     "columns": [
+      "order_id",
+      "order_ts",
+      "shipped_ts",
+      "delivered_ts",
+      "carrier"
+     ],
+     "rows": [
+      [
+       1,
+       "2025-05-27 02:32:55",
+       "2025-05-29 05:32:55",
+       "2025-06-03 18:32:55",
+       "post"
+      ],
+      [
+       2,
+       "2025-06-01 06:04:51",
+       "2025-06-03 17:04:51",
+       "2025-06-06 13:04:51",
+       "blackcat"
+      ],
+      [
+       3,
+       "2025-09-27 08:46:07",
+       "2025-09-28 09:46:07",
+       "2025-09-29 19:46:07",
+       "hct"
+      ],
+      [
+       4,
+       "2025-04-09 20:13:13",
+       "2025-04-12 17:13:13",
+       "2025-04-14 18:13:13",
+       "blackcat"
+      ],
+      [
+       6,
+       "2025-05-11 07:04:09",
+       "2025-05-15 04:04:09",
+       "2025-05-16 09:04:09",
+       "blackcat"
+      ],
+      [
+       7,
+       "2025-02-17 22:22:55",
+       "2025-02-19 13:22:55",
+       "2025-02-22 00:22:55",
+       "hct"
+      ],
+      [
+       8,
+       "2025-05-27 18:23:24",
+       "2025-05-29 03:23:24",
+       "2025-06-04 13:23:24",
+       "post"
+      ],
+      [
+       9,
+       "2025-07-29 05:17:18",
+       "2025-07-31 17:17:18",
+       "2025-08-03 23:17:18",
+       "sf"
+      ],
+      [
+       11,
+       "2025-05-14 23:01:48",
+       "2025-05-16 22:01:48",
+       "2025-05-21 19:01:48",
+       "hct"
+      ],
+      [
+       13,
+       "2025-06-23 06:47:02",
+       "2025-06-26 20:47:02",
+       "2025-06-28 14:47:02",
+       "sf"
+      ]
+     ],
+     "truncated": false
+    },
+    {
+     "query": "SELECT COUNT(*) AS total, SUM(CASE WHEN shipped_ts IS NULL OR delivered_ts IS NULL THEN 1 ELSE 0 END) AS null_ts, SUM(CASE WHEN delivered_ts < shipped_ts THEN 1 ELSE 0 END) AS reversed, COUNT(DISTINCT order_id) AS distinct_orders FROM shipments",
+     "columns": [
+      "total",
+      "null_ts",
+      "reversed",
+      "distinct_orders"
+     ],
+     "rows": [
+      [
+       44444,
+       4870,
+       0,
+       44444
+      ]
+     ],
+     "truncated": false
+    }
+   ],
+   "result_truncated": false,
+   "result_summary": "[{'query': 'SELECT o.order_id, o.order_ts, s.shipped_ts, s.delivered_ts, s.carrier FROM orders o JOIN shipments s ON s.order_id = o.order_id LIMIT 10', 'columns': ['order_id', 'order_ts', 'shipped_ts', 'delivered_ts', 'carrier'], 'rows': [[1, '2025-05-27 02:32:55', '2025-05-29 05:32:55', '2025-06-03 18:32:55', 'post'], [2, '2025-06-01 06:04:51', '2025-06-03 17:04:51', '2025-06-06 13:04:51', 'blackcat'], [3, '2025-09-27 08:46:07', '2025-09-28 09:46:07', '2025-09-29 19:46:07', 'hct'], [4, '2025-04-09 20:13:13', '2025-04-12 17:13:13', '2025-04-14 18:13:13', 'blackcat'], [6, '2025-05-11 07:04:09', '2025-05-15 04:04:09', '2025-05-16 09:04:09', 'blackcat'], [7, '2025-02-17 22:22:55', '2025-02-19 13:22:55', '2025-02-22 00:22:55', 'hct'], [8, '2025-05-27 18:23:24', '2025-05-29 03:23:24', '2025-06-04 13:23:24', 'post'], [9, '2025-07-29 05:17:18', '2025-07-31 17:17:18', '2025-08-03 23:17:18', 'sf'], [11, '2025-05-14 23:01:48', '2025-05-16 22:01:48', '2025-05-21 19:01:48', 'hct'], [13, '2025-06-23 06:47:02', '2025-06-26 20:47:02', '2025-06-28 14:47:02', 'sf']], 'truncated': False}, {'query': 'SELECT COUNT(*) AS total, SUM(CASE WHEN shipped_ts IS NULL OR delivered_ts IS NULL THEN 1 ELSE 0 END) AS null_ts, SUM(CASE WHEN delivered_ts < shipped_ts THEN 1 ELSE 0 END) AS reversed, COUNT(DISTINCT order_id) AS distinct_orders FROM shipments', 'columns': ['total', 'null_ts', 'reversed', 'distinct_orders'], 'rows': [[44444, 4870, 0, 44444]], 'truncated': False}]"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT COUNT(*) AS n, ROUND(AVG(julianday(s.delivered_ts) - julianday(s.shipped_ts)), 2) AS avg_delivery_days FROM orders o JOIN shipments s ON s.order_id = o.order_id WHERE s.shipped_ts IS NOT NULL AND s.delivered_ts IS NOT NULL AND datetime(o.order_ts, '+8 hours') >= '2025-04-01 00:00:00' AND datetime(o.order_ts, '+8 hours') < '2025-07-01 00:00:00'"
+   },
+   "result": {
+    "columns": [
+     "n",
+     "avg_delivery_days"
+    ],
+    "rows": [
+     [
+      9921,
+      2.91
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['n', 'avg_delivery_days'], 'rows': [[9921, 2.91]], 'truncated': False}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT COUNT(*) AS total_joined, SUM(CASE WHEN datetime(o.order_ts, '+8 hours') IS NULL THEN 1 ELSE 0 END) AS unparsed_ts FROM orders o JOIN shipments s ON s.order_id = o.order_id WHERE s.shipped_ts IS NOT NULL AND s.delivered_ts IS NOT NULL"
+   },
+   "result": {
+    "columns": [
+     "total_joined",
+     "unparsed_ts"
+    ],
+    "rows": [
+     [
+      39574,
+      0
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['total_joined', 'unparsed_ts'], 'rows': [[39574, 0]], 'truncated': False}"
+  }
+ ],
+ "final_answer": {
+  "answer": "2.91",
+  "basis": "依語意層的時區規則，將 orders.order_ts（UTC）加 8 小時換算為台北時間後，篩選 2025-04-01 至 2025-06-30 的訂單。配送天數定義為 shipments.delivered_ts 減 shipped_ts（以天為單位），排除任一時間為空的紀錄，共 9,921 筆；所有訂單時間皆可解析，且無 delivered 早於 shipped 的紀錄。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S37",
+ "arm": "ontology",
+ "steps": 7,
+ "ended_by": "final"
+}

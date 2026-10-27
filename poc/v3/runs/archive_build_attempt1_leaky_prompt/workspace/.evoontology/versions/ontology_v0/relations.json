@@ -1,0 +1,281 @@
+[
+  {
+    "id": "rel_valid_order_is_order",
+    "source": "term_valid_order",
+    "relation_type": "hierarchy",
+    "target": "term_order",
+    "connection_condition": "",
+    "description": "有效訂單是訂單的子集，僅包含狀態代碼 1、2、3 的訂單。",
+    "evidence": [
+      "ev_doc_valid_order",
+      "ev_status_codes"
+    ]
+  },
+  {
+    "id": "rel_cancelled_order_is_order",
+    "source": "term_cancelled_order",
+    "relation_type": "hierarchy",
+    "target": "term_order",
+    "connection_condition": "",
+    "description": "已取消訂單是訂單的子集，狀態代碼為 9。",
+    "evidence": [
+      "ev_status_codes",
+      "ev_valid_has_ok_payment"
+    ]
+  },
+  {
+    "id": "rel_pending_order_is_order",
+    "source": "term_pending_payment_order",
+    "relation_type": "hierarchy",
+    "target": "term_order",
+    "connection_condition": "",
+    "description": "待付款訂單是訂單的子集，狀態代碼為 0，沒有任何成功付款。",
+    "evidence": [
+      "ev_status_codes",
+      "ev_valid_has_ok_payment"
+    ]
+  },
+  {
+    "id": "rel_on_sale_is_product",
+    "source": "term_on_sale_product",
+    "relation_type": "hierarchy",
+    "target": "term_product",
+    "connection_condition": "",
+    "description": "在售商品是商品的子集，is_active 代碼為 1；已下架商品仍有歷史銷量。",
+    "evidence": [
+      "ev_products_active"
+    ]
+  },
+  {
+    "id": "rel_order_has_items",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_order_item",
+    "connection_condition": "order_items.order_id 對應 orders.order_id",
+    "description": "一張訂單由一筆或多筆訂單明細組成，明細金額加總與該訂單的成功付款金額相符。",
+    "evidence": [
+      "ev_payment_reconcile",
+      "ev_doc_item_amount"
+    ]
+  },
+  {
+    "id": "rel_order_customer",
+    "source": "term_order",
+    "relation_type": "association",
+    "target": "term_customer",
+    "connection_condition": "orders.customer_id 對應 customers.customer_id",
+    "description": "每張訂單屬於一位客戶，客戶的地區與會員等級可用來切分訂單層級指標。",
+    "evidence": [
+      "ev_customer_dims"
+    ]
+  },
+  {
+    "id": "rel_customer_region",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_region",
+    "connection_condition": "",
+    "description": "客戶具有一個地區代碼屬性。",
+    "evidence": [
+      "ev_customer_dims"
+    ]
+  },
+  {
+    "id": "rel_customer_tier",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_member_tier",
+    "connection_condition": "",
+    "description": "客戶具有一個會員等級屬性。",
+    "evidence": [
+      "ev_customer_dims"
+    ]
+  },
+  {
+    "id": "rel_order_channel",
+    "source": "term_order",
+    "relation_type": "association",
+    "target": "term_channel",
+    "connection_condition": "",
+    "description": "每張訂單屬於一個下單通路。",
+    "evidence": [
+      "ev_channel_share_base"
+    ]
+  },
+  {
+    "id": "rel_item_product",
+    "source": "term_order_item",
+    "relation_type": "association",
+    "target": "term_product",
+    "connection_condition": "order_items.product_id 對應 products.product_id",
+    "description": "每筆訂單明細對應一項商品，商品類別與在售狀態由此取得。",
+    "evidence": [
+      "ev_products_active",
+      "ev_refund_item_level"
+    ]
+  },
+  {
+    "id": "rel_product_category",
+    "source": "term_product",
+    "relation_type": "association",
+    "target": "term_product_category",
+    "connection_condition": "",
+    "description": "每項商品屬於一個商品類別。",
+    "evidence": [
+      "ev_refund_reason_category"
+    ]
+  },
+  {
+    "id": "rel_item_refund",
+    "source": "term_order_item",
+    "relation_type": "association",
+    "target": "term_refund_amount",
+    "connection_condition": "refunds.item_id 對應 order_items.item_id",
+    "description": "退款為明細層級的部分退款，每筆退款對應唯一一筆明細，透過明細可連到商品類別。",
+    "evidence": [
+      "ev_refund_item_level",
+      "ev_refund_reason_category"
+    ]
+  },
+  {
+    "id": "rel_refund_time_amount",
+    "source": "term_refund_time",
+    "relation_type": "association",
+    "target": "term_refund_amount",
+    "connection_condition": "",
+    "description": "退款報表以退款發生時間決定退款金額所屬的期間。",
+    "evidence": [
+      "ev_doc_refund_report",
+      "ev_refund_cross_period"
+    ]
+  },
+  {
+    "id": "rel_refund_reason_amount",
+    "source": "term_refund_reason",
+    "relation_type": "association",
+    "target": "term_refund_amount",
+    "connection_condition": "",
+    "description": "每筆退款具有一個退款原因代碼。",
+    "evidence": [
+      "ev_refund_reason_category"
+    ]
+  },
+  {
+    "id": "rel_paid_time_received",
+    "source": "term_paid_time",
+    "relation_type": "association",
+    "target": "term_received_amount",
+    "connection_condition": "",
+    "description": "實收金額依付款成功時間決定所屬期間。",
+    "evidence": [
+      "ev_doc_paid_ts",
+      "ev_pay_month_shift"
+    ]
+  },
+  {
+    "id": "rel_payment_method_received",
+    "source": "term_payment_method",
+    "relation_type": "association",
+    "target": "term_received_amount",
+    "connection_condition": "",
+    "description": "每筆付款紀錄具有一種付款方式，實收金額可依付款方式切分。",
+    "evidence": [
+      "ev_payment_method_ok_2025"
+    ]
+  },
+  {
+    "id": "rel_payment_status_received",
+    "source": "term_payment_status",
+    "relation_type": "association",
+    "target": "term_received_amount",
+    "connection_condition": "",
+    "description": "付款結果決定付款紀錄是否計入實收金額，僅付款成功者計入。",
+    "evidence": [
+      "ev_failed_payments_duplicates"
+    ]
+  },
+  {
+    "id": "rel_unit_price_item_amount",
+    "source": "term_deal_unit_price",
+    "relation_type": "derivation",
+    "target": "term_item_amount",
+    "connection_condition": "",
+    "description": "商品金額由同一明細的數量與成交單價相乘，並由分換算為新台幣而得。",
+    "evidence": [
+      "ev_doc_item_amount",
+      "ev_unit_price_units",
+      "ev_payment_reconcile"
+    ]
+  },
+  {
+    "id": "rel_item_amount_net_revenue",
+    "source": "term_item_amount",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "淨營收以有效訂單的商品金額總和為基礎，再扣除對應原訂單的退款金額。",
+    "evidence": [
+      "ev_doc_net_revenue",
+      "ev_refunds_only_delivered"
+    ]
+  },
+  {
+    "id": "rel_refund_net_revenue",
+    "source": "term_refund_amount",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "淨營收需扣除所屬原訂單的退款金額，退款發生在哪個期間不影響其歸屬。",
+    "evidence": [
+      "ev_doc_net_revenue",
+      "ev_refund_cross_period"
+    ]
+  },
+  {
+    "id": "rel_item_amount_aov",
+    "source": "term_item_amount",
+    "relation_type": "derivation",
+    "target": "term_avg_order_value",
+    "connection_condition": "",
+    "description": "客單價以有效訂單的商品金額總和（不扣退款）為分子。",
+    "evidence": [
+      "ev_doc_valid_order",
+      "ev_doc_item_amount"
+    ]
+  },
+  {
+    "id": "rel_valid_order_aov",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_avg_order_value",
+    "connection_condition": "",
+    "description": "客單價以有效訂單張數為分母。",
+    "evidence": [
+      "ev_doc_valid_order"
+    ]
+  },
+  {
+    "id": "rel_valid_order_repeat_customer",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_repeat_customer",
+    "connection_condition": "orders.customer_id 識別有效訂單所屬客戶",
+    "description": "回購客戶由同一客戶在同一年度的有效訂單張數（達 2 張以上）決定。",
+    "evidence": [
+      "ev_doc_repeat_customer",
+      "ev_repeat_customer_scale"
+    ]
+  },
+  {
+    "id": "rel_valid_order_channel_share",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_channel_share",
+    "connection_condition": "",
+    "description": "通路占比由某通路的有效訂單張數與全部有效訂單張數之比得出。",
+    "evidence": [
+      "ev_channel_share_base",
+      "ev_doc_valid_order"
+    ]
+  }
+]

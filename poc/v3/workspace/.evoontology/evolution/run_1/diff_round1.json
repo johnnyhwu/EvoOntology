@@ -1,0 +1,37 @@
+{
+ "added": {
+  "terms": [
+   "term_cancellation_rate",
+   "term_carrier",
+   "term_delivery_days",
+   "term_on_time_rate",
+   "term_shipment"
+  ],
+  "mappings": [
+   "map_cancellation_rate_status",
+   "map_carrier",
+   "map_delivery_days_delivered_ts",
+   "map_delivery_days_shipped_ts",
+   "map_on_time_rate_delivered_ts",
+   "map_shipment_order"
+  ],
+  "relations": [
+   "rel_cancellation_rate_from_orders",
+   "rel_on_time_from_delivery_days",
+   "rel_shipment_to_order"
+  ],
+  "constraints": [
+   "con_cancellation_rate_definition",
+   "con_carrier_codes",
+   "con_delivery_days_definition",
+   "con_on_time_rate_definition"
+  ],
+  "evidence": [
+   "ev_doc_cancel_rate",
+   "ev_doc_carrier_codes",
+   "ev_doc_delivery_days",
+   "ev_doc_on_time"
+  ]
+ },
+ "changed": {}
+}

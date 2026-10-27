@@ -1,0 +1,111 @@
+{
+ "task_id": "task_0ff28588ff7a",
+ "question": "2025 年 3 月新註冊的客戶有幾位？",
+ "ontology_version": "v0-c1",
+ "split": "production",
+ "semantic_calls": [
+  {
+   "tool": "resolve_semantics",
+   "input": {
+    "mentions": [
+     "新註冊客戶",
+     "註冊日期"
+    ],
+    "context": "2025 年 3 月新註冊的客戶有幾位？"
+   },
+   "result": {
+    "status": "ok",
+    "results": [
+     {
+      "query": "新註冊客戶",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '新註冊客戶'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     },
+     {
+      "query": "註冊日期",
+      "query_type": "mention",
+      "status": "unresolved",
+      "match_rationale": "No active term matching '註冊日期'. Inspect the data directly.",
+      "candidates": [],
+      "coverage_status": "unavailable"
+     }
+    ],
+    "requested_count": 2,
+    "processed_count": 2,
+    "skipped": [],
+    "version": "v0-c1",
+    "note": "Use these mappings only for the current analysis need."
+   }
+  }
+ ],
+ "native_tool_calls": [
+  {
+   "tool": "get_schema",
+   "input": {},
+   "result": {
+    "schema": "CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\n    region_code TEXT, signup_date TEXT, tier TEXT)\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\n    quantity INTEGER, unit_price_cents INTEGER)\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\n    status INTEGER, channel TEXT, coupon_code TEXT)\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\n    shipped_ts TEXT, delivered_ts TEXT)"
+   },
+   "result_truncated": false,
+   "result_summary": "{'schema': 'CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, name TEXT, email TEXT,\\n    region_code TEXT, signup_date TEXT, tier TEXT)\\nCREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER,\\n    quantity INTEGER, unit_price_cents INTEGER)\\nCREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER, order_ts TEXT,\\n    status INTEGER, channel TEXT, coupon_code TEXT)\\nCREATE TABLE payments (payment_id INTEGER PRIMARY KEY, order_id INTEGER, method TEXT,\\n    amount_twd INTEGER, paid_ts TEXT, payment_status TEXT)\\nCREATE TABLE products (product_id INTEGER PRIMARY KEY, sku TEXT, product_name TEXT,\\n    category TEXT, list_price_twd INTEGER, is_active INTEGER)\\nCREATE TABLE refunds (refund_id INTEGER PRIMARY KEY, order_id INTEGER, item_id INTEGER,\\n    refund_amount_twd INTEGER, refund_ts TEXT, reason_code TEXT)\\nCREATE TABLE shipments (shipment_id INTEGER PRIMARY KEY, order_id INTEGER, carrier TEXT,\\n    shipped_ts TEXT, delivered_ts TEXT)'}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT COUNT(DISTINCT customer_id) AS new_customers, MIN(signup_date) AS min_signup, MAX(signup_date) AS max_signup, COUNT(*) AS total_rows FROM customers WHERE signup_date >= '2025-03-01' AND signup_date < '2025-04-01'"
+   },
+   "result": {
+    "columns": [
+     "new_customers",
+     "min_signup",
+     "max_signup",
+     "total_rows"
+    ],
+    "rows": [
+     [
+      150,
+      "2025-03-01",
+      "2025-03-31",
+      150
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['new_customers', 'min_signup', 'max_signup', 'total_rows'], 'rows': [[150, '2025-03-01', '2025-03-31', 150]], 'truncated': False}"
+  },
+  {
+   "tool": "sql_query",
+   "input": {
+    "query": "SELECT COUNT(*) AS non_iso_rows, COUNT(*) FILTER (WHERE signup_date LIKE '2025-03-%') AS march_iso_rows FROM customers WHERE signup_date NOT GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' OR signup_date IS NULL"
+   },
+   "result": {
+    "columns": [
+     "non_iso_rows",
+     "march_iso_rows"
+    ],
+    "rows": [
+     [
+      0,
+      0
+     ]
+    ],
+    "truncated": false
+   },
+   "result_truncated": false,
+   "result_summary": "{'columns': ['non_iso_rows', 'march_iso_rows'], 'rows': [[0, 0]], 'truncated': False}"
+  }
+ ],
+ "final_answer": {
+  "answer": "150",
+  "basis": "語意層無「新註冊客戶」「註冊日期」的對應，改以 customers.signup_date 作為註冊日期，篩選 2025-03-01 至 2025-03-31 並計算不重複 customer_id，結果為 150 位。已檢查 signup_date 全部為 ISO 格式且無空值，且筆數與不重複客戶數一致（皆為 150）。"
+ },
+ "task_status": "completed",
+ "errors": [],
+ "question_id": "S32",
+ "arm": "ontology",
+ "steps": 5,
+ "ended_by": "final"
+}

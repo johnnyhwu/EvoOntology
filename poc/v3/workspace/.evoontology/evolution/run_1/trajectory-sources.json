@@ -1,0 +1,10 @@
+{
+  "sources": [
+    {
+      "path": "/Users/johnnyhwu/Desktop/EvoOntology/poc/v3/workspace/.evoontology/trajectories",
+      "scope": "40 production tasks since the last checkpoint (frozen)",
+      "purpose": "pool -> diagnosis/design; reserve -> Parent/Candidate gate only",
+      "confirmed_at": "2026-10-27T00:32:37.039132+00:00"
+    }
+  ]
+}

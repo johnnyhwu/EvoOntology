@@ -1,0 +1,443 @@
+[
+  {
+    "id": "con_order_status_enum",
+    "target": "term_order_status",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "訂單狀態",
+      "待付款",
+      "已付款",
+      "已出貨",
+      "已送達",
+      "已取消",
+      "status",
+      "取消"
+    ],
+    "severity": "block",
+    "scope": "Whenever orders.status is filtered or labeled",
+    "confidence": "high",
+    "description": "orders.status is an integer code: 0 = 待付款 (pending payment), 1 = 已付款 (paid), 2 = 已出貨 (shipped), 3 = 已送達 (delivered), 9 = 已取消 (cancelled).",
+    "evidence": [
+      "ev_status_enum"
+    ]
+  },
+  {
+    "id": "con_valid_order_def",
+    "target": "term_valid_order",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "有效訂單",
+      "訂單張數",
+      "訂單數",
+      "valid order",
+      "effective order",
+      "已付款",
+      "不含取消"
+    ],
+    "severity": "block",
+    "scope": "Any order count, revenue, average order value, repeat-customer or channel-share question",
+    "confidence": "high",
+    "description": "A valid order has status paid, shipped or delivered (1, 2, 3). Pending-payment (0) and cancelled (9) orders are excluded. In the data, exactly the status 1/2/3 orders carry a successful payment record, which supports this definition.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_valid_order_payment"
+    ]
+  },
+  {
+    "id": "con_amount_unit",
+    "target": "map_item_amount_price",
+    "constraint_type": "unit",
+    "trigger_keywords": [
+      "商品金額",
+      "單價",
+      "營收",
+      "淨營收",
+      "客單價",
+      "金額",
+      "unit price",
+      "cents",
+      "revenue"
+    ],
+    "severity": "block",
+    "scope": "Any monetary computation based on order_items",
+    "confidence": "high",
+    "description": "order_items.unit_price_cents is in 1/100 TWD (cents), while payments.amount_twd and refunds.refund_amount_twd are in TWD. Item amount in TWD = quantity x unit_price_cents / 100. The unit price is the actual transaction price (80-100% of list price), not products.list_price_twd. Unit conversion is required before combining with refunds or payments.",
+    "evidence": [
+      "ev_amount_unit"
+    ]
+  },
+  {
+    "id": "con_report_timezone_order",
+    "target": "term_order_time",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "第一季",
+      "季",
+      "月",
+      "年",
+      "2025",
+      "按月",
+      "當月",
+      "期間",
+      "台北時間",
+      "UTC",
+      "timezone",
+      "Q1"
+    ],
+    "severity": "block",
+    "scope": "Whenever orders.order_ts is used to define a day, month, quarter or year",
+    "confidence": "medium",
+    "description": "Per the business glossary, order timestamps are stored in UTC but all operational reports use Taipei time (UTC+8) to assign dates, months, quarters (Q1 = Jan-Mar) and years. The UTC storage itself cannot be verified from the data (hour-of-day is uniform); the glossary is the only source. The shift matters: 13 orders fall outside Taipei year 2025 by UTC bounds and 23 orders change calendar month.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_timezone_impact"
+    ]
+  },
+  {
+    "id": "con_report_timezone_refund",
+    "target": "term_refund_time",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "退款",
+      "退款金額",
+      "月",
+      "2025 年 9 月",
+      "UTC",
+      "台北時間",
+      "refund time"
+    ],
+    "severity": "block",
+    "scope": "Whenever refunds.refund_ts is used to define a period",
+    "confidence": "medium",
+    "description": "refund_ts is stored in UTC and reported in Taipei time (UTC+8), per the glossary only. Refund timestamps extend to 2026-01-13, and 3 refunds change calendar month under the +8h shift.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_timezone_impact"
+    ]
+  },
+  {
+    "id": "con_net_revenue_def",
+    "target": "term_net_revenue",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "淨營收",
+      "營收",
+      "net revenue",
+      "扣掉退款",
+      "扣退款",
+      "revenue"
+    ],
+    "severity": "block",
+    "scope": "Net revenue for any period, tier, region or channel",
+    "confidence": "high",
+    "description": "Net revenue = item amounts of valid orders in the period minus refunds of those same orders. The period is the order creation time (Taipei time); each refund is deducted from its original order regardless of when the refund occurred. 101 of 194 refunds fall in a different Taipei month than their order, so using refund time instead would give a different total.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_refund_attribution",
+      "ev_refund_link"
+    ]
+  },
+  {
+    "id": "con_aov_def",
+    "target": "term_avg_order_value",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "客單價",
+      "平均訂單金額",
+      "AOV",
+      "average order value"
+    ],
+    "severity": "block",
+    "scope": "Average order value for any period",
+    "confidence": "high",
+    "description": "Average order value = total item amount of valid orders in the period (refunds NOT deducted) divided by the number of valid orders in the period (Taipei time, order creation time).",
+    "evidence": [
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "con_repeat_customer_def",
+    "target": "term_repeat_customer",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "回購",
+      "回購客戶",
+      "repeat",
+      "回頭客",
+      "至少兩張",
+      "2 張"
+    ],
+    "severity": "block",
+    "scope": "Repeat-customer counts per year",
+    "confidence": "high",
+    "description": "A repeat customer has at least 2 valid orders within the same Taipei calendar year; orders in other years or non-valid orders do not count. Distinct customers are counted, not orders.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_repeat_dist"
+    ]
+  },
+  {
+    "id": "con_received_amount_def",
+    "target": "term_received_amount",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "實收",
+      "實收金額",
+      "收款",
+      "付款成功",
+      "payment_status",
+      "received"
+    ],
+    "severity": "block",
+    "scope": "Any question about money received or amounts by payment method",
+    "confidence": "high",
+    "description": "Received amount counts only payment records with payment_status = ok. Failed attempts also store a non-zero amount_twd (613 failed rows, e.g. 2.9M TWD for credit_card) and 303 failed attempts belong to valid orders; including them overstates received money.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_payment_enum",
+      "ev_payment_grain"
+    ]
+  },
+  {
+    "id": "con_refund_report_attribution",
+    "target": "term_refund_amount",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "退款金額",
+      "退款報表",
+      "退款總計",
+      "退款最高",
+      "refund"
+    ],
+    "severity": "block",
+    "scope": "Refund-report totals by period or category",
+    "confidence": "high",
+    "description": "Refund amount in the refund report is attributed to the period of refund occurrence (refund time, Taipei time), which differs from the order-based attribution used for net revenue. For a category breakdown, the category is that of the refunded item's product. Historical questions ('歷史上') span all refunds with no period restriction.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_refund_attribution",
+      "ev_refund_category_path"
+    ]
+  },
+  {
+    "id": "con_channel_enum",
+    "target": "term_sales_channel",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "管道",
+      "通路",
+      "App",
+      "行動 App",
+      "官網",
+      "門市",
+      "channel",
+      "web",
+      "app",
+      "store"
+    ],
+    "severity": "block",
+    "scope": "Whenever orders.channel is filtered or labeled",
+    "confidence": "high",
+    "description": "orders.channel values: web = 官網, app = 行動 App, store = 實體門市.",
+    "evidence": [
+      "ev_channel_enum"
+    ]
+  },
+  {
+    "id": "con_app_share_basis",
+    "target": "term_app_order_share",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "占比",
+      "比例",
+      "百分比",
+      "%",
+      "share"
+    ],
+    "severity": "warning",
+    "scope": "Channel-share percentages",
+    "confidence": "medium",
+    "description": "The share is measured on valid order counts (denominator: all valid orders of the period, numerator: valid orders of the app channel), not on amounts. The glossary does not state the basis of '占比' explicitly; order-count basis is the natural reading of the question wording.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_channel_enum"
+    ]
+  },
+  {
+    "id": "con_tier_enum",
+    "target": "term_customer_tier",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "會員",
+      "等級",
+      "黃金會員",
+      "銀級會員",
+      "一般會員",
+      "tier",
+      "gold"
+    ],
+    "severity": "block",
+    "scope": "Whenever customers.tier is filtered or labeled",
+    "confidence": "high",
+    "description": "customers.tier values: B = 一般會員, S = 銀級會員, G = 黃金會員.",
+    "evidence": [
+      "ev_tier_enum"
+    ]
+  },
+  {
+    "id": "con_region_enum",
+    "target": "term_customer_region",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "地區",
+      "北部",
+      "中部",
+      "南部",
+      "日本",
+      "新加坡",
+      "region",
+      "TW-N"
+    ],
+    "severity": "block",
+    "scope": "Whenever customers.region_code is filtered or labeled",
+    "confidence": "high",
+    "description": "customers.region_code values: TW-N = 北部, TW-C = 中部, TW-S = 南部, JP = 日本, SG = 新加坡. Only TW-N is northern Taiwan; JP and SG are overseas.",
+    "evidence": [
+      "ev_region_enum"
+    ]
+  },
+  {
+    "id": "con_customer_attr_snapshot",
+    "target": "term_customer",
+    "constraint_type": "data_quality",
+    "trigger_keywords": [
+      "黃金會員",
+      "北部客戶",
+      "會員等級",
+      "客戶地區",
+      "當時",
+      "tier",
+      "region"
+    ],
+    "severity": "info",
+    "scope": "Questions that segment historical orders by customer tier or region",
+    "confidence": "medium",
+    "description": "Tier and region exist only as current values on the customer row (no history, not copied onto orders). Segmenting past orders by tier or region therefore uses the customer's current value; historical tier/region at order time is not recoverable from this data.",
+    "evidence": [
+      "ev_customer_snapshot"
+    ]
+  },
+  {
+    "id": "con_payment_enum",
+    "target": "term_payment_method",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "付款方式",
+      "信用卡",
+      "LINE Pay",
+      "ATM",
+      "貨到付款",
+      "method",
+      "credit_card",
+      "line_pay",
+      "atm",
+      "cod",
+      "付款狀態"
+    ],
+    "severity": "block",
+    "scope": "Whenever payments.method or payments.payment_status is filtered or labeled",
+    "confidence": "high",
+    "description": "payments.method: credit_card = 信用卡, line_pay = LINE Pay, atm = ATM 轉帳, cod = 貨到付款. payments.payment_status: ok = 付款成功, failed = 付款失敗.",
+    "evidence": [
+      "ev_payment_enum"
+    ]
+  },
+  {
+    "id": "con_product_enum",
+    "target": "term_product_category",
+    "constraint_type": "enum_semantics",
+    "trigger_keywords": [
+      "商品類別",
+      "品類",
+      "登山背包",
+      "帳篷",
+      "登山鞋",
+      "機能服飾",
+      "配件",
+      "category",
+      "在售",
+      "下架",
+      "is_active"
+    ],
+    "severity": "block",
+    "scope": "Whenever products.category or products.is_active is filtered or labeled",
+    "confidence": "high",
+    "description": "products.category: backpack = 登山背包, tent = 帳篷, shoes = 登山鞋, apparel = 機能服飾, accessory = 配件. products.is_active: 1 = 在售 (on sale), 0 = 已下架 (delisted); delisted products still appear in historical order items.",
+    "evidence": [
+      "ev_product_enum"
+    ]
+  },
+  {
+    "id": "con_active_product_current",
+    "target": "term_active_product",
+    "constraint_type": "scope",
+    "trigger_keywords": [
+      "目前仍在售",
+      "在售",
+      "仍在售",
+      "下架",
+      "上架",
+      "is_active"
+    ],
+    "severity": "warning",
+    "scope": "Questions restricted to products currently on sale",
+    "confidence": "medium",
+    "description": "is_active is a current-state flag with no history. 'Currently on sale' filters on the present flag, while the sales being ranked may include periods before a product was delisted.",
+    "evidence": [
+      "ev_product_enum"
+    ]
+  },
+  {
+    "id": "con_sales_quantity_basis",
+    "target": "term_sales_quantity",
+    "constraint_type": "business_rule",
+    "trigger_keywords": [
+      "銷售數量",
+      "銷量",
+      "賣最多",
+      "最多",
+      "sales quantity",
+      "units sold"
+    ],
+    "severity": "warning",
+    "scope": "Product ranking by units sold",
+    "confidence": "low",
+    "description": "The glossary does not define which orders count toward sales quantity. Valid-order quantity is the consistent reading with the valid-order convention. In the construction data, ranking active products by all-order quantity and by valid-order quantity returns the same top product, so the choice did not change the ranking there.",
+    "evidence": [
+      "ev_sales_qty_sensitivity",
+      "ev_status_enum"
+    ]
+  },
+  {
+    "id": "con_grain_orders_items_payments",
+    "target": "term_order",
+    "constraint_type": "data_quality",
+    "trigger_keywords": [
+      "訂單數",
+      "訂單張數",
+      "幾張",
+      "多少張",
+      "客單價",
+      "金額總和",
+      "order count"
+    ],
+    "severity": "warning",
+    "scope": "Combining orders with order_items or payments",
+    "confidence": "high",
+    "description": "Orders, order items and payment records are different grains: 5238 items over 3000 orders; 244 orders have 2 or 3 payment records (failed attempts plus a success). Order counts must be at order grain and not inflated by item or payment rows; amounts must not be duplicated by multi-row joins.",
+    "evidence": [
+      "ev_payment_grain",
+      "ev_fk_integrity"
+    ]
+  }
+]

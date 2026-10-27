@@ -1,0 +1,307 @@
+[
+  {
+    "id": "rel_order_valid",
+    "source": "term_order",
+    "relation_type": "hierarchy",
+    "target": "term_valid_order",
+    "connection_condition": "valid orders are orders.status in the paid/shipped/delivered values",
+    "description": "A valid order is a subset of orders (status paid, shipped or delivered).",
+    "evidence": [
+      "ev_valid_order_payment"
+    ]
+  },
+  {
+    "id": "rel_channel_app",
+    "source": "term_sales_channel",
+    "relation_type": "hierarchy",
+    "target": "term_app_channel",
+    "connection_condition": "",
+    "description": "The mobile app channel is one value of the sales channel dimension.",
+    "evidence": [
+      "ev_channel_enum"
+    ]
+  },
+  {
+    "id": "rel_tier_gold",
+    "source": "term_customer_tier",
+    "relation_type": "hierarchy",
+    "target": "term_gold_tier",
+    "connection_condition": "",
+    "description": "Gold member is one value of the customer tier dimension.",
+    "evidence": [
+      "ev_tier_enum"
+    ]
+  },
+  {
+    "id": "rel_region_north",
+    "source": "term_customer_region",
+    "relation_type": "hierarchy",
+    "target": "term_north_region",
+    "connection_condition": "",
+    "description": "Northern Taiwan is one value of the customer region dimension.",
+    "evidence": [
+      "ev_region_enum"
+    ]
+  },
+  {
+    "id": "rel_product_active",
+    "source": "term_product",
+    "relation_type": "hierarchy",
+    "target": "term_active_product",
+    "connection_condition": "",
+    "description": "On-sale products are the subset of products flagged active.",
+    "evidence": [
+      "ev_product_enum"
+    ]
+  },
+  {
+    "id": "rel_order_items",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_order_item",
+    "connection_condition": "order_items.order_id references orders.order_id",
+    "description": "An order is composed of one or more order items; an item cannot exist without its order.",
+    "evidence": [
+      "ev_fk_integrity",
+      "ev_payment_grain"
+    ]
+  },
+  {
+    "id": "rel_order_payments",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_payment",
+    "connection_condition": "payments.order_id references orders.order_id",
+    "description": "Payment records are attempts attached to an order; an order may have several (failed attempts and at most one successful).",
+    "evidence": [
+      "ev_payment_grain",
+      "ev_valid_order_payment"
+    ]
+  },
+  {
+    "id": "rel_order_refunds",
+    "source": "term_order",
+    "relation_type": "composition",
+    "target": "term_refund",
+    "connection_condition": "refunds.order_id references orders.order_id; refunds.item_id references order_items.item_id of the same order",
+    "description": "A refund is granted against an item of a specific order and cannot exist without it.",
+    "evidence": [
+      "ev_refund_link"
+    ]
+  },
+  {
+    "id": "rel_customer_orders",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_order",
+    "connection_condition": "orders.customer_id corresponds to customers.customer_id",
+    "description": "A customer places orders; customer attributes (tier, region) are current values, not values at order time.",
+    "evidence": [
+      "ev_fk_integrity",
+      "ev_customer_snapshot"
+    ]
+  },
+  {
+    "id": "rel_customer_tier",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_customer_tier",
+    "connection_condition": "customers.tier on the customer row",
+    "description": "Each customer has one current membership tier.",
+    "evidence": [
+      "ev_tier_enum"
+    ]
+  },
+  {
+    "id": "rel_customer_region",
+    "source": "term_customer",
+    "relation_type": "association",
+    "target": "term_customer_region",
+    "connection_condition": "customers.region_code on the customer row",
+    "description": "Each customer has one current region code.",
+    "evidence": [
+      "ev_region_enum"
+    ]
+  },
+  {
+    "id": "rel_item_product",
+    "source": "term_order_item",
+    "relation_type": "association",
+    "target": "term_product",
+    "connection_condition": "order_items.product_id corresponds to products.product_id",
+    "description": "An order item sells one product at a transaction price.",
+    "evidence": [
+      "ev_fk_integrity"
+    ]
+  },
+  {
+    "id": "rel_product_category",
+    "source": "term_product",
+    "relation_type": "association",
+    "target": "term_product_category",
+    "connection_condition": "products.category on the product row",
+    "description": "Each product belongs to one merchandise category.",
+    "evidence": [
+      "ev_product_enum"
+    ]
+  },
+  {
+    "id": "rel_order_channel",
+    "source": "term_order",
+    "relation_type": "association",
+    "target": "term_sales_channel",
+    "connection_condition": "orders.channel on the order row",
+    "description": "Each order is placed through one sales channel.",
+    "evidence": [
+      "ev_channel_enum"
+    ]
+  },
+  {
+    "id": "rel_refund_category",
+    "source": "term_refund",
+    "relation_type": "association",
+    "target": "term_product_category",
+    "connection_condition": "indirect: refunds.item_id -> order_items.product_id -> products.category",
+    "description": "A refund's product category is indirect: it is the category of the product of the refunded order item.",
+    "evidence": [
+      "ev_refund_category_path"
+    ]
+  },
+  {
+    "id": "rel_payment_method",
+    "source": "term_payment",
+    "relation_type": "association",
+    "target": "term_payment_method",
+    "connection_condition": "payments.method on the payment row",
+    "description": "Each payment record uses one payment method.",
+    "evidence": [
+      "ev_payment_enum"
+    ]
+  },
+  {
+    "id": "rel_refund_amount_variants",
+    "source": "term_refund_amount",
+    "relation_type": "association",
+    "target": "term_order_attributed_refund",
+    "connection_condition": "both read refunds.refund_amount_twd; they differ in period attribution",
+    "description": "Same underlying refund amounts attributed to different periods: refund-report amount follows refund time, order-attributed amount follows the original order time. They are not interchangeable.",
+    "evidence": [
+      "ev_refund_attribution"
+    ]
+  },
+  {
+    "id": "rel_item_amount_net_revenue",
+    "source": "term_item_amount",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "Net revenue is built from item amounts of valid orders minus order-attributed refunds.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_amount_unit"
+    ]
+  },
+  {
+    "id": "rel_refund_net_revenue",
+    "source": "term_order_attributed_refund",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "Order-attributed refunds are subtracted when deriving net revenue.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_refund_attribution"
+    ]
+  },
+  {
+    "id": "rel_valid_net_revenue",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_net_revenue",
+    "connection_condition": "",
+    "description": "Net revenue only covers valid orders.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_valid_order_payment"
+    ]
+  },
+  {
+    "id": "rel_item_amount_aov",
+    "source": "term_item_amount",
+    "relation_type": "derivation",
+    "target": "term_avg_order_value",
+    "connection_condition": "",
+    "description": "Average order value is total item amount divided by valid order count; refunds are not deducted.",
+    "evidence": [
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_valid_aov",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_avg_order_value",
+    "connection_condition": "",
+    "description": "Valid orders provide both the amount base and the divisor of average order value.",
+    "evidence": [
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_valid_repeat",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_repeat_customer",
+    "connection_condition": "",
+    "description": "Repeat customers are derived by counting valid orders per customer within a calendar year.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_repeat_dist"
+    ]
+  },
+  {
+    "id": "rel_valid_app_share",
+    "source": "term_valid_order",
+    "relation_type": "derivation",
+    "target": "term_app_order_share",
+    "connection_condition": "",
+    "description": "App order share is derived from valid order counts overall and for the app channel.",
+    "evidence": [
+      "ev_doc_definitions"
+    ]
+  },
+  {
+    "id": "rel_app_app_share",
+    "source": "term_app_channel",
+    "relation_type": "derivation",
+    "target": "term_app_order_share",
+    "connection_condition": "",
+    "description": "The app channel valid-order count is the numerator of app order share.",
+    "evidence": [
+      "ev_channel_enum"
+    ]
+  },
+  {
+    "id": "rel_payment_received",
+    "source": "term_payment",
+    "relation_type": "derivation",
+    "target": "term_received_amount",
+    "connection_condition": "",
+    "description": "Received amount is the sum of amounts of successful payment records.",
+    "evidence": [
+      "ev_doc_definitions",
+      "ev_payment_enum"
+    ]
+  },
+  {
+    "id": "rel_item_sales_qty",
+    "source": "term_order_item",
+    "relation_type": "derivation",
+    "target": "term_sales_quantity",
+    "connection_condition": "",
+    "description": "Sales quantity is the sum of order item quantities per product.",
+    "evidence": [
+      "ev_sales_qty_sensitivity"
+    ]
+  }
+]

@@ -1,0 +1,847 @@
+{
+ "use_v0_all": {
+  "correct": 22,
+  "n": 40,
+  "wrong": [
+   "S02",
+   "S03",
+   "S04",
+   "S05",
+   "S10",
+   "S11",
+   "S14",
+   "S15",
+   "S17",
+   "S18",
+   "S19",
+   "S21",
+   "S24",
+   "S27",
+   "S31",
+   "S33",
+   "S35",
+   "S38"
+  ],
+  "by_kind": {
+   "combo": [
+    9,
+    9
+   ],
+   "unseen": [
+    10,
+    22
+   ],
+   "seen_reworded": [
+    3,
+    9
+   ]
+  },
+  "by_family": {
+   "aov": [
+    2,
+    2
+   ],
+   "ontime": [
+    0,
+    4
+   ],
+   "cancel_rate": [
+    0,
+    5
+   ],
+   "ship_days": [
+    4,
+    4
+   ],
+   "new_customers": [
+    4,
+    4
+   ],
+   "valid_orders": [
+    3,
+    9
+   ],
+   "coupon": [
+    1,
+    4
+   ],
+   "net_revenue": [
+    4,
+    4
+   ],
+   "pending_ship": [
+    1,
+    1
+   ],
+   "repeat": [
+    1,
+    1
+   ],
+   "refund": [
+    1,
+    1
+   ],
+   "collected": [
+    1,
+    1
+   ]
+  }
+ },
+ "use_v0_pool": {
+  "correct": 14,
+  "n": 28,
+  "wrong": [
+   "S02",
+   "S03",
+   "S04",
+   "S05",
+   "S10",
+   "S11",
+   "S14",
+   "S15",
+   "S17",
+   "S18",
+   "S19",
+   "S21",
+   "S24",
+   "S27"
+  ],
+  "by_kind": {
+   "combo": [
+    5,
+    5
+   ],
+   "unseen": [
+    7,
+    17
+   ],
+   "seen_reworded": [
+    2,
+    6
+   ]
+  },
+  "by_family": {
+   "aov": [
+    1,
+    1
+   ],
+   "ontime": [
+    0,
+    3
+   ],
+   "cancel_rate": [
+    0,
+    4
+   ],
+   "ship_days": [
+    3,
+    3
+   ],
+   "new_customers": [
+    3,
+    3
+   ],
+   "valid_orders": [
+    2,
+    6
+   ],
+   "coupon": [
+    0,
+    3
+   ],
+   "net_revenue": [
+    3,
+    3
+   ],
+   "pending_ship": [
+    1,
+    1
+   ],
+   "repeat": [
+    1,
+    1
+   ]
+  }
+ },
+ "use_v0_reserve": {
+  "correct": 8,
+  "n": 12,
+  "wrong": [
+   "S31",
+   "S33",
+   "S35",
+   "S38"
+  ],
+  "by_kind": {
+   "combo": [
+    4,
+    4
+   ],
+   "unseen": [
+    3,
+    5
+   ],
+   "seen_reworded": [
+    1,
+    3
+   ]
+  },
+  "by_family": {
+   "net_revenue": [
+    1,
+    1
+   ],
+   "aov": [
+    1,
+    1
+   ],
+   "ontime": [
+    0,
+    1
+   ],
+   "new_customers": [
+    1,
+    1
+   ],
+   "valid_orders": [
+    1,
+    3
+   ],
+   "coupon": [
+    1,
+    1
+   ],
+   "cancel_rate": [
+    0,
+    1
+   ],
+   "ship_days": [
+    1,
+    1
+   ],
+   "refund": [
+    1,
+    1
+   ],
+   "collected": [
+    1,
+    1
+   ]
+  }
+ },
+ "test": {},
+ "gate": [
+  {
+   "file": "gate_round1.json",
+   "repetition": 1,
+   "judge_decision": {
+    "accept": true,
+    "candidate_wins": 5,
+    "parent_wins": 1,
+    "ties": 6,
+    "candidate_critical_errors": 0,
+    "protocol": "llm_judge"
+   },
+   "gt_decision": {
+    "accept": true,
+    "parent_score": 0.6666666666666666,
+    "candidate_score": 0.8333333333333334,
+    "delta": 0.16666666666666674,
+    "protocol": "ground_truth"
+   },
+   "rows": [
+    {
+     "qid": "S29",
+     "family": "net_revenue",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者採用相同的定義（TW-N、status 1/2/3、台北時間歸屬、quantity×unit_price_cents÷100、退款依原訂單扣除），SQL 皆符合題意且無重複計算問題，最終答案同為 13,423,113，差異僅在驗證查詢的寫法。"
+    },
+    {
+     "qid": "S30",
+     "family": "aov",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者最終答案與定義相同且皆正確，但 B 額外比較了 UTC 與 UTC+8 兩種時區切分的差異，並說明 'web' 對應網站通路是依欄位值推定，驗證更充分、假設更透明。"
+    },
+    {
+     "qid": "S31",
+     "family": "ontime",
+     "parent_correct": false,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "candidate",
+     "judge_agrees": true,
+     "reason": "B 依明確定義（送達−出貨 ≤ 3 天 ÷ 已送達筆數，期間依訂單成立時間歸屬）寫出與定義一致的 SQL，得出 3015/4491 = 67.13%，並檢查了負天數異常；A 只稱查無準時定義而回答「無法判定」，沒有回答問題。不過兩者對語意層是否有此定義說法相反，我無法驗證；若定義確實不存在，A 的處理才合理。"
+    },
+    {
+     "qid": "S32",
+     "family": "new_customers",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者都以 customers.signup_date 篩選 2025 年 3 月，得到相同答案 150，也都檢查了日期格式與空值（A 用日期範圍加長度與空值檢查，B 用 LIKE 加 GLOB 嚴格比對），定義與驗證程度相當，沒有實質差異。"
+    },
+    {
+     "qid": "S33",
+     "family": "valid_orders",
+     "parent_correct": false,
+     "candidate_correct": false,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者採用相同的有效訂單定義（status 1/2/3）、相同的 2025 年 2 月時間範圍與去重方式，都得到 3668 筆，也都檢查了 order_ts 格式；B 多用 LIKE 寫法交叉驗證，A 則多報告時間範圍，兩者差異不足以分出高下。"
+    },
+    {
+     "qid": "S34",
+     "family": "coupon",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "unparseable judge output"
+    },
+    {
+     "qid": "S35",
+     "family": "cancel_rate",
+     "parent_correct": false,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "candidate",
+     "judge_agrees": true,
+     "reason": "A 因 max_steps 未完成、最終答案為 None，沒有回答問題；B 依語意層定義（status=9 ÷ status 1/2/3/9，排除待付款）並換算台北時區，給出 15.29% 且計算可由 SQL 結果驗證。"
+    },
+    {
+     "qid": "S36",
+     "family": "valid_orders",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "unparseable judge output"
+    },
+    {
+     "qid": "S37",
+     "family": "ship_days",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者答案同為 2.91 天；A 依語意層定義，以訂單時間換算台北時區（+8 小時）歸屬季度，較貼近業務口徑。B 雖補充了重複、負值與極值檢查，但聲稱語意層無對應定義，且直接以 UTC 的 shipped_ts 切季度、未處理時區，口徑較不嚴謹。"
+    },
+    {
+     "qid": "S38",
+     "family": "valid_orders",
+     "parent_correct": false,
+     "candidate_correct": false,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者採用相同的有效訂單定義並得到一致的 4089，但 A 額外驗證了全部 60000 筆 order_ts 皆為標準格式及資料時間範圍，日期篩選的可靠性較 B 僅隨機抽樣 5 筆更有依據。"
+    },
+    {
+     "qid": "S39",
+     "family": "refund",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者使用相同的 SQL、相同的退款時間（UTC+8）歸屬定義，結果都是 349 筆、1,557,639 TWD，內容與說明實質相同，沒有可區分的差異。"
+    },
+    {
+     "qid": "S40",
+     "family": "collected",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者採用相同定義、SQL 邏輯與最終答案（7,449,980），但 B 額外驗證 798 筆付款對應 798 張不重複訂單並抽樣檢查原始資料，可驗證性略高。"
+    }
+   ]
+  },
+  {
+   "file": "gate_round1.json",
+   "repetition": 2,
+   "judge_decision": {
+    "accept": false,
+    "candidate_wins": 2,
+    "parent_wins": 4,
+    "ties": 6,
+    "candidate_critical_errors": 0,
+    "protocol": "llm_judge"
+   },
+   "gt_decision": {
+    "accept": true,
+    "parent_score": 0.6666666666666666,
+    "candidate_score": 0.8333333333333334,
+    "delta": 0.16666666666666674,
+    "protocol": "ground_truth"
+   },
+   "rows": [
+    {
+     "qid": "S29",
+     "family": "net_revenue",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者採用相同的定義（TW-N、台北時間 2025-11、status 1,2,3、單價以分計 × 數量、退款依原訂單扣回），SQL 語意正確，最終答案皆為 13,423,113；差別只在單位驗證方式（A 對照 products.list_price_twd 的量級，B 檢查 unit_price_cents 的分布），品質相當。"
+    },
+    {
+     "qid": "S30",
+     "family": "aov",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "A 依語意層規定以台北時間（UTC+8）劃分 2025 年；B 檢查過時區後綴，卻仍用原始 order_ts 切分，期間邊界可能偏移，訂單數與金額因此略有差異。"
+    },
+    {
+     "qid": "S31",
+     "family": "ontime",
+     "parent_correct": false,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "candidate",
+     "judge_agrees": false,
+     "reason": "unparseable judge output"
+    },
+    {
+     "qid": "S32",
+     "family": "new_customers",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者都以 customers.signup_date 篩選 2025-03-01 至 2025-03-31，得到相同答案 150，也都做了日期格式與不重複客戶數的檢查（A 依長度與年份分組，B 檢查非 ISO 格式與空值），驗證強度相當，沒有實質差異。"
+    },
+    {
+     "qid": "S33",
+     "family": "valid_orders",
+     "parent_correct": false,
+     "candidate_correct": false,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者的有效訂單定義、SQL 與答案（3668）相同；A 只隨機抽樣 5 筆確認時間格式，B 則以 GLOB 全表檢查格式（不符筆數為 0），並驗證篩選後的日期範圍為 2025-02-01 至 2025-02-28，佐證更完整。"
+    },
+    {
+     "qid": "S34",
+     "family": "coupon",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者採用相同的有效訂單定義與時間篩選，得到相同結果（11,901 張中 1,718 張，占 14.44%）；B 以 COUNT(DISTINCT order_id) 計張數，能防範重複列，探索查詢也檢視了全部優惠碼分布，因此略為穩健。"
+    },
+    {
+     "qid": "S35",
+     "family": "cancel_rate",
+     "parent_correct": false,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "candidate",
+     "judge_agrees": true,
+     "reason": "B 依語意層取消率定義排除待付款（status 0），計算為 697/4552=15.31%，SQL 與勾稽一致；A 的主答案把待付款訂單計入分母，與常見的取消率定義不符，雖附上 15.29% 作為替代值，但未採為結論。兩者時區假設不同（A 將 order_ts 視為 UTC 再 +8，B 視為已是台北時間），無法從資料確認何者正確。"
+    },
+    {
+     "qid": "S36",
+     "family": "valid_orders",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者採用相同的有效訂單定義、台北時區換算與 app 通路篩選，得到一致的 1446；A 以 DISTINCT 計數並附帶其他通路結果，B 直接篩選 app，差異不影響結論。"
+    },
+    {
+     "qid": "S37",
+     "family": "ship_days",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者答案相同，但 A 以出貨時間界定季度更貼近物流語意，且完整驗證了未送達排除、格式、極值與物流商數；B 改用訂單時間並做未經佐證的時區換算，檢查也較少"
+    },
+    {
+     "qid": "S38",
+     "family": "valid_orders",
+     "parent_correct": false,
+     "candidate_correct": false,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者定義與答案（4089）一致，但 A 額外驗證了 order_ts 全表皆為 19 字元標準格式，排除了日期格式異常造成漏計的風險，可驗證性較高；B 僅提供各月分布，未檢查格式。"
+    },
+    {
+     "qid": "S39",
+     "family": "refund",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "unparseable judge output"
+    },
+    {
+     "qid": "S40",
+     "family": "collected",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者採用相同定義（line_pay、付款成功、台北時間 2025-05、不扣退款）與相同 SQL，得出相同答案 7449980；A 多一條時間轉換的檢查查詢但結果片段被截斷，B 結果完整呈現，整體品質相當。"
+    }
+   ]
+  },
+  {
+   "file": "gate_round2.json",
+   "repetition": 1,
+   "judge_decision": {
+    "accept": true,
+    "candidate_wins": 4,
+    "parent_wins": 1,
+    "ties": 7,
+    "candidate_critical_errors": 0,
+    "protocol": "llm_judge"
+   },
+   "gt_decision": {
+    "accept": true,
+    "parent_score": 0.6666666666666666,
+    "candidate_score": 0.8333333333333334,
+    "delta": 0.16666666666666674,
+    "protocol": "ground_truth"
+   },
+   "rows": [
+    {
+     "qid": "S29",
+     "family": "net_revenue",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者採用相同定義（TW-N、台北時間 2025-11、status IN (1,2,3)、cents/100、退款歸屬原訂單）並得出相同結果 13,423,113；A 額外驗證了單價的分/元單位換算，B 額外驗證了退款與明細的對應及金額上限，兩者的驗證各有側重，整體品質相當。"
+    },
+    {
+     "qid": "S30",
+     "family": "aov",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者採用相同定義（web 通路、status 1/2/3、台北時間 2025 年、商品金額不扣退款、不重複訂單數），時區處理方式等價，得到相同的 9409.82；A 的最終查詢結果完整可見，B 則多檢視了 status 分布，差異不影響結論。"
+    },
+    {
+     "qid": "S31",
+     "family": "ontime",
+     "parent_correct": false,
+     "candidate_correct": false,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者都正確指出缺少準時判定標準而無法計算；B 另外按台北時間篩出 2025 Q1 黑貓已送達訂單並提供出貨到送達天數分布，業務方決定 SLA 後可直接套用，比 A 只檢視全表更有幫助（但 B 以 order_ts 而非 shipped_ts 界定季度，且未送達筆數交代略含糊）。"
+    },
+    {
+     "qid": "S32",
+     "family": "new_customers",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者都以 customers.signup_date 篩選 2025 年 3 月，得到相同的 150 位，也都檢查了日期格式與空值；B 多做了主鍵去重與最小／最大日期確認，A 則說明時區規則不適用於此欄位，兩者都有效且差異不大。"
+    },
+    {
+     "qid": "S33",
+     "family": "valid_orders",
+     "parent_correct": false,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "candidate",
+     "judge_agrees": true,
+     "reason": "B 依語意層將 UTC 的 order_ts 加 8 小時換算為台北時間後再篩選 2 月，邊界處理較正確；A 直接以 UTC 文字比較，忽略時區轉換，月界附近的訂單可能錯算。"
+    },
+    {
+     "qid": "S34",
+     "family": "coupon",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者採用相同的有效訂單定義與台北時區轉換，最終答案都是 14.41；B 完整呈現了 UTC 與 UTC+8 兩種篩選結果的對照，並以 DISTINCT order_id 計數，可驗證性略高。A 則檢查了優惠碼的變體寫法，但結果片段被截斷，無法直接驗證 1715/11900。"
+    },
+    {
+     "qid": "S35",
+     "family": "cancel_rate",
+     "parent_correct": false,
+     "candidate_correct": false,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者取消率定義相同（status=9 ÷ 全部訂單），差異只在時區處理：A 直接用 order_ts 原值篩選並自承時區假設未驗證，B 明確換算為台北時間（UTC+8）後再篩選，處理較嚴謹；但無法確認原始資料是否為 UTC，兩者皆不構成嚴重錯誤。"
+    },
+    {
+     "qid": "S36",
+     "family": "valid_orders",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "unparseable judge output"
+    },
+    {
+     "qid": "S37",
+     "family": "ship_days",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者答案同為 2.91 且都排除未送達紀錄：A 以 shipped_ts 篩選第二季，較貼近配送指標的語意，但未處理時區；B 套用語意層的台北時區規則並多做驗證，卻改以訂單時間歸屬季度，兩者各有可議之處、整體相當。"
+    },
+    {
+     "qid": "S38",
+     "family": "valid_orders",
+     "parent_correct": false,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "candidate",
+     "judge_agrees": true,
+     "reason": "A 明確指出 order_ts 為 UTC 並換算成台北時間（+8 小時）再篩選 1 月，B 直接以 UTC 字串篩選、未處理時區，月份邊界可能錯置，導致 4089 與 4098 的差異。"
+    },
+    {
+     "qid": "S39",
+     "family": "refund",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩者採用相同定義（以 refund_ts 換算 UTC+8 歸屬月份、加總 refund_amount_twd），SQL 語意等價，得到相同的 349 筆與 1,557,639 TWD，說明也同樣清楚，無實質差異。"
+    },
+    {
+     "qid": "S40",
+     "family": "collected",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "unparseable judge output"
+    }
+   ]
+  },
+  {
+   "file": "gate_round2.json",
+   "repetition": 2,
+   "judge_decision": {
+    "accept": true,
+    "candidate_wins": 7,
+    "parent_wins": 4,
+    "ties": 1,
+    "candidate_critical_errors": 0,
+    "protocol": "llm_judge"
+   },
+   "gt_decision": {
+    "accept": true,
+    "parent_score": 0.6666666666666666,
+    "candidate_score": 0.8333333333333334,
+    "delta": 0.16666666666666674,
+    "protocol": "ground_truth"
+   },
+   "rows": [
+    {
+     "qid": "S29",
+     "family": "net_revenue",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者定義與最終數字相同，但 B 的 SQL 直接計算 quantity×單價÷100，並以 COALESCE 處理無退款的情況，且結果完整可驗證；A 的查詢混入不必要的未加權欄位，單位換算未在 SQL 中完成，結果片段也被截斷，較難驗證。"
+    },
+    {
+     "qid": "S30",
+     "family": "aov",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者答案與定義一致（9409.82，台北時間、有效訂單、不扣退款），但 B 額外驗證了通路代碼並對照 UTC 與台北時區篩選的差異，可驗證性略高。"
+    },
+    {
+     "qid": "S31",
+     "family": "ontime",
+     "parent_correct": false,
+     "candidate_correct": false,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者皆正確指出缺乏準時標準而無法計算，但 A 額外查出黑貓 2025Q1 出貨 4979 筆、已送達 4451 筆的可驗證背景數據，B 只做了全表承運商概覽，未聚焦問題期間。"
+    },
+    {
+     "qid": "S32",
+     "family": "new_customers",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者答案同為 150 且定義一致，但 A 先檢查了 signup_date 的格式與空值，再用明確的日期區間查詢並以 COUNT DISTINCT 驗證，直接得出 150；B 只有按月分組的查詢，且結果片段被截斷，看不到 2025-03 的數值，可驗證性較弱。"
+    },
+    {
+     "qid": "S33",
+     "family": "valid_orders",
+     "parent_correct": false,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "candidate",
+     "judge_agrees": true,
+     "reason": "A 依語意層規則將 order_ts 由 UTC 加 8 小時換算為台北時間後再篩選 2025 年 2 月，並檢查了換算後是否有 NULL；B 直接用 UTC 時間篩選，忽略時區換算，月份邊界的訂單會被錯誤歸屬，導致計數（3668）與正確口徑不符。"
+    },
+    {
+     "qid": "S34",
+     "family": "coupon",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "B 依規則將 order_ts 從 UTC 加 8 小時換算為台北時間後再切出 2025 Q1，並檢查時間欄位皆可解析（unparsed=0）；A 直接用原始 UTC 時間篩選，雖然檢查了 coupon 拼寫與時間格式，但漏掉時區換算，邊界訂單因此可能歸錯季度（兩者結果 14.44 與 14.41 差距小）。"
+    },
+    {
+     "qid": "S35",
+     "family": "cancel_rate",
+     "parent_correct": false,
+     "candidate_correct": false,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "A 依台北時間篩選 2025 年 11 月訂單，以狀態 9 除以全部訂單算出 14.58%（695/4768，計算正確），並說明了分母的假設；B 雖跑出相同的計數，但因達到 max_steps 而未給出任何答案。"
+    },
+    {
+     "qid": "S36",
+     "family": "valid_orders",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者 SQL 與結果完全相同（1446）。差別在 A 聲稱「依不重複訂單編號計數」，但實際用的是 COUNT(*) 而非 COUNT(DISTINCT)，描述與查詢略不一致；B 說明 orders 表每張訂單一列，用 COUNT(*) 計數因此合理，前後一致。"
+    },
+    {
+     "qid": "S37",
+     "family": "ship_days",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者答案同為 2.91，但 B 依語意層規則把 UTC 時間換算為台北時間再界定第二季，並檢查了空值、時間倒置與時間可解析性，驗證較完整；A 直接用未換算時區的 shipped_ts 篩選，排除未送達紀錄的描述也含糊，嚴謹度較低。"
+    },
+    {
+     "qid": "S38",
+     "family": "valid_orders",
+     "parent_correct": false,
+     "candidate_correct": true,
+     "judge": "candidate",
+     "judge_critical_error": false,
+     "gt_winner": "candidate",
+     "judge_agrees": true,
+     "reason": "A 依語意層時區規則把 UTC 儲存的 order_ts 換算成台北時間（UTC+8）來界定 1 月範圍，B 直接用 UTC 日期切月份，沒有處理時區，月份邊界因此偏移，導致計數不同（4098 vs 4089）。"
+    },
+    {
+     "qid": "S39",
+     "family": "refund",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "tie",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": true,
+     "reason": "兩個回答的最終數字(1557639)、定義(以 refund_ts 換算台北時間歸屬 2025-08)、SQL 邏輯與結果完全一致，只是措辭與 GROUP BY 的寫法略有不同，品質無實質差異。"
+    },
+    {
+     "qid": "S40",
+     "family": "collected",
+     "parent_correct": true,
+     "candidate_correct": true,
+     "judge": "parent",
+     "judge_critical_error": false,
+     "gt_winner": "tie",
+     "judge_agrees": false,
+     "reason": "兩者答案同為 7449980 且查詢邏輯一致，但 B 的查詢乾淨、明確說明不扣退款並以全表分組驗證各付款方式；A 含一次因佔位欄位而失敗的無效查詢，過程較雜亂。"
+    }
+   ]
+  }
+ ]
+}
